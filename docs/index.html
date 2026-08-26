@@ -34,6 +34,15 @@ a:hover{text-decoration:underline;text-underline-offset:3px}
 .skip:focus{left:14px;top:14px}
 :focus-visible{outline:2px solid var(--red);outline-offset:3px;border-radius:2px}
 
+/* ---------- custom scrollbars ---------- */
+html{scrollbar-width:thin;scrollbar-color:var(--rule-strong) transparent}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-corner{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--rule-strong);border:3px solid var(--paper);border-radius:0}
+::-webkit-scrollbar-thumb:hover{background:var(--red)}
+::-webkit-scrollbar-thumb:active{background:var(--red-deep)}
+
 /* ---------- masthead ---------- */
 .mast{border-bottom:3px double var(--rule-strong)}
 .mast .in{max-width:980px;margin:0 auto;padding:26px 22px 20px;display:flex;align-items:baseline;gap:18px;flex-wrap:wrap}
@@ -123,7 +132,12 @@ section.chap{padding:70px 0 66px;border-top:1px solid var(--rule)}
 .pull{margin:30px 0;border-left:3px solid var(--red);background:var(--red-soft);padding:22px 26px 18px}
 .pull .q{font-family:var(--serif);font-size:15px;color:var(--red);letter-spacing:.25em;margin-bottom:10px}
 .code{position:relative;background:var(--code-bg);color:var(--code-ink);border-radius:2px;
-  padding:20px 56px 20px 20px;font-family:var(--mono);font-size:13.5px;line-height:1.7;overflow-x:auto}
+  padding:20px 56px 20px 20px;font-family:var(--mono);font-size:13.5px;line-height:1.7;overflow-x:auto;
+  scrollbar-width:thin;scrollbar-color:rgba(236,231,222,.32) transparent}
+.code::-webkit-scrollbar{width:9px;height:9px}
+.code::-webkit-scrollbar-thumb{background:rgba(236,231,222,.32);border:2px solid var(--code-bg)}
+.code::-webkit-scrollbar-thumb:hover{background:rgba(236,231,222,.6)}
+.code::-webkit-scrollbar-thumb:active{background:rgba(236,231,222,.85)}
 .code code{white-space:pre;display:block}
 .copy{position:absolute;top:10px;right:10px;display:inline-flex;align-items:center;gap:6px;
   background:transparent;color:var(--code-ink);border:1px solid rgba(236,231,222,.35);border-radius:2px;
