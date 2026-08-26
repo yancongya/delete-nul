@@ -1,0 +1,24 @@
+==========================================================
+[用法 Usage]
+1. cd into the target folder first, then paste PART 1 below
+   into cmd and press Enter. It ONLY scans and lists.
+   先 cd 进入要清理的目录，再把【第 1 部分】整段复制到 cmd 回车
+   （只扫描列出，不删除）。
+2. Review the list carefully. Copy PART 2 only after confirming.
+   核对列表无误后，再单独复制【第 2 部分】执行删除。
+==========================================================
+
+rem ======== [PART 1 / 第 1 部分] Scan current dir (safe, no delete) / 扫描当前目录（安全，不删除） ========
+set "RNLIST=%TEMP%\reserved_name_files.txt"
+type nul > "%RNLIST%"
+dir /s /b /a 2>nul | findstr /r /i /c:"\\nul$" /c:"\\con$" /c:"\\prn$" /c:"\\aux$" /c:"\\com1$" /c:"\\com2$" /c:"\\com3$" /c:"\\com4$" /c:"\\com5$" /c:"\\com6$" /c:"\\com7$" /c:"\\com8$" /c:"\\com9$" /c:"\\lpt1$" /c:"\\lpt2$" /c:"\\lpt3$" /c:"\\lpt4$" /c:"\\lpt5$" /c:"\\lpt6$" /c:"\\lpt7$" /c:"\\lpt8$" /c:"\\lpt9$" >> "%RNLIST%"
+type "%RNLIST%"
+echo.
+echo List saved to: %RNLIST%
+echo 列表已保存到：%RNLIST%
+echo Review the list above! Copy PART 2 only after confirming.
+echo 请仔细核对上方列表！确认后再复制执行下面第 2 部分。
+
+rem ======== [PART 2 / 第 2 部分] DELETE! Only after reviewing PART 1 / 删除！核对完第 1 部分结果后再执行 ========
+for /f "usebackq delims=" %P in ("%RNLIST%") do @del /f /a /q "\\?\%P" 2>nul
+for /f "usebackq delims=" %P in ("%RNLIST%") do @(if exist "\\?\%P" (echo [FAILED] %P) else (echo [DELETED] %P))
