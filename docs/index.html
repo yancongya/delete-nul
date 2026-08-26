@@ -104,10 +104,13 @@ html{scrollbar-width:thin;scrollbar-color:var(--rule-strong) transparent}
 .wall-stage .cap{text-align:center;font-family:var(--serif);font-size:14px;letter-spacing:.35em;
   color:var(--faint);margin:0 0 34px}
 .gridwrap{position:relative}
-.wall-stage .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px 10px;
-  border-top:1px solid var(--rule);border-left:1px solid var(--rule)}
-.wall-stage .cell{border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);
-  padding:15px 8px;text-align:center;position:relative}
+.wrow{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--rule);
+  max-height:110px;overflow:hidden;
+  transition:max-height .5s ease .34s,border-top-width .25s ease .6s}
+.wrow:last-of-type{border-bottom:1px solid var(--rule)}
+.wrow.short{grid-template-columns:repeat(2,1fr)}
+.wrow.del{max-height:0;border-top-width:0}
+.wall-stage .cell{padding:16px 8px;text-align:center;position:relative}
 .wall-stage .cell .t{display:inline-block;font-family:var(--serif);font-size:19px;color:var(--muted);
   position:relative;transition:color .3s}
 .wall-stage .cell:hover .t{color:var(--ink)}
@@ -123,6 +126,10 @@ html{scrollbar-width:thin;scrollbar-color:var(--rule-strong) transparent}
 .wall-stage.armed .cell.on.del .t{opacity:0;transform:none;color:var(--red);
   transition:opacity .5s ease .18s,transform .3s,color .2s}
 .wall-stage.armed .cell.on.del .t::after{transform:scaleX(1);opacity:1}
+.wall-stage.armed .cell:nth-child(2) .t{transition-delay:.05s}
+.wall-stage.armed .cell:nth-child(3) .t{transition-delay:.1s}
+.wall-stage.armed .cell:nth-child(4) .t{transition-delay:.15s}
+.wall-stage.armed .cell:nth-child(5) .t{transition-delay:.2s}
 .scanline{position:absolute;left:-8px;right:-8px;top:0;height:2px;background:var(--red);
   box-shadow:0 0 14px rgba(193,48,28,.55);opacity:0;pointer-events:none;transition:opacity .3s}
 .wall-stage.scanning .scanline{opacity:1}
@@ -134,9 +141,8 @@ html{scrollbar-width:thin;scrollbar-color:var(--rule-strong) transparent}
 .wall-stage.reduced .wall-pin{position:static;height:auto;padding:64px 0 70px}
 .wall-stage.reduced .scanline,.wall-stage.reduced .wall-status{display:none}
 @media (max-width:640px){
-  .wall-stage .grid{grid-template-columns:repeat(auto-fill,minmax(92px,1fr))}
-  .wall-stage .cell{padding:11px 6px}
-  .wall-stage .cell .t{font-size:16px}
+  .wall-stage .cell{padding:11px 4px}
+  .wall-stage .cell .t{font-size:15px}
   .wall-stage .cap{margin-bottom:22px;font-size:12.5px;letter-spacing:.25em}
   .wall-status{margin-top:18px;font-size:12.5px;letter-spacing:.2em}
 }
@@ -292,13 +298,20 @@ footer a{font-family:var(--serif);font-size:14.5px}
     <div class="wall-pin">
       <div class="wall-inner">
         <p class="cap">全部二十二个目标 · 皆在清理之列</p>
-        <div class="gridwrap">
-          <div class="grid" aria-label="可清理的保留名：NUL、CON、PRN、AUX、COM1 至 COM9、LPT1 至 LPT9">
-            <div class="cell hot"><span class="t">NUL</span></div><div class="cell hot"><span class="t">CON</span></div><div class="cell hot"><span class="t">PRN</span></div><div class="cell hot"><span class="t">AUX</span></div>
-            <div class="cell"><span class="t">COM1</span></div><div class="cell"><span class="t">COM2</span></div><div class="cell"><span class="t">COM3</span></div><div class="cell"><span class="t">COM4</span></div>
-            <div class="cell"><span class="t">COM5</span></div><div class="cell"><span class="t">COM6</span></div><div class="cell"><span class="t">COM7</span></div><div class="cell"><span class="t">COM8</span></div>
-            <div class="cell"><span class="t">COM9</span></div><div class="cell"><span class="t">LPT1</span></div><div class="cell"><span class="t">LPT2</span></div><div class="cell"><span class="t">LPT3</span></div>
-            <div class="cell"><span class="t">LPT4</span></div><div class="cell"><span class="t">LPT5</span></div><div class="cell"><span class="t">LPT6</span></div><div class="cell"><span class="t">LPT7</span></div>
+        <div class="gridwrap" aria-label="可清理的保留名：NUL、CON、PRN、AUX、COM1 至 COM9、LPT1 至 LPT9">
+          <div class="wrow">
+            <div class="cell hot"><span class="t">NUL</span></div><div class="cell hot"><span class="t">CON</span></div><div class="cell hot"><span class="t">PRN</span></div><div class="cell hot"><span class="t">AUX</span></div><div class="cell"><span class="t">COM1</span></div>
+          </div>
+          <div class="wrow">
+            <div class="cell"><span class="t">COM2</span></div><div class="cell"><span class="t">COM3</span></div><div class="cell"><span class="t">COM4</span></div><div class="cell"><span class="t">COM5</span></div><div class="cell"><span class="t">COM6</span></div>
+          </div>
+          <div class="wrow">
+            <div class="cell"><span class="t">COM7</span></div><div class="cell"><span class="t">COM8</span></div><div class="cell"><span class="t">COM9</span></div><div class="cell"><span class="t">LPT1</span></div><div class="cell"><span class="t">LPT2</span></div>
+          </div>
+          <div class="wrow">
+            <div class="cell"><span class="t">LPT3</span></div><div class="cell"><span class="t">LPT4</span></div><div class="cell"><span class="t">LPT5</span></div><div class="cell"><span class="t">LPT6</span></div><div class="cell"><span class="t">LPT7</span></div>
+          </div>
+          <div class="wrow short">
             <div class="cell"><span class="t">LPT8</span></div><div class="cell"><span class="t">LPT9</span></div>
           </div>
           <div class="scanline" aria-hidden="true"></div>
@@ -477,16 +490,22 @@ footer a{font-family:var(--serif);font-size:14.5px}
   }
 })();
 
-/* ---- wall of names: scroll-driven scene ---- */
+/* ---- wall of names: scroll-driven scene, row-based ---- */
 (function(){
   var stage = document.getElementById('wallStage');
   if(!stage) return;
-  var cells = stage.querySelectorAll('.cell');
-  var grid = stage.querySelector('.grid');
+  var rows = stage.querySelectorAll('.wrow');
+  var gridwrap = stage.querySelector('.gridwrap');
   var line = stage.querySelector('.scanline');
   var status = stage.querySelector('.wall-status');
-  var N = cells.length;
-  if(!N) return;
+  var R = rows.length;
+  if(!R || !gridwrap) return;
+  var TOTAL = 0;
+  var rowCells = [];
+  for(var i = 0; i < R; i++){
+    rowCells.push(rows[i].querySelectorAll('.cell'));
+    TOTAL += rowCells[i].length;
+  }
 
   if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
     stage.classList.add('reduced');
@@ -495,17 +514,21 @@ footer a{font-family:var(--serif);font-size:14.5px}
   stage.classList.add('armed');
 
   var FILL_END = 0.28, DEL_END = 0.88, GONE_AT = 0.95, SCAN_DUR = 1300;
-  var filled = 0, scanStarted = false, scanDone = false, scanT0 = 0;
+  var filledRows = 0, scanStarted = false, scanDone = false, scanT0 = 0;
   var collapsing = false, collapsed = false, userScrolled = false;
+  var READY_MSG = '发现 ' + TOTAL + ' 个 · 向下滚动，逐行清理';
 
-  function fillUpTo(n){
-    n = Math.max(0, Math.min(n, N));
-    while(filled < n){ cells[filled].classList.add('on'); filled++; }
+  function fillUpToRow(idx){
+    for(var k = filledRows; k <= idx; k++){
+      var cs = rowCells[k];
+      for(var j = 0; j < cs.length; j++) cs[j].classList.add('on');
+    }
+    if(idx + 1 > filledRows) filledRows = idx + 1;
   }
   function finishScan(){
     if(scanDone) return;
     scanDone = true;
-    fillUpTo(N);
+    fillUpToRow(R - 1);
     stage.classList.remove('scanning');
     stage.classList.add('scanned');
     if(line) line.style.opacity = '0';
@@ -514,24 +537,24 @@ footer a{font-family:var(--serif);font-size:14.5px}
     if(scanStarted || scanDone) return;
     scanStarted = true;
     stage.classList.add('scanning');
-    if(status) status.textContent = '\u6b63\u5728\u626b\u63cf\u2026\u2026';
+    if(status) status.textContent = '正在扫描……';
     scanT0 = performance.now();
     requestAnimationFrame(scanTick);
   }
   function scanTick(now){
     var t = Math.min((now - scanT0) / SCAN_DUR, 1);
-    var h = grid.offsetHeight;
+    var h = gridwrap.offsetHeight;
     if(line) line.style.transform = 'translateY(' + (t * h) + 'px)';
     var count = 0;
-    for(var i = 0; i < N; i++){
-      if(cells[i].offsetTop + cells[i].offsetHeight * 0.6 <= t * h + 2) count = i + 1;
+    for(var i = 0; i < R; i++){
+      if(rows[i].offsetTop + rows[i].offsetHeight * 0.6 <= t * h + 2) count = i + 1;
       else break;
     }
-    fillUpTo(count);
+    if(count > filledRows) fillUpToRow(count - 1);
     if(t < 1){ requestAnimationFrame(scanTick); }
     else{
       finishScan();
-      if(status) status.textContent = '\u53d1\u73b0 ' + N + ' \u4e2a \u00b7 \u5411\u4e0b\u6eda\u52a8\uff0c\u9010\u4e2a\u6e05\u7406';
+      if(status) status.textContent = READY_MSG;
       update();
     }
   }
@@ -545,7 +568,7 @@ footer a{font-family:var(--serif);font-size:14.5px}
     if(collapsing || collapsed) return;
     collapsing = true;
     stage.classList.add('fold');
-    if(status) status.textContent = '\u5df2\u6e05\u7406 ' + N + ' / ' + N + ' \u00b7 \u6e05\u7406\u5b8c\u6bd5';
+    if(status) status.textContent = '已清理 ' + R + ' / ' + R + ' 行 · 清理完毕';
     var docEl = document.documentElement;
     var prevBehavior = docEl.style.scrollBehavior;
     docEl.style.scrollBehavior = 'auto';
@@ -576,24 +599,24 @@ footer a{font-family:var(--serif);font-size:14.5px}
     if(p >= FILL_END && !scanDone){
       scanStarted = true;
       finishScan();
-      if(status) status.textContent = '\u53d1\u73b0 ' + N + ' \u4e2a \u00b7 \u5411\u4e0b\u6eda\u52a8\uff0c\u9010\u4e2a\u6e05\u7406';
+      if(status) status.textContent = READY_MSG;
     }
-    var del = 0;
+    var delRows = 0;
     if(p > FILL_END && scanDone){
       var q = (p - FILL_END) / (DEL_END - FILL_END);
       q = Math.min(Math.max(q, 0), 1);
-      del = Math.round(q * N);
+      delRows = Math.round(q * R);
     }
     if(scanDone){
-      for(var i = 0; i < N; i++){
-        if(i < del) cells[i].classList.add('del');
-        else cells[i].classList.remove('del');
+      for(var i = 0; i < R; i++){
+        if(i < delRows) rows[i].classList.add('del');
+        else rows[i].classList.remove('del');
       }
       if(status){
-        if(del <= 0) status.textContent = '\u53d1\u73b0 ' + N + ' \u4e2a \u00b7 \u5411\u4e0b\u6eda\u52a8\uff0c\u9010\u4e2a\u6e05\u7406';
-        else if(del < N) status.textContent = '\u5df2\u6e05\u7406 ' + del + ' / ' + N;
+        if(delRows <= 0) status.textContent = READY_MSG;
+        else if(delRows < R) status.textContent = '已清理 ' + delRows + ' / ' + R + ' 行';
       }
-      if(userScrolled && p >= GONE_AT && del >= N &&
+      if(userScrolled && p >= GONE_AT && delRows >= R &&
          stage.getBoundingClientRect().bottom > window.innerHeight * 0.5){
         collapseStage();
       }
