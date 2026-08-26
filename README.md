@@ -58,10 +58,10 @@ Enumeration works fine (`dir`), so: enumerate → match exact names → record f
 > Use only with a trusted source; antivirus may flag download-and-execute chains.
 
 ```bat
-curl -fsSL "https://raw.githubusercontent.com/<user>/<repo>/main/delete-nul.bat" -o "%TEMP%\delete-nul.bat" && call "%TEMP%\delete-nul.bat"
+curl -fsSL "https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat" -o "%TEMP%\delete-nul.bat" && call "%TEMP%\delete-nul.bat"
 ```
 
-把 `<user>/<repo>` 替换为本仓库地址即可。Replace `<user>/<repo>` with this repo's path after pushing.
+仓库地址：<https://github.com/yancongya/delete-nul>
 
 不想下载？直接全盘扫描预览（安全，只列出不删除）Or preview without downloading (safe, list only):
 
