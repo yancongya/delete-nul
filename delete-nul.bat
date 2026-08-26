@@ -22,8 +22,8 @@ echo.
 
 for %%D in (C D E F G H I J K L M N O P Q R S T U V W X Y Z) do call :scan %%D
 
-set "COUNT=0"
-for /f %%C in ('type "%LIST%" ^| find /c /v ""') do set "COUNT=%%C"
+set /a COUNT=0
+for /f "usebackq delims=" %%C in (`type "%LIST%"`) do set /a COUNT+=1
 echo.
 if "%COUNT%"=="0" goto none
 

@@ -16,8 +16,8 @@ echo.
 
 for /f "delims=" %%F in ('dir /s /b /a "%ROOT%" 2^>nul') do call :check "%%F"
 
-set "COUNT=0"
-for /f %%C in ('type "%LIST%" ^| find /c /v ""') do set "COUNT=%%C"
+set /a COUNT=0
+for /f "usebackq delims=" %%C in (`type "%LIST%"`) do set /a COUNT+=1
 echo.
 if "%COUNT%"=="0" goto none
 
