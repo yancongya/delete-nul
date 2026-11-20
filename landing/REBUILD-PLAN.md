@@ -62,3 +62,11 @@ Chromium 回归通过 320、390、768、1440 px：验证鼠标分别扫过两行
 参考 Canvas UI 的 Decrypt Reveal 和 ASCII Sweep，分别用 CSS 遮罩和 Canvas 2D 在单文件中重建交互，不引入组件运行时。解码效果只覆盖卡片上方的装饰示例，不覆盖标题和说明；触屏与减少动态效果模式直接显示示例。模式切换用字符带揭开新内容，减少动态效果时立即切换。Playwright 在四视口验证了悬停、键盘切换、扫掠结束与静态退化，检查了截图、横向溢出及控制台。
 
 卡片回归修正：静止时默认显示可读的终端示例，不再用乱码覆盖。进入视口仅扫掠一次；各卡的「演示解码」可用鼠标、触屏或键盘触发，650ms 内恢复原文。四视口 Chromium 验证了扫掠、解码恢复、浅色与减少动态效果。
+
+### 官方 Canvas UI 与 GitHub Pages
+
+使用 `npx shadcn@latest add @canvas-ui/decrypt-reveal-react @canvas-ui/ascii-sweep-react --yes` 从官方 registry 安装两份 React/WebGL 组件，原样保留在 `src/components/canvasui/`。只有终端示例与模式预览由 React 管理；移除了此前手写的解码按钮和 ASCII 扫光。仅调整适合卡片的解码半径、字符大小和灰阶配色，不替换官方渲染算法。
+
+当前预览改用 Node.js（22.12+）：运行 `preview.cmd`，或在 `landing/` 执行 `npm ci` 后 `npm run dev`，访问 `http://127.0.0.1:4190/delete-nul/`。`npm run build` 输出 `dist/`，资源按 `/delete-nul/` 子路径加载。GitHub 仓库 Settings → Pages → Build and deployment → Source 选择 GitHub Actions；推送 `main` 后工作流发布 `landing/dist`，也可在 Actions 中手动运行。仅配置了发布流程，尚未上传或部署。
+
+Decrypt Reveal 在缺少 HTML-in-Canvas/WebGL2、触屏或减少动态效果的环境里保留可读终端文本。ASCII Sweep 使用官方组件与其 DOM 捕获回退；没有 WebGL2 或开启减少动态效果时直接切换内容。Playwright Chromium 在 320/390/768/1440 px 验证模式切换与静态回退，并在桌面截图确认指针局部解码、录制扫掠过程；另用普通静态服务器验证 `/delete-nul/` 子目录的生产产物。

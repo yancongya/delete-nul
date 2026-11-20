@@ -133,11 +133,10 @@ html.light .theme-btn .moon{display:inline-block}
 .decrypt{position:relative;display:grid;align-items:center;min-height:96px;background:var(--bg);border-bottom:1px solid var(--line);overflow:hidden}
 .decrypt pre,.mode-screen pre{font:12px/1.65 var(--mono);margin:0;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}
 .decrypt pre{padding:14px 18px}
-.decrypt[data-decoding] pre{color:var(--dim)}
-.decrypt::after{content:'▒ ░ / + ▓ ░ ░ / ▒ ▓ ░ + ░ / ▒ ▓ ░ / +';display:none;position:absolute;inset:0 auto 0 0;width:128px;padding:8px;color:var(--ink);line-height:1.4;font-family:var(--mono);overflow:hidden;pointer-events:none;background:linear-gradient(90deg,transparent,var(--panel2),transparent)}
-.decrypt[data-sweep]::after{display:block;animation:feature-sweep .52s ease-out both}
-@keyframes feature-sweep{from{left:-140px;opacity:.8}to{left:100%;opacity:.25}}
-@media(prefers-reduced-motion:reduce){.decrypt[data-sweep]::after{display:none}}
+.decrypt[data-canvas-ui] {display:block}
+.decrypt .canvasui-decrypt {height:96px}
+.mode-screen:has(.canvasui-sweep) {min-height:200px}
+.canvasui-sweep .mode-panel {min-height:100%;background:var(--panel);color:var(--ink)}
 .mode-picker:not([hidden]){display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
 .mode-picker button{font:inherit;font-size:14px;padding:9px 13px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;cursor:pointer}
 .mode-picker button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:transparent}
@@ -146,7 +145,6 @@ html.light .theme-btn .moon{display:inline-block}
 .mode-panel h3{margin:0;font-size:17px}
 .mode-panel p{margin:6px 0 12px;color:var(--dim);font-size:14px}
 .mode-panel pre{border-top:1px solid var(--line);padding-top:9px;color:var(--ink)}
-.mode-sweep{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 
 /* sections */
 section.block{padding:88px 0;border-top:1px solid var(--line)}
@@ -350,18 +348,18 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:56px 24px}
       <h2 class="title reveal">只做一件事，做对</h2>
       <p class="lead reveal">围绕保留名文件的查找与删除，把边界情况都处理掉。</p>
       <div class="grid">
-        <div class="card reveal"><div class="card-head"><span>匹配结果</span><button type="button" hidden>演示解码</button></div><div class="decrypt"><pre>[+] D:\work\NUL
+        <div class="card reveal"><div class="card-head"><span>匹配结果</span></div><div class="decrypt"><pre>[+] D:\work\NUL
 [ ] D:\work\nul.txt</pre></div><h3>精确匹配</h3><p>只匹配裸保留名本体，<code>nul.txt</code> 这类正常文件不会被误删。</p></div>
-        <div class="card reveal"><div class="card-head"><span>确认提示</span><button type="button" hidden>演示解码</button></div><div class="decrypt"><pre>[1] NUL     [2] CON
+        <div class="card reveal"><div class="card-head"><span>确认提示</span></div><div class="decrypt"><pre>[1] NUL     [2] CON
     Delete? [Y/N]</pre></div><h3>先列后删</h3><p>列出全部结果、确认（Y）才删除，逐条报告成功 / 失败，不进回收站。</p></div>
-        <div class="card reveal"><div class="card-head"><span>路径解析</span><button type="button" hidden>演示解码</button></div><div class="decrypt"><pre>    D:\work\NUL
+        <div class="card reveal"><div class="card-head"><span>路径解析</span></div><div class="decrypt"><pre>    D:\work\NUL
  =&gt; \\?\D:\work\NUL</pre></div><h3>\\?\ 前缀</h3><p>加 <code>\\?\</code> 直达 NT 路径，绕过 Win32 把 NUL 当设备的解析。</p></div>
-        <div class="card reveal"><div class="card-head"><span>交互菜单</span><button type="button" hidden>演示解码</button></div><div class="decrypt"><pre>[G] Scan all drives
+        <div class="card reveal"><div class="card-head"><span>交互菜单</span></div><div class="decrypt"><pre>[G] Scan all drives
 [S] Select a folder
 [D] Paste a path</pre></div><h3>多种入口</h3><p>全局扫描、选盘浏览、粘贴路径、拖拽处理——按你的习惯来。</p></div>
-        <div class="card reveal"><div class="card-head"><span>脚本参数</span><button type="button" hidden>演示解码</button></div><div class="decrypt"><pre>-Json  -LogPath
+        <div class="card reveal"><div class="card-head"><span>脚本参数</span></div><div class="decrypt"><pre>-Json  -LogPath
 -ScanTimeout</pre></div><h3>可脚本化</h3><p>JSON 输出、退出码、日志、单盘超时，方便接入自动化。</p></div>
-        <div class="card reveal"><div class="card-head"><span>权限选项</span><button type="button" hidden>演示解码</button></div><div class="decrypt"><pre>default: standard user
+        <div class="card reveal"><div class="card-head"><span>权限选项</span></div><div class="decrypt"><pre>default: standard user
 option:  -Elevate</pre></div><h3>权限克制</h3><p>默认普通权限即可删个人目录文件，需要时才用 <code>-Elevate</code>。</p></div>
       </div>
     </div>
@@ -407,7 +405,6 @@ option:  -Elevate</pre></div><h3>权限克制</h3><p>默认普通权限即可删
         <div class="mode-panel" id="usage-0"><h3>全局扫描</h3><p>扫描所有本地固定盘，跳过网络盘 / 光驱。大容量盘可配合 <code>-Fast</code> 与 <code>-ScanTimeout</code>。</p><pre>delete-nul.bat -DryRun</pre></div>
         <div class="mode-panel" id="usage-1"><h3>定向处理</h3><p>方向键选磁盘、进入文件夹浏览器逐层深入，<code>..</code> 返回上一层，选定当前目录即可。</p><pre>delete-nul.bat -Path &quot;D:\temp&quot; -DryRun</pre></div>
         <div class="mode-panel" id="usage-2"><h3>粘贴 / 拖拽</h3><p>Shift+右键复制文件地址粘贴，或把文件 / 文件夹直接拖到 bat 图标上——连 NUL 文件本身也能识别。</p><pre>[D] Paste a path / Drop onto delete-nul.bat</pre></div>
-        <canvas class="mode-sweep" aria-hidden="true" hidden></canvas>
       </div>
     </div>
   </section>
@@ -626,78 +623,6 @@ option:  -Elevate</pre></div><h3>权限克制</h3><p>默认普通权限即可删
     fit();
   })();
 
-  /* Canvas UI-inspired treatments; the samples and mode descriptions are ordinary HTML. */
-  var featureSweep=new IntersectionObserver(function(entries){
-    entries.forEach(function(entry){
-      if(!entry.isIntersecting)return;
-      featureSweep.unobserve(entry.target);
-      if(!motion.matches)entry.target.dataset.sweep='';
-    });
-  },{threshold:.55});
-  document.querySelectorAll('#features .card').forEach(function(card){
-    var sample=card.querySelector('.decrypt'),pre=sample.querySelector('pre');
-    var button=card.querySelector('.card-head button'),plain=pre.textContent,frame=0;
-    button.setAttribute('aria-label','演示解码：'+card.querySelector('h3').textContent);
-    function reset(){cancelAnimationFrame(frame);pre.textContent=plain;delete sample.dataset.decoding;}
-    function sync(){reset();button.hidden=motion.matches;if(motion.matches)delete sample.dataset.sweep;}
-    button.addEventListener('click',function(){
-      if(motion.matches)return;
-      reset();sample.dataset.decoding='';
-      var start=performance.now(),alphabet='▒░/<>#0123456789',last=-1;
-      function decode(now){
-        var elapsed=now-start,step=Math.floor(elapsed/50);
-        if(elapsed>=650){reset();return;}
-        if(step!==last){
-          last=step;
-          pre.textContent=Array.from(plain,function(c,i){
-            return /\s/.test(c)||i<plain.length*elapsed/650?c:alphabet[(i*7+step*3)%alphabet.length];
-          }).join('');
-        }
-        frame=requestAnimationFrame(decode);
-      }
-      frame=requestAnimationFrame(decode);
-    });
-    sample.addEventListener('animationend',function(e){if(e.animationName==='feature-sweep')delete sample.dataset.sweep;});
-    featureSweep.observe(sample);motion.addEventListener('change',sync);sync();
-  });
-  (function(){
-    var picker=document.querySelector('.mode-picker'),screen=document.querySelector('.mode-screen');
-    var tabs=Array.from(picker.querySelectorAll('button')),panels=Array.from(screen.querySelectorAll('.mode-panel'));
-    var canvas=screen.querySelector('canvas'),ctx=canvas.getContext('2d'),frame=0,selected=0;
-    var chars='?/#:+.<>10',duration=470;
-    function stop(){cancelAnimationFrame(frame);frame=0;canvas.hidden=true;}
-    function sweep(direction){
-      stop();if(motion.matches||!ctx)return;
-      var W=screen.clientWidth,H=screen.clientHeight,dpr=Math.min(devicePixelRatio||1,2),start=performance.now();
-      var palette=getComputedStyle(screen), ink=palette.getPropertyValue('--ink').trim(), panel=palette.getPropertyValue('--panel').trim();
-      canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);canvas.hidden=false;
-      ctx.setTransform(dpr,0,0,dpr,0,0);ctx.font='bold 12px monospace';ctx.textBaseline='top';
-      function draw(now){
-        var t=Math.max(0,Math.min(1,(now-start)/duration));if(t===1){stop();return;}
-        var edge=direction>0?t*(W+75):W-t*(W+75);
-        ctx.clearRect(0,0,W,H);ctx.fillStyle=panel;ctx.globalAlpha=.94;
-        if(direction>0)ctx.fillRect(edge,0,W-edge,H);else ctx.fillRect(0,0,Math.max(0,edge),H);
-        for(var x=Math.max(0,Math.floor((edge-75)/9)*9);x<Math.min(W,edge+75);x+=9){
-          var a=1-Math.abs(x-edge)/75;if(a<=0)continue;
-          for(var y=0;y<H;y+=13){
-            ctx.globalAlpha=a*(.3+.6*((x+y)%7)/6);ctx.fillStyle=ink;
-            ctx.fillText(chars[(x+y+Math.floor(t*26))%chars.length],x,y);
-          }
-        }
-        frame=requestAnimationFrame(draw);
-      }
-      draw(start);
-    }
-    function select(i){
-      if(i===selected)return;
-      var direction=i>selected?1:-1;selected=i;
-      panels.forEach(function(panel,n){panel.hidden=n!==i;tabs[n].setAttribute('aria-pressed',String(n===i));});
-      sweep(direction);
-    }
-    tabs.forEach(function(tab,i){tab.addEventListener('click',function(){select(i)})});
-    motion.addEventListener('change',stop);panels.slice(1).forEach(function(panel){panel.hidden=true});picker.hidden=false;
-  })();
-
   /* terminal demo */
   (function(){
     var box=document.getElementById('demo-body'),replay=document.getElementById('replay');if(!box)return;
@@ -761,5 +686,6 @@ option:  -Elevate</pre></div><h3>权限克制</h3><p>默认普通权限即可删
   })();
 })();
 </script>
+<script type="module" src="/src/canvas-effects.jsx"></script>
 </body>
 </html>

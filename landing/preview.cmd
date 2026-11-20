@@ -1,7 +1,11 @@
 @echo off
-where py >nul 2>nul
+cd /d "%~dp0"
+where npm.cmd >nul 2>nul
 if errorlevel 1 (
-  python -I -m http.server 4190 --bind 127.0.0.1 --directory "%~dp0."
-) else (
-  py -3 -I -m http.server 4190 --bind 127.0.0.1 --directory "%~dp0."
+  echo Install Node.js 22.12 or later, then rerun this script.
+  exit /b 1
 )
+call npm ci
+if errorlevel 1 exit /b 1
+echo Visit http://127.0.0.1:4190/delete-nul/
+call npm run dev
