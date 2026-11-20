@@ -5,30 +5,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>delete-nul — Windows 保留名文件清理工具</title>
 <meta name="description" content="查找并删除 Windows 上普通方法删不掉的 NUL / CON / AUX / PRN / COM1-9 / LPT1-9 保留名文件。先列出，确认后才删。">
+<script>try{if(localStorage.getItem('dn-theme')==='light')document.documentElement.classList.add('light')}catch(e){}</script>
 <style>
 :root{
   --bg:#070708; --panel:#0f0f11; --panel2:#151518; --line:#ffffff17;
-  --ink:#f5f5f7; --dim:#9c9ca8; --faint:#5e5e68;
+  --ink:#f5f5f7; --dim:#9c9ca8; --faint:#85858b;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
   --sans:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;overflow-x:hidden}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;isolation:isolate}
 a{color:inherit;text-decoration:none}
 .wrap{width:min(1120px,calc(100% - 40px));margin:0 auto}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 ::selection{background:#fff;color:#000}
 
 /* light theme (monochrome) */
-html.light{--bg:#f5f5f7;--panel:#ffffff;--panel2:#ececeF;--line:#00000018;--ink:#0c0c0e;--dim:#55555f;--faint:#8a8a94}
+html.light{--bg:#f5f5f7;--panel:#ffffff;--panel2:#ececec;--line:#00000018;--ink:#0c0c0e;--dim:#55555f;--faint:#8a8a94}
 html.light body{background:var(--bg)}
-html.light #loader,html.light #rain{background:var(--bg)}
+html.light #rain{filter:invert(1)}
 html.light .btn.primary{background:#0c0c0e;color:#fff}
 html.light .cmd,html.light .demo,html.light header.top,html.light .foot-social{background:#fff}
-html.light .wordmark canvas,html.light [data-hero-field] canvas{filter:invert(1)}
+html.light [data-hero-field] canvas{filter:invert(1)}
 html.light .foot-brand .flogo .p{color:#000}
-html.light .foot-brand .flogo .f{color:#888}
+html.light .foot-brand .flogo .f{color:#666}
+html.light{--faint:#636363}
+html.light .nav-links.open,html.light .cmd button{background:var(--panel2)}
+html.light .pane.good{background:var(--panel);border-color:var(--line)}
+html.light .card code,html.light .pane code,html.light .hero p.sub code,
+html.light .load-spin,html.light .load-bar,html.light .load-pct b{color:var(--ink)}
+html.light .hero p.sub code{background:var(--panel2)}
+html.light .hero h1 .accent{color:inherit;border-color:#777}
+html.light .btn.primary:hover,html.light .demo-head .replay:hover{background:#333;color:#fff}
+html.light .brand .cur,html.light .nav-links a:hover,html.light .foot-col a:hover,
+html.light .foot-social a:hover,html.light .theme-btn:hover,html.light .card .ico,
+html.light .step::before,html.light summary::after{color:var(--ink)}
+html.light .btn.ghost:hover{border-color:#666}
+html.light .demo{box-shadow:0 18px 50px #0001}
+:focus-visible{outline:2px solid var(--ink);outline-offset:4px}
 
 /* LOADING */
 #loader{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .32s ease,visibility .32s}
@@ -59,10 +74,16 @@ header.top{position:sticky;top:0;z-index:50;background:#070708e8;backdrop-filter
 .hero-field{position:absolute;inset:0;z-index:0;pointer-events:none}
 .hero-field canvas{width:100%;height:100%;display:block;opacity:.55}
 .hero .wrap{position:relative;z-index:1}
-.wordmark{width:100%;max-width:860px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:2px}
-.wordmark canvas{display:block}
-.wordmark canvas.line1{width:min(620px,96%);aspect-ratio:53/10}
-.wordmark canvas.line2{width:min(340px,64%);aspect-ratio:26/10}
+/* Full-block ASCII faces on a 10-by-16-unit grid; offsets trace the same glyphs. */
+.wordmark{width:min(700px,100%);margin:0 auto 26px;display:grid;gap:clamp(9px,2.4vw,27px);justify-items:center;
+  --face-top:#b7b7b7;--face-bottom:#fafafa;--tile:#141414;--edge:#dedede;--far-edge:#888;--shine:#fff}
+html.light .wordmark{--face-top:#555;--face-bottom:#171717;--tile:#fff;--edge:#4c4c4c;--far-edge:#707070;--shine:#fff}
+.wordmark svg{display:block;width:100%;overflow:visible}
+.wordmark .line2{width:54%}
+.mark-edge{fill:var(--bg);stroke:var(--edge);stroke-width:1.55;stroke-linejoin:miter}
+.mark-edge.far{stroke:var(--far-edge);stroke-width:1.3}
+.mark-scan{opacity:0;animation:mark-scan 6s ease-out infinite}
+@keyframes mark-scan{0%,78%,94%,100%{opacity:0;transform:translateY(-45px)}83%{opacity:.18}92%{opacity:0;transform:translateY(103px)}}
 .hero h1{font-size:clamp(26px,4.4vw,44px);letter-spacing:-1px;margin:8px 0 14px;font-weight:650}
 .hero h1 .accent{color:#fff;border-bottom:2px solid #fff5}
 .hero p.sub{color:var(--dim);max-width:660px;margin:0 auto 34px;font-size:clamp(15px,2vw,18px)}
@@ -73,10 +94,9 @@ header.top{position:sticky;top:0;z-index:50;background:#070708e8;backdrop-filter
 .btn.primary:hover{background:#fff;transform:translateY(-2px);box-shadow:0 8px 30px #ffffff22}
 .btn.ghost:hover{border-color:#fff6}
 .cmd{margin:34px auto 0;max-width:740px;background:#0c0c0f;border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;text-align:left}
-.cmd code{font-family:var(--mono);font-size:12.5px;color:#d8d8e0;overflow-x:auto;white-space:nowrap;flex:1;scrollbar-width:none;-ms-overflow-style:none}
-.cmd code::-webkit-scrollbar{display:none}
-.cmd button{flex:none;font-family:var(--mono);font-size:12px;background:#1a1a1f;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;transition:.15s}
-.cmd button:hover{border-color:#fff8;background:#222}
+.cmd code{font-family:var(--mono);font-size:12.5px;color:var(--ink);min-width:0;white-space:pre-wrap;overflow-wrap:anywhere;flex:1;line-height:1.7}
+.cmd button{flex:none;font-family:var(--mono);font-size:12px;background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;transition:.15s}
+.cmd button:hover{border-color:var(--dim)}
 .hint{color:var(--faint);font-size:12px;margin-top:12px;font-family:var(--mono)}
 
 /* terminal demo */
@@ -85,14 +105,14 @@ header.top{position:sticky;top:0;z-index:50;background:#070708e8;backdrop-filter
 .demo-head{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--dim)}
 .dot{width:10px;height:10px;border-radius:50%;background:#3a3a42}
 .demo-head .path{margin-left:8px}
-.demo-head .replay{margin-left:auto;color:#fff;background:none;border:1px solid var(--line);border-radius:7px;padding:5px 10px;font-family:var(--mono);font-size:11px;cursor:pointer}
+.demo-head .replay{margin-left:auto;color:var(--ink);white-space:nowrap;background:none;border:1px solid var(--line);border-radius:7px;padding:5px 10px;font-family:var(--mono);font-size:11px;cursor:pointer}
 .demo-head .replay:hover{background:#fff;color:#000}
-.demo-body{padding:20px 18px;font-family:var(--mono);font-size:13px;min-height:230px;color:#d6d6de}
-.demo-line{white-space:pre;overflow:hidden}
-.demo-line .ok{color:#fff}
+.demo-body{padding:20px 18px;font-family:var(--mono);font-size:13px;min-height:360px;color:var(--ink)}
+.demo-line{white-space:pre-wrap;overflow-wrap:anywhere;min-height:1.6em}
+.demo-line .ok{color:var(--ink)}
 .demo-line .dim{color:var(--faint)}
-.demo-line .hl{color:#fff;font-weight:700}
-.demo-cursor{display:inline-block;width:8px;height:15px;background:#fff;vertical-align:-2px;animation:blink .8s steps(1) infinite}
+.demo-line .hl{color:var(--ink);font-weight:700}
+.demo-cursor{display:inline-block;width:8px;height:15px;background:var(--ink);vertical-align:-2px;animation:blink .8s steps(1) infinite}
 
 /* sections */
 section.block{padding:88px 0;border-top:1px solid var(--line)}
@@ -118,6 +138,7 @@ p.lead{color:var(--dim);max-width:640px;margin:0 0 40px}
 .step::before{content:"0" counter(s);font-family:var(--mono);color:#fff;font-size:13px}
 .step h3{font-size:16px;margin:10px 0 6px}
 .step p{color:var(--dim);font-size:13px;margin:0}
+section#faq{background:var(--panel2)}
 details{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:12px 0}
 summary{cursor:pointer;font-weight:600;font-size:15px;list-style:none}
 summary::-webkit-details-marker{display:none}
@@ -158,11 +179,20 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:56px 24px}
   .nav-links.open{display:flex;position:absolute;top:64px;left:0;right:0;flex-direction:column;background:#0c0c0f;border-bottom:1px solid var(--line);padding:18px 20px;gap:16px}
   .foot-grid{grid-template-columns:1fr 1fr;gap:32px}
 }
-@media(max-width:640px){ .cmd code{white-space:pre-wrap;word-break:break-all;overflow-x:visible;line-height:1.7} }
+@media(max-width:640px){
+  #download .cmd{display:grid;gap:10px}
+  #download .cmd button{justify-self:end}
+  .demo-body{padding:14px;min-height:390px}
+  .demo-head .dot:not(:first-child){display:none}
+  .demo-head .path{margin-left:0}
+}
 @media(max-width:520px){
   .grid,.steps,.foot-grid{grid-template-columns:1fr}
   .hero{padding:56px 0 50px}
-  .wordmark{aspect-ratio:auto}
+  .wordmark{width:calc(100% + 12px);margin-inline:-6px}
+  .hero .cmd{padding-inline:12px;gap:8px}
+  .hero .cmd code{font-size:12px}
+  .foot-bottom{padding-inline:54px}
 }
 @media(prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
@@ -199,9 +229,56 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:56px 24px}
   <section class="hero">
     <div class="hero-field" data-hero-field aria-hidden="true"><canvas></canvas></div>
     <div class="wrap">
-      <div class="wordmark" data-wordmark aria-hidden="true">
-        <canvas class="line1" data-word="DELETE"></canvas>
-        <canvas class="line2" data-word="NUL"></canvas>
+      <div class="wordmark" aria-hidden="true">
+        <svg class="line1" viewBox="0 0 568 112" focusable="false">
+          <defs>
+            <g id="mark-1" fill-rule="evenodd">
+              <path transform="translate(0)" d="M0 0H60V16H80V80H60V96H0ZM20 16V80H50V64H60V32H50V16Z"/>
+              <path transform="translate(94)" d="M0 0H80V16H20V40H70V56H20V80H80V96H0Z"/>
+              <path transform="translate(188)" d="M0 0H20V80H80V96H0Z"/>
+              <path transform="translate(282)" d="M0 0H80V16H20V40H70V56H20V80H80V96H0Z"/>
+              <path transform="translate(376)" d="M0 0H80V16H50V96H30V16H0Z"/>
+              <path transform="translate(470)" d="M0 0H80V16H20V40H70V56H20V80H80V96H0Z"/>
+            </g>
+            <linearGradient id="mark-face-1" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop stop-color="var(--face-top)"/><stop offset="1" stop-color="var(--face-bottom)"/>
+            </linearGradient>
+            <pattern id="mark-grid-1" width="10" height="16" patternUnits="userSpaceOnUse">
+              <path d="M0 16V0H10" fill="none" stroke="var(--tile)" stroke-opacity=".20"/>
+            </pattern>
+            <mask maskUnits="userSpaceOnUse" id="mark-clip-1"><use href="#mark-1" fill="white"/></mask>
+          </defs>
+          <g transform="translate(4 2)">
+            <use href="#mark-1" class="mark-edge far" x="11" y="10"/>
+            <use href="#mark-1" class="mark-edge" x="7" y="6"/>
+            <use href="#mark-1" fill="url(#mark-face-1)"/>
+            <use href="#mark-1" fill="url(#mark-grid-1)"/>
+            <g mask="url(#mark-clip-1)"><rect class="mark-scan" width="568" height="18" fill="var(--shine)"/></g>
+          </g>
+        </svg>
+        <svg class="line2" viewBox="0 0 298 112" focusable="false">
+          <defs>
+            <g id="mark-2" fill-rule="evenodd">
+              <path transform="translate(0)" d="M0 0H20V16H30V32H40V48H50V64H60V0H80V96H50V80H40V64H30V48H20V96H0Z"/>
+              <path transform="translate(100)" d="M0 0H20V80H60V0H80V80H70V96H10V80H0Z"/>
+              <path transform="translate(200)" d="M0 0H20V80H80V96H0Z"/>
+            </g>
+            <linearGradient id="mark-face-2" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop stop-color="var(--face-top)"/><stop offset="1" stop-color="var(--face-bottom)"/>
+            </linearGradient>
+            <pattern id="mark-grid-2" width="10" height="16" patternUnits="userSpaceOnUse">
+              <path d="M0 16V0H10" fill="none" stroke="var(--tile)" stroke-opacity=".20"/>
+            </pattern>
+            <mask maskUnits="userSpaceOnUse" id="mark-clip-2"><use href="#mark-2" fill="white"/></mask>
+          </defs>
+          <g transform="translate(4 2)">
+            <use href="#mark-2" class="mark-edge far" x="11" y="10"/>
+            <use href="#mark-2" class="mark-edge" x="7" y="6"/>
+            <use href="#mark-2" fill="url(#mark-face-2)"/>
+            <use href="#mark-2" fill="url(#mark-grid-2)"/>
+            <g mask="url(#mark-clip-2)"><rect class="mark-scan" width="298" height="18" fill="var(--shine)"/></g>
+          </g>
+        </svg>
       </div>
       <h1>删除 Windows <span class="accent">删不掉</span> 的保留名文件</h1>
       <p class="sub"><code>NUL / CON / AUX / PRN / COM1-9 / LPT1-9</code> —— 资源管理器删不掉、普通 <code>del</code> 也够不着的真实文件。先列出，确认后才删。</p>
@@ -210,15 +287,15 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:56px 24px}
         <a class="btn ghost" href="#why">为什么普通方法不行？</a>
       </div>
       <div class="cmd">
-        <code>curl -fsSL "https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1" -o "%TEMP%\delete-nul.ps1" &amp;&amp; call "%TEMP%\delete-nul.bat"</code>
+        <code>delete-nul.bat -Path "D:\temp" -DryRun</code>
         <button id="copybtn" type="button">复制</button>
       </div>
-      <div class="hint">在 cmd 中运行 · 也可把文件或文件夹拖到 delete-nul.bat 图标上</div>
-      <div class="demo-wrap reveal">
+      <div class="hint">下载后在 cmd 中运行。把 D:\temp 换成你的目录；这条命令只扫描，不删除。</div>
+      <div class="demo-wrap reveal" id="demo">
         <div class="demo">
           <div class="demo-head">
             <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-            <span class="path">delete-nul — ascii scan demo</span>
+            <span class="path">扫描演示（示例）</span>
             <button class="replay" id="replay" type="button">↻ 重播</button>
           </div>
           <div class="demo-body" id="demo-body"></div>
@@ -299,9 +376,9 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:56px 24px}
     <div class="wrap">
       <div class="eyebrow reveal">// FAQ</div>
       <h2 class="title reveal">常见问题</h2>
-      <p class="lead reveal">来自项目 README 的真实说明。</p>
+      <p class="lead reveal">使用前先确认哪些文件会被删除。</p>
       <div>
-        <details class="reveal"><summary>闪退 / 被杀软删除？</summary><p>当前 bat 是调用 ps1 的薄包装，无 Base64、无混淆。若杀软仍拦截"下载并执行"，把文件夹加入白名单，或直接用纯 CMD 的 paste-to-cmd 版本。</p></details>
+        <details class="reveal"><summary>闪退 / 被杀软删除？</summary><p>当前 bat 是调用 ps1 的薄包装，无 Base64、无混淆。若杀软仍拦截"下载并执行"，从项目仓库下载并检查脚本内容，再按你的安全设置决定是否运行。</p></details>
         <details class="reveal"><summary>提示 FAILED 怎么办？</summary><p>文件被占用或权限不足。关闭占用程序，或删除系统目录时加 <code>-Elevate</code> 以管理员重试。</p></details>
         <details class="reveal"><summary>能恢复吗？</summary><p>不能。删除不进回收站，务必核对列表后再按 Y。</p></details>
         <details class="reveal"><summary>会误删 nul.txt 吗？</summary><p>默认不会，只匹配裸名。如需连同带扩展名的保留名一起处理，显式加 <code>-IncludeExtension</code>。</p></details>
@@ -349,7 +426,7 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:56px 24px}
   </div>
   <div class="foot-divider">
     <div class="foot-bottom">© 2026 delete-nul. All rights reserved.</div>
-    <button class="theme-btn" id="themeBtn" aria-label="Toggle theme">
+    <button class="theme-btn" id="themeBtn" aria-label="浅色主题" aria-pressed="false">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
     </button>
   </div>
@@ -367,19 +444,21 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:56px 24px}
   themeBtn&&themeBtn.addEventListener('click',function(){
     var light=document.documentElement.classList.toggle('light');
     try{localStorage.setItem('dn-theme',light?'light':'dark')}catch(e){}
-    themeBtn.setAttribute('aria-label',light?'Switch to dark':'Switch to light');
+    themeBtn.setAttribute('aria-pressed',String(light));
   });
-  try{ if(localStorage.getItem('dn-theme')==='light') document.documentElement.classList.add('light'); }catch(e){}
+  themeBtn.setAttribute('aria-pressed',String(document.documentElement.classList.contains('light')));
 
-  document.addEventListener('click',function(e){
+  var copyTimers=new WeakMap();
+  document.addEventListener('click',async function(e){
     var b=e.target.closest('#copybtn,.copybtn'); if(!b)return;
     var code=b.parentElement.querySelector('code'); if(!code)return;
-    navigator.clipboard.writeText(code.textContent).then(function(){
-      var old=b.textContent; b.textContent='已复制 ✓'; setTimeout(function(){b.textContent=old},1600);
-    }).catch(function(){
+    clearTimeout(copyTimers.get(b));
+    try{await navigator.clipboard.writeText(code.textContent);b.textContent='已复制';}
+    catch(e){
       var r=document.createRange(); r.selectNodeContents(code);
-      var s=window.getSelection(); s.removeAllRanges(); s.addRange(r);
-    });
+      var s=window.getSelection(); s.removeAllRanges(); s.addRange(r);b.textContent='已选中';
+    }
+    copyTimers.set(b,setTimeout(function(){b.textContent='复制'},1600));
   });
 
   /* loading */
@@ -400,104 +479,42 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:56px 24px}
 
   /* bg rain */
   (function(){
-    var cv=document.getElementById('rain'); if(!cv||motion.matches)return;
+    var cv=document.getElementById('rain'); if(!cv)return;
+    var frame;
     var ctx=cv.getContext('2d'),cols=[],W=0,H=0,ch=16,glyphs='01<>/\\|=+-*#NUL NUL ';
     function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;var n=Math.floor(W/ch);cols=[];for(var i=0;i<n;i++)cols.push(Math.random()*-H);}
     resize();addEventListener('resize',resize);
-    function draw(){ctx.fillStyle='#070708';ctx.fillRect(0,0,W,H);ctx.font='13px monospace';
+    function draw(){ctx.clearRect(0,0,W,H);ctx.font='13px monospace';
       for(var i=0;i<cols.length;i++){ctx.fillStyle='rgba(255,255,255,'+(0.06+Math.random()*0.05)+')';ctx.fillText(glyphs[(Math.random()*glyphs.length)|0],i*ch,cols[i]);cols[i]+=0.4+Math.random()*0.8;if(cols[i]>H)cols[i]=-20;}
-      requestAnimationFrame(draw);}
-    draw();
+      frame=requestAnimationFrame(draw);}
+    function sync(){cancelAnimationFrame(frame);if(motion.matches)ctx.clearRect(0,0,W,H);else draw();}
+    motion.addEventListener('change',sync);sync();
   })();
 
   /* hero dot field (ascii-motion style, pointer-reactive) */
   (function(){
-    var cv=document.querySelector('[data-hero-field] canvas'); if(!cv||motion.matches)return;
+    var cv=document.querySelector('[data-hero-field] canvas'); if(!cv)return;
     var ctx=cv.getContext('2d'),W=0,H=0,cell=18,pts=[],mx=-999,my=-999;
     function resize(){var r=cv.parentElement.getBoundingClientRect(),s=Math.min(devicePixelRatio||1,2);W=cv.width=Math.max(1,Math.round(r.width*s));H=cv.height=Math.max(1,Math.round(r.height*s));ctx.setTransform(s,0,0,s,0,0);pts=[];for(var y=0;y<H/s;y+=cell)for(var x=0;x<W/s;x+=cell)pts.push({x:x,y:y});}
-    resize();addEventListener('resize',resize);
+    var frame;
     var field=cv.parentElement.parentElement;
-    field.addEventListener('pointermove',function(e){var r=cv.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top;});
+    field.addEventListener('pointermove',function(e){if(motion.matches)return;var r=cv.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top;});
     field.addEventListener('pointerleave',function(){mx=my=-999;});
     function draw(ts){ctx.clearRect(0,0,W,H);var s=Math.min(devicePixelRatio||1,2),t=ts/1000;ctx.font='12px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
       for(var i=0;i<pts.length;i++){var p=pts[i],dx=p.x-mx,dy=p.y-my,dist=Math.sqrt(dx*dx+dy*dy),near=dist<130?(1-dist/130):0,wave=0.5+0.5*Math.sin(p.x*0.02+p.y*0.03+t*1.5),a=0.05+wave*0.10+near*0.45,ch=near>0.15?(dist<45?'#':'+'):(wave>0.7?':':'·');ctx.fillStyle='rgba(255,255,255,'+a+')';ctx.fillText(ch,p.x+dx*near*0.12,p.y+dy*near*0.12);}
-      requestAnimationFrame(draw);}
-    draw(0);
-  })();
-
-  /* ASCII wordmark: bold block glyphs + 3D extrusion + neon outline (ascii-motion style).
-     8x10 hand-designed font; each filled pixel drawn as a solid '@' block. */
-  (function(){
-    var canvases=document.querySelectorAll('[data-wordmark] canvas'); if(!canvases.length)return;
-    // 8 wide x 10 tall bold dot-matrix, '1'=filled. Thick strokes for a heavy look.
-    var FONT={
-      D:['11111100','11111110','11111111','11111111','11111111','11111111','11111111','11111110','11111100','00000000'],
-      E:['11111111','11111111','11111000','11111000','11111110','11111110','11111000','11111000','11111111','11111111'],
-      L:['11111000','11111000','11111000','11111000','11111000','11111000','11111000','11111000','11111111','11111111'],
-      T:['11111111','11111111','00111100','00111100','00111100','00111100','00111100','00111100','00111100','00111100'],
-      N:['11000011','11100011','11110011','11111011','11111111','11110111','11110011','11000011','11000011','11000011'],
-      U:['11000011','11000011','11000011','11000011','11000011','11000011','11000011','11000011','11111111','11111111']
-    };
-    var GW=8, GH=10, GAP=2;
-    function makeRenderer(cv){
-      var TEXT=cv.getAttribute('data-word')||'', ctx=cv.getContext('2d');
-      var cols=TEXT.length*(GW+GAP)-GAP, rows=GH;
-      var M=[]; for(var y=0;y<rows;y++) M[y]=new Array(cols).fill(0);
-      for(var i=0;i<TEXT.length;i++){
-        var g=FONT[TEXT[i]]; if(!g) continue;
-        var ox=i*(GW+GAP);
-        for(var y=0;y<GH;y++) for(var x=0;x<GW;x++) if(g[y][x]==='1') M[y][ox+x]=1;
-      }
-      function filled(x,y){return x>=0&&x<cols&&y>=0&&y<rows&&M[y][x]===1;}
-      var cw=0,ch=0;
-      function fit(){var r=cv.getBoundingClientRect(),s=Math.min(devicePixelRatio||1,2);cw=r.width;ch=r.height;cv.width=Math.max(1,Math.round(cw*s));cv.height=Math.max(1,Math.round(ch*s));ctx.setTransform(s,0,0,s,0,0);}
-      function frame(ts){
-        ctx.clearRect(0,0,cw,ch);
-        var cell=Math.min(cw/(cols+1), ch/(rows+1));
-        var ox=(cw-cols*cell)/2, oy=(ch-rows*cell)/2;
-        var t=ts/1000, g=motion.matches?0:1;
-        ctx.textAlign='center'; ctx.textBaseline='middle';
-        var fs=Math.max(6,Math.round(cell*1.02));
-        ctx.font='bold '+fs+'px ui-monospace,monospace';
-        // 1) neon outline: bright glow behind, offset in 4 directions
-        ctx.save();
-        ctx.shadowColor='rgba(255,255,255,0.75)'; ctx.shadowBlur=cell*0.9;
-        ctx.fillStyle='rgba(255,255,255,0.9)';
-        for(var y=0;y<rows;y++) for(var x=0;x<cols;x++) if(filled(x,y)) ctx.fillText('@',ox+x*cell+cell/2,oy+y*cell+cell/2);
-        ctx.restore();
-        // 2) 3D extrusion: stacked darker copies shifted down-right (depth)
-        var DEPTH=6;
-        for(var d=DEPTH; d>=1; d--){
-          var a=0.10+0.05*(DEPTH-d);
-          ctx.fillStyle='rgba(215,215,222,'+a+')';
-          for(var y=0;y<rows;y++) for(var x=0;x<cols;x++) if(filled(x,y))
-            ctx.fillText('@',ox+x*cell+cell/2+d*1.4,oy+y*cell+cell/2+d*1.4);
-        }
-        // 3) bright top face with subtle glitch slice
-        for(var y=0;y<rows;y++){
-          var slice=(Math.sin(y*13.7+Math.floor(t*9))>0.86)?(Math.random()-.5)*6*g:0;
-          for(var x=0;x<cols;x++){
-            if(!filled(x,y)) continue;
-            var top=filled(x,y)&&!filled(x,y-1);
-            var jitter=g?(Math.random()-.5)*0.1:0;
-            ctx.fillStyle=top?'rgba(255,255,255,'+(1+jitter)+')':'rgba(244,244,248,'+(0.9+jitter)+')';
-            ctx.fillText('@',ox+x*cell+cell/2+slice,oy+y*cell+cell/2);
-          }
-        }
-        if(!motion.matches) requestAnimationFrame(frame);
-      }
-      function start(){fit();frame(performance.now());}
-      new ResizeObserver(start).observe(cv.parentElement); start();
-    }
-    canvases.forEach(makeRenderer);
+      if(!motion.matches)frame=requestAnimationFrame(draw);}
+    function repaint(){cancelAnimationFrame(frame);resize();draw(0);}
+    new ResizeObserver(repaint).observe(cv.parentElement);
+    motion.addEventListener('change',function(){mx=my=-999;repaint()});
+    repaint();
   })();
 
   /* terminal demo */
   (function(){
     var box=document.getElementById('demo-body'),replay=document.getElementById('replay');if(!box)return;
-    var running=false,timers=[];
+    var timers=[];
     var lines=[
-      {t:'$ delete-nul --path "C:\\" -DryRun',c:'hl',d:300},
+      {t:'C:\\> delete-nul.bat -Path "C:\\" -DryRun',c:'hl',d:300},
       {t:'[权限] 普通用户（默认）',c:'dim',d:200},
       {t:'[1/1] 正在扫描 C:\\ ...',c:'',d:250},
       {t:'  | SCAN... C:\\  native scan  0 found  0.4s  [====>......]',c:'',d:320},
@@ -511,18 +528,36 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:56px 24px}
       {t:'仅扫描模式（DryRun），未删除任何文件。',c:'ok',d:260},
       {t:'$ _',c:'',d:0}
     ];
-    function clear(){timers.forEach(clearTimeout);timers=[];box.innerHTML='';}
-    function run(){if(running)return;running=true;clear();var y=0;
-      lines.forEach(function(L,i){timers.push(setTimeout(function(){
-        var div=document.createElement('div');div.className='demo-line';var span=document.createElement('span');if(L.c)span.className=L.c;span.textContent=L.t;div.appendChild(span);
-        if(i===lines.length-1){var cur=document.createElement('span');cur.className='demo-cursor';div.appendChild(cur);}
-        box.appendChild(div);
-        if(i===3){var target=div.firstChild,base=target.textContent,k=0;var bt=setInterval(function(){k=(k+2)%23;var s='[';for(var q=0;q<21;q++)s+=q<k?'=':(q===k?'>':'.');s+=']';target.textContent=base.replace(/\[[=>.]+\]/,s);if(++k>21)clearInterval(bt);},90);}
-        if(i===lines.length-1)running=false;
-      },y+=(L.d||40)));});}
-    replay&&replay.addEventListener('click',function(){running=false;run()});
-    var io=new IntersectionObserver(function(en){if(en[0].isIntersecting&&!running&&!box.childNodes.length)run();},{threshold:.3});io.observe(box);
-    setTimeout(run,600);
+    var progress;
+    function clear(){timers.forEach(clearTimeout);timers=[];clearInterval(progress);box.replaceChildren();}
+    function row(L,i,animate){
+      var div=document.createElement('div');div.className='demo-line';
+      var span=document.createElement('span');span.className=L.c||'';span.textContent=L.t;div.appendChild(span);
+      if(i===lines.length-1){var cur=document.createElement('span');cur.className='demo-cursor';div.appendChild(cur);}
+      box.appendChild(div);
+      if(i===3&&animate){
+        var k=0;
+        progress=setInterval(function(){
+          k=Math.min(21,k+2);
+          span.textContent=L.t.replace(/\[[=>.]+\]/,'['+'='.repeat(k)+(k<21?'>'+'.'.repeat(20-k):'')+']');
+          if(k===21)clearInterval(progress);
+        },90);
+      }
+    }
+    function run(){
+      clear();
+      if(motion.matches){lines.forEach(function(L,i){row(L,i,false)});return;}
+      var delay=0;
+      lines.forEach(function(L,i){timers.push(setTimeout(function(){row(L,i,true)},delay+=(L.d||40)));});
+    }
+    replay.addEventListener('click',run);
+    function syncMotion(){replay.hidden=motion.matches;if(motion.matches||box.childNodes.length)run();}
+    motion.addEventListener('change',syncMotion);syncMotion();
+    var io=new IntersectionObserver(function(entries){
+      if(entries[0].isIntersecting){io.disconnect();if(!box.childNodes.length)run();}
+    },{threshold:.25});
+    io.observe(box.parentElement);
+
   })();
 
   /* scroll reveal (with safety fallback: never leave content hidden) */
