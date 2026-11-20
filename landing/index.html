@@ -77,13 +77,20 @@ header.top{position:sticky;top:0;z-index:50;background:#070708e8;backdrop-filter
 /* Full-block ASCII faces on a 10-by-16-unit grid; offsets trace the same glyphs. */
 .wordmark{width:min(700px,100%);margin:0 auto 26px;display:grid;gap:clamp(9px,2.4vw,27px);justify-items:center;
   --face-top:#b7b7b7;--face-bottom:#fafafa;--tile:#141414;--edge:#dedede;--far-edge:#888;--shine:#fff}
-html.light .wordmark{--face-top:#555;--face-bottom:#171717;--tile:#fff;--edge:#4c4c4c;--far-edge:#707070;--shine:#fff}
+html.light .wordmark{--face-top:#555;--face-bottom:#171717;--tile:#fff;--edge:#4c4c4c;--far-edge:#707070;--shine:#8f8f8f}
 .wordmark svg{display:block;width:100%;overflow:visible}
 .wordmark .line2{width:54%}
 .mark-edge{fill:var(--bg);stroke:var(--edge);stroke-width:1.55;stroke-linejoin:miter}
 .mark-edge.far{stroke:var(--far-edge);stroke-width:1.3}
-.mark-scan{opacity:0;animation:mark-scan 6s ease-out infinite}
-@keyframes mark-scan{0%,78%,94%,100%{opacity:0;transform:translateY(-45px)}83%{opacity:.18}92%{opacity:0;transform:translateY(103px)}}
+.mark-spot{visibility:hidden;pointer-events:none}
+.mark-spot.active{visibility:visible}
+.theme-btn .moon,html.light .theme-btn .sun{display:none}
+html.light .theme-btn .moon{display:inline-block}
+.theme-btn:hover{background:var(--panel2)}
+.hero{cursor:crosshair}
+.hero .wrap{cursor:auto}
+.hero .wordmark{cursor:crosshair}
+@media(prefers-reduced-motion:reduce){.hero,.hero .wordmark{cursor:auto}}
 .hero h1{font-size:clamp(26px,4.4vw,44px);letter-spacing:-1px;margin:8px 0 14px;font-weight:650}
 .hero h1 .accent{color:#fff;border-bottom:2px solid #fff5}
 .hero p.sub{color:var(--dim);max-width:660px;margin:0 auto 34px;font-size:clamp(15px,2vw,18px)}
@@ -246,14 +253,17 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:56px 24px}
             <pattern id="mark-grid-1" width="10" height="16" patternUnits="userSpaceOnUse">
               <path d="M0 16V0H10" fill="none" stroke="var(--tile)" stroke-opacity=".20"/>
             </pattern>
-            <mask maskUnits="userSpaceOnUse" id="mark-clip-1"><use href="#mark-1" fill="white"/></mask>
+            <radialGradient id="mark-spot-1" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="61" gradientTransform="scale(1 1.45)">
+              <stop stop-color="var(--shine)" stop-opacity=".88"/>
+              <stop offset="1" stop-color="var(--shine)" stop-opacity="0"/>
+            </radialGradient>
           </defs>
           <g transform="translate(4 2)">
             <use href="#mark-1" class="mark-edge far" x="11" y="10"/>
             <use href="#mark-1" class="mark-edge" x="7" y="6"/>
             <use href="#mark-1" fill="url(#mark-face-1)"/>
             <use href="#mark-1" fill="url(#mark-grid-1)"/>
-            <g mask="url(#mark-clip-1)"><rect class="mark-scan" width="568" height="18" fill="var(--shine)"/></g>
+            <use href="#mark-1" class="mark-spot" fill="url(#mark-spot-1)"/>
           </g>
         </svg>
         <svg class="line2" viewBox="0 0 298 112" focusable="false">
@@ -269,14 +279,17 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:56px 24px}
             <pattern id="mark-grid-2" width="10" height="16" patternUnits="userSpaceOnUse">
               <path d="M0 16V0H10" fill="none" stroke="var(--tile)" stroke-opacity=".20"/>
             </pattern>
-            <mask maskUnits="userSpaceOnUse" id="mark-clip-2"><use href="#mark-2" fill="white"/></mask>
+            <radialGradient id="mark-spot-2" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="61" gradientTransform="scale(1 1.45)">
+              <stop stop-color="var(--shine)" stop-opacity=".88"/>
+              <stop offset="1" stop-color="var(--shine)" stop-opacity="0"/>
+            </radialGradient>
           </defs>
           <g transform="translate(4 2)">
             <use href="#mark-2" class="mark-edge far" x="11" y="10"/>
             <use href="#mark-2" class="mark-edge" x="7" y="6"/>
             <use href="#mark-2" fill="url(#mark-face-2)"/>
             <use href="#mark-2" fill="url(#mark-grid-2)"/>
-            <g mask="url(#mark-clip-2)"><rect class="mark-scan" width="298" height="18" fill="var(--shine)"/></g>
+            <use href="#mark-2" class="mark-spot" fill="url(#mark-spot-2)"/>
           </g>
         </svg>
       </div>
@@ -427,7 +440,8 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:56px 24px}
   <div class="foot-divider">
     <div class="foot-bottom">© 2026 delete-nul. All rights reserved.</div>
     <button class="theme-btn" id="themeBtn" aria-label="浅色主题" aria-pressed="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
+      <svg class="sun" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
+      <svg class="moon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 13.34A9 9 0 0 1 10.66 3.1 9 9 0 1 0 20.9 13.34Z"/></svg>
     </button>
   </div>
 </footer>
@@ -491,22 +505,85 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:56px 24px}
     motion.addEventListener('change',sync);sync();
   })();
 
-  /* hero dot field (ascii-motion style, pointer-reactive) */
+  /* Pointer interaction: only the word under the pointer catches the light;
+     the backdrop pushes nearby cells and emits a travelling press wave. */
   (function(){
-    var cv=document.querySelector('[data-hero-field] canvas'); if(!cv)return;
-    var ctx=cv.getContext('2d'),W=0,H=0,cell=18,pts=[],mx=-999,my=-999;
-    function resize(){var r=cv.parentElement.getBoundingClientRect(),s=Math.min(devicePixelRatio||1,2);W=cv.width=Math.max(1,Math.round(r.width*s));H=cv.height=Math.max(1,Math.round(r.height*s));ctx.setTransform(s,0,0,s,0,0);pts=[];for(var y=0;y<H/s;y+=cell)for(var x=0;x<W/s;x+=cell)pts.push({x:x,y:y});}
-    var frame;
-    var field=cv.parentElement.parentElement;
-    field.addEventListener('pointermove',function(e){if(motion.matches)return;var r=cv.getBoundingClientRect();mx=e.clientX-r.left;my=e.clientY-r.top;});
-    field.addEventListener('pointerleave',function(){mx=my=-999;});
-    function draw(ts){ctx.clearRect(0,0,W,H);var s=Math.min(devicePixelRatio||1,2),t=ts/1000;ctx.font='12px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
-      for(var i=0;i<pts.length;i++){var p=pts[i],dx=p.x-mx,dy=p.y-my,dist=Math.sqrt(dx*dx+dy*dy),near=dist<130?(1-dist/130):0,wave=0.5+0.5*Math.sin(p.x*0.02+p.y*0.03+t*1.5),a=0.05+wave*0.10+near*0.45,ch=near>0.15?(dist<45?'#':'+'):(wave>0.7?':':'·');ctx.fillStyle='rgba(255,255,255,'+a+')';ctx.fillText(ch,p.x+dx*near*0.12,p.y+dy*near*0.12);}
-      if(!motion.matches)frame=requestAnimationFrame(draw);}
-    function repaint(){cancelAnimationFrame(frame);resize();draw(0);}
-    new ResizeObserver(repaint).observe(cv.parentElement);
-    motion.addEventListener('change',function(){mx=my=-999;repaint()});
-    repaint();
+    var field=document.querySelector('[data-hero-field]'),hero=field.closest('.hero');
+    var cv=field.querySelector('canvas'),ctx=cv.getContext('2d');
+    var marks=Array.from(hero.querySelectorAll('.wordmark svg')).map(function(svg){
+      return {svg:svg,spot:svg.querySelector('.mark-spot'),gradient:svg.querySelector('radialGradient')};
+    });
+    var W=0,H=0,dpr=1,cell=18,pts=[],pointer=null,waves=[],frame=0,visible=false,touch=null;
+    function fit(){
+      var r=field.getBoundingClientRect();W=r.width;H=r.height;dpr=Math.min(devicePixelRatio||1,2);
+      cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+      pts=[];
+      for(var y=8;y<H;y+=cell)for(var x=8;x<W;x+=cell)pts.push({x:x,y:y});
+      wake();
+    }
+    function shine(e){
+      marks.forEach(function(mark){
+        var r=mark.svg.getBoundingClientRect();
+        var hit=e&&e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;
+        mark.spot.classList.toggle('active',Boolean(hit));
+        if(hit){
+          var v=mark.svg.viewBox.baseVal;
+          mark.gradient.setAttribute('cx',(e.clientX-r.left)*v.width/r.width-4);
+          mark.gradient.setAttribute('cy',((e.clientY-r.top)*v.height/r.height-2)/1.45);
+        }
+      });
+    }
+    function move(e){
+      if(motion.matches||e.pointerType==='touch')return;
+      pointer={x:e.clientX,y:e.clientY};shine(e);
+    }
+    function leave(){pointer=null;shine(null);}
+    function press(e){
+      if(motion.matches||!e.isPrimary||e.button!==0||e.target.closest('a,button,.cmd,.demo'))return;
+      if(e.pointerType==='touch'){touch={x:e.clientX,y:e.clientY,id:e.pointerId};return;}
+      ripple(e.clientX,e.clientY);
+    }
+    function release(e){
+      if(!touch||touch.id!==e.pointerId)return;
+      if(!motion.matches&&Math.hypot(e.clientX-touch.x,e.clientY-touch.y)<12)ripple(e.clientX,e.clientY);
+      touch=null;
+    }
+    function ripple(x,y){
+      var r=field.getBoundingClientRect();
+      if(waves.length>=4)waves.shift();
+      waves.push({x:x-r.left,y:y-r.top,start:performance.now()});wake();
+    }
+    hero.addEventListener('pointermove',move,{passive:true});
+    hero.addEventListener('pointerleave',leave);
+    hero.addEventListener('pointerdown',press,{passive:true});
+    hero.addEventListener('pointerup',release,{passive:true});
+    hero.addEventListener('pointercancel',function(){touch=null;leave()});
+    window.addEventListener('scroll',leave,{passive:true});
+    function draw(now){
+      frame=0;ctx.clearRect(0,0,W,H);
+      var r=pointer&&field.getBoundingClientRect(),t=motion.matches?0:now/1000;
+      waves=waves.filter(function(w){return now-w.start<760});
+      ctx.font='12px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+      for(var i=0;i<pts.length;i++){
+        var p=pts[i],dx=r?p.x-pointer.x+r.left:0,dy=r?p.y-pointer.y+r.top:0;
+        var near=r?Math.max(0,1-Math.hypot(dx,dy)/132):0;
+        var x=p.x+dx*near*.24,y=p.y+dy*near*.24,energy=near;
+        for(var j=0;j<waves.length;j++){
+          var w=waves[j],age=Math.max(0,now-w.start)/760,rx=p.x-w.x,ry=p.y-w.y,d=Math.hypot(rx,ry);
+          var power=Math.max(0,1-Math.abs(d-age*375)/42)*(1-age);
+          energy=Math.max(energy,power);x+=rx/Math.max(1,d)*power*21;y+=ry/Math.max(1,d)*power*21;
+        }
+        var drift=.5+.5*Math.sin(p.x*.02+p.y*.03+t*1.5);
+        ctx.fillStyle='rgba(255,255,255,'+(.10+drift*.12+energy*.78)+')';
+        ctx.fillText(energy>.62?'#':energy>.22?'+':drift>.75?':':'·',x,y);
+      }
+      if(visible&&!motion.matches)frame=requestAnimationFrame(draw);
+    }
+    function wake(){if(!frame)frame=requestAnimationFrame(draw);}
+    new ResizeObserver(fit).observe(field);
+    new IntersectionObserver(function(entries){visible=entries[0].isIntersecting;if(visible)wake();else leave()}).observe(hero);
+    motion.addEventListener('change',function(){leave();waves=[];touch=null;wake()});
+    fit();
   })();
 
   /* terminal demo */
