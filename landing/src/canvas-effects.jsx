@@ -28,20 +28,25 @@ const gpuProbe = document.createElement('canvas').getContext('webgl2');
 const webgl = !!gpuProbe;
 gpuProbe?.getExtension('WEBGL_lose_context')?.loseContext();
 
-function TerminalSample({ text }) {
+function FeatureCard({ markup }) {
   const { light, reduceMotion, finePointer } = useVisualPreferences();
-  const sample = <pre>{text}</pre>;
-  if (!nativeCapture || !webgl || reduceMotion || !finePointer) return sample;
-  return <DecryptReveal className="canvasui-decrypt" radius={82} cell={7}
-    colored={0} color={light ? '#363636' : '#dedede'} aberration={0}
-    background={light ? '#f5f5f7' : '#070708'}>{sample}</DecryptReveal>;
+  const active = !reduceMotion && finePointer;
+  // The original HTML sizes the row and stays available to assistive technology.
+  // The visual copy is captured in full by the official shader.
+  const body = <div className="card-body" dangerouslySetInnerHTML={{ __html: markup }} />;
+  return <div className="card-enhanced" data-active={active ? '' : undefined}>
+    {body}
+    {active && <DecryptReveal className="canvasui-decrypt" radius={108} cell={8}
+      style={{ overflow: 'hidden' }} colored={0} color={light ? '#363636' : '#dedede'} aberration={0}
+      background={light ? '#ffffff' : '#0f0f11'}>
+      <div aria-hidden="true" style={{ minHeight: '100%', background: 'var(--panel)' }}>{body}</div>
+    </DecryptReveal>}
+  </div>;
 }
 
 if (nativeCapture && webgl) {
-  for (const target of document.querySelectorAll('#features .decrypt')) {
-    const text = target.querySelector('pre').textContent;
-    target.dataset.canvasUi = '';
-    createRoot(target).render(<TerminalSample text={text} />);
+  for (const target of document.querySelectorAll('#features .card')) {
+    createRoot(target).render(<FeatureCard markup={target.querySelector('.card-body').innerHTML} />);
   }
 }
 

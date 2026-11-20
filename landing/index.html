@@ -123,18 +123,19 @@ html.light .theme-btn .moon{display:inline-block}
 
 
 /* Feature cards read like miniature terminal captures, even with JS off. */
-#features .card{padding:0 0 20px;overflow:hidden;border-radius:12px}
+#features .card{padding:0;overflow:hidden;border-radius:12px}
+#features .card-body{padding-bottom:20px;display:flow-root}
+#features .card-enhanced{display:grid;height:100%}
+#features .card-enhanced > *{grid-area:1/1;min-width:0}
+#features .card-enhanced[data-active] > .card-body{opacity:0}
+#features .canvasui-decrypt{min-height:0;background:var(--panel)}
 #features .card:hover{transform:none;border-color:var(--faint)}
 #features .card h3,#features .card p{margin-inline:18px}
 .card-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;background:var(--panel2);border-bottom:1px solid var(--line)}
 .card-head span{font:12px var(--mono);color:var(--dim)}
-.card-head button{font:12px var(--sans);border:1px solid var(--line);border-radius:5px;padding:4px 8px;background:var(--panel);color:var(--ink);cursor:pointer}
-.card-head button:hover{border-color:var(--faint)}
 .decrypt{position:relative;display:grid;align-items:center;min-height:96px;background:var(--bg);border-bottom:1px solid var(--line);overflow:hidden}
 .decrypt pre,.mode-screen pre{font:12px/1.65 var(--mono);margin:0;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}
 .decrypt pre{padding:14px 18px}
-.decrypt[data-canvas-ui] {display:block}
-.decrypt .canvasui-decrypt {height:96px}
 .mode-screen:has(.canvasui-sweep) {min-height:200px}
 .canvasui-sweep .mode-panel {min-height:100%;background:var(--panel);color:var(--ink)}
 .mode-picker:not([hidden]){display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
@@ -348,19 +349,19 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:56px 24px}
       <h2 class="title reveal">只做一件事，做对</h2>
       <p class="lead reveal">围绕保留名文件的查找与删除，把边界情况都处理掉。</p>
       <div class="grid">
-        <div class="card reveal"><div class="card-head"><span>匹配结果</span></div><div class="decrypt"><pre>[+] D:\work\NUL
-[ ] D:\work\nul.txt</pre></div><h3>精确匹配</h3><p>只匹配裸保留名本体，<code>nul.txt</code> 这类正常文件不会被误删。</p></div>
-        <div class="card reveal"><div class="card-head"><span>确认提示</span></div><div class="decrypt"><pre>[1] NUL     [2] CON
-    Delete? [Y/N]</pre></div><h3>先列后删</h3><p>列出全部结果、确认（Y）才删除，逐条报告成功 / 失败，不进回收站。</p></div>
-        <div class="card reveal"><div class="card-head"><span>路径解析</span></div><div class="decrypt"><pre>    D:\work\NUL
- =&gt; \\?\D:\work\NUL</pre></div><h3>\\?\ 前缀</h3><p>加 <code>\\?\</code> 直达 NT 路径，绕过 Win32 把 NUL 当设备的解析。</p></div>
-        <div class="card reveal"><div class="card-head"><span>交互菜单</span></div><div class="decrypt"><pre>[G] Scan all drives
+        <div class="card reveal"><div class="card-body"><div class="card-head"><span>匹配结果</span></div><div class="decrypt"><pre>[+] D:\work\NUL
+[ ] D:\work\nul.txt</pre></div><h3>精确匹配</h3><p>只匹配裸保留名本体，<code>nul.txt</code> 这类正常文件不会被误删。</p></div></div>
+        <div class="card reveal"><div class="card-body"><div class="card-head"><span>确认提示</span></div><div class="decrypt"><pre>[1] NUL     [2] CON
+    Delete? [Y/N]</pre></div><h3>先列后删</h3><p>列出全部结果、确认（Y）才删除，逐条报告成功 / 失败，不进回收站。</p></div></div>
+        <div class="card reveal"><div class="card-body"><div class="card-head"><span>路径解析</span></div><div class="decrypt"><pre>    D:\work\NUL
+ =&gt; \\?\D:\work\NUL</pre></div><h3>\\?\ 前缀</h3><p>加 <code>\\?\</code> 直达 NT 路径，绕过 Win32 把 NUL 当设备的解析。</p></div></div>
+        <div class="card reveal"><div class="card-body"><div class="card-head"><span>交互菜单</span></div><div class="decrypt"><pre>[G] Scan all drives
 [S] Select a folder
-[D] Paste a path</pre></div><h3>多种入口</h3><p>全局扫描、选盘浏览、粘贴路径、拖拽处理——按你的习惯来。</p></div>
-        <div class="card reveal"><div class="card-head"><span>脚本参数</span></div><div class="decrypt"><pre>-Json  -LogPath
--ScanTimeout</pre></div><h3>可脚本化</h3><p>JSON 输出、退出码、日志、单盘超时，方便接入自动化。</p></div>
-        <div class="card reveal"><div class="card-head"><span>权限选项</span></div><div class="decrypt"><pre>default: standard user
-option:  -Elevate</pre></div><h3>权限克制</h3><p>默认普通权限即可删个人目录文件，需要时才用 <code>-Elevate</code>。</p></div>
+[D] Paste a path</pre></div><h3>多种入口</h3><p>全局扫描、选盘浏览、粘贴路径、拖拽处理——按你的习惯来。</p></div></div>
+        <div class="card reveal"><div class="card-body"><div class="card-head"><span>脚本参数</span></div><div class="decrypt"><pre>-Json  -LogPath
+-ScanTimeout</pre></div><h3>可脚本化</h3><p>JSON 输出、退出码、日志、单盘超时，方便接入自动化。</p></div></div>
+        <div class="card reveal"><div class="card-body"><div class="card-head"><span>权限选项</span></div><div class="decrypt"><pre>default: standard user
+option:  -Elevate</pre></div><h3>权限克制</h3><p>默认普通权限即可删个人目录文件，需要时才用 <code>-Elevate</code>。</p></div></div>
       </div>
     </div>
   </section>
