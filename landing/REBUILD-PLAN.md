@@ -70,3 +70,27 @@ Chromium 回归通过 320、390、768、1440 px：验证鼠标分别扫过两行
 当前预览改用 Node.js（22.12+）：运行 `preview.cmd`，或在 `landing/` 执行 `npm ci` 后 `npm run dev`，访问 `http://127.0.0.1:4190/delete-nul/`。`npm run build` 输出 `dist/`，资源按 `/delete-nul/` 子路径加载。GitHub 仓库 Settings → Pages → Build and deployment → Source 选择 GitHub Actions；推送 `main` 后工作流发布 `landing/dist`，也可在 Actions 中手动运行。仅配置了发布流程，尚未上传或部署。
 
 Decrypt Reveal 在缺少 HTML-in-Canvas/WebGL2、触屏或减少动态效果的环境里保留可读终端文本。ASCII Sweep 使用官方组件与其 DOM 捕获回退；没有 WebGL2 或开启减少动态效果时直接切换内容。Playwright Chromium 在 320/390/768/1440 px 验证模式切换与静态回退，并在桌面截图确认指针局部解码、录制扫掠过程；另用普通静态服务器验证 `/delete-nul/` 子目录的生产产物。
+
+### 2026-11-20：USAGE 前置、快速扫掠、WHY 页面滚动粒子
+
+官方 `ParticleScroll` 新增 `pageScroll` 选项（默认 false，保留原内部滚动行为）。开启后滚动源改为 `window.scrollY`，成型线按视口高度而非内部容器高度计算，行坐标加上区块的文档绝对偏移，shader 的 `uScroll`/`uWinStart` 归零；内容按正常文档流渲染，不再产生内部滚动条。`src/components/canvasui/ParticleScroll.tsx` 是官方源码的本地改造，升级该组件时需重新套用这些改动。
+
+WHY 区块使用此模式，随页面滚动出现沙粒重组；不支持 HTML-in-Canvas 的浏览器显示静态原文。USAGE 移到 WHY 之前，导航同步；ASCII Sweep 时长由默认 2s 缩到 0.7s；功能卡解码羽化加大，持有 15s 后以 1.1s 缓动淡回密文。
+
+### 2026-11-20：全局背景、hero 安装切换器、整页粒子退场
+
+Hero 的点阵交互场从 `.hero` 内的局部 canvas 改为全屏 fixed `#field`，指针监听挂到 window，点阵随指针位移与按下涟漪覆盖整页；原来独立的字符雨 canvas 已移除。`.wordmark` 的分行反光保留，但仅在指向字标时点亮。
+
+删除 `// DOWNLOAD` 区块及导航/页脚中的下载入口。Hero 的复制条扩展为 `// INSTALL` 三标签切换器：终端命令（curl 下载执行）、下载文件（两个 raw 直链）、纯文本（纯 CMD 扫描片段），各自可复制或下载。`// FEATURES` 六卡保留。
+
+「立即开始」改为按钮：点击后 header/main/footer 以 blur + 位移淡出，同时 `#dissolve` canvas 喷出粒子飘散；退场后内容 `display:none`，只留全局背景交互。点击任意处或按 Esc 恢复；reduced-motion 下跳过粒子直接切换。
+
+### 2026-11-20：官方 Particle Reveal 与 slogan
+
+安装 `@canvas-ui/particle-reveal-react`。整页退场改用官方 `createParticleReveal()` 命令式 API：**不克隆 DOM、不交给 React 渲染**，而是在支持 html-in-canvas 时由 JS 把现有的 `<main>/<footer>` 搬进 canvas 内的捕获容器，因此 index.html 内联脚本绑定的所有事件都保留。半径设得极大让整页初始保持清晰，点击「立即开始」时向 `#page-body` 派发 `pointerleave` 触发整页碎成灰阶尘粒；Esc / 点击派发 `pointermove` 重组。不支持 html-in-canvas 的浏览器保持原生 DOM，回退到自建粒子 canvas + CSS 淡出。
+
+FAQ 区块去掉 `--panel2` 灰底带，改贴页面底色；`+` 统一用 `--dim`。Hero slogan 改为谐音梗「⚡遗定要删掉⚡」。
+
+修复与回退：在支持 html-in-canvas 的浏览器里，DOM 搬进捕获 canvas 后再量 `<main>/<footer>` 会得到 0 高度，导致 `#page-body` 被设成 1px、整页塌掉。改为搬运前先量原生高度作为初始值，后续尺寸从 `document.documentElement.scrollHeight` 减去头部高度推导；初始化包在 try/catch 里，任何失败都把 DOM 搬回原位。
+
+但该整页捕获在用户的 Chrome 构建里仍会导致页面打不开，本地无法复现。先改为 `?reveal=1` opt-in 仍不行，最终**彻底移除整页 Particle Reveal 的 import、挂载与相关 CSS**，`src/components/canvasui/ParticleReveal.tsx` 文件保留但未使用。退场效果统一用自建粒子 canvas：灰阶明暗随机、闪烁、重力下坠与旋涡漂移，DPR 适配，不再是均匀白方块。用户硬刷新后确认页面恢复正常。
