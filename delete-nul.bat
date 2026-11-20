@@ -1,97 +1,55 @@
 @echo off
-setlocal DisableDelayedExpansion
+rem Wrapper: forwards switches; dragged paths are collected into a list file
+rem (powershell.exe -File binds only one value to array parameters).
+setlocal EnableExtensions
 title Reserved-Name File Cleaner (NUL/CON/AUX...)
 
-net session >nul 2>&1
-if errorlevel 1 (
-    echo [NOTE] Not running as Administrator.
-    echo Some system folders may be inaccessible or undeletable.
-    echo For best result: right-click this bat, choose "Run as administrator".
-    echo.
-    ping -n 5 127.0.0.1 >nul
+set "PS1=%~dp0delete-nul.ps1"
+if not exist "%PS1%" (
+    echo [ERROR] delete-nul.ps1 not found next to this file.
+    echo Download BOTH files from https://github.com/yancongya/delete-nul
+    pause
+    exit /b 3
 )
 
-set "LIST=%TEMP%\reserved_name_files.txt"
+set "PS=powershell.exe"
+where pwsh >nul 2>&1 && set "PS=pwsh"
+
+set "LIST=%TEMP%\rn_paths_%RANDOM%.txt"
 type nul > "%LIST%"
+set "HASPATHS="
+set "OPTS="
 
-echo ==================================================
-echo  Scanning all local drives for reserved-name files
-echo  (NUL CON PRN AUX COM1-9 LPT1-9). Please wait...
-echo ==================================================
-echo.
+:args
+if "%~1"=="" goto argsdone
+rem A switch starts with "-"; everything else is a target path. Do NOT use
+rem "if exist": a bare NUL/CON path resolves to the DOS device and fails the test.
+set "ARG=%~1"
+if "%PREVNEEDSVAL%"=="1" (
+    set "OPTS=%OPTS% %ARG%"
+    set "PREVNEEDSVAL="
+    shift
+    goto args
+)
+if "%ARG:~0,1%"=="-" (
+    set "OPTS=%OPTS% %ARG%"
+    if /i "%ARG%"=="-Format" set "PREVNEEDSVAL=1"
+    if /i "%ARG%"=="-Log" set "PREVNEEDSVAL=1"
+    if /i "%ARG%"=="-Spinner" set "PREVNEEDSVAL=1"
+    if /i "%ARG%"=="-Mode" set "PREVNEEDSVAL=1"
+    if /i "%ARG%"=="-ScanTimeout" set "PREVNEEDSVAL=1"
+) else (
+    >>"%LIST%" echo(%ARG%
+    set "HASPATHS=1"
+)
+shift
+goto args
+:argsdone
 
-for %%D in (C D E F G H I J K L M N O P Q R S T U V W X Y Z) do call :scan %%D
-
-set /a COUNT=0
-for /f "usebackq delims=" %%C in (`type "%LIST%"`) do set /a COUNT+=1
-echo.
-if "%COUNT%"=="0" goto none
-
-echo Found %COUNT% reserved-name file(s):
-echo --------------------------------------------------
-type "%LIST%"
-echo --------------------------------------------------
-echo.
-choice /c YN /n /m "Delete ALL listed files? [Y=yes / N=no] "
-if errorlevel 2 goto cancel
-
-echo.
-for /f "usebackq delims=" %%P in ("%LIST%") do call :delpath %%P
-echo.
-echo Finished. Items marked FAILED are locked or access denied.
-del "%LIST%" >nul 2>&1
-pause
-exit /b 0
-
-:none
-echo No reserved-name files found. Nothing to delete.
-del "%LIST%" >nul 2>&1
-pause
-exit /b 0
-
-:cancel
-echo Cancelled. Nothing was changed.
-del "%LIST%" >nul 2>&1
-pause
-exit /b 0
-
-:scan
-if not exist %1:\ goto :eof
-echo Scanning %1:\ ...
-for /f "delims=" %%F in ('dir /s /b /a "%1:\" 2^>nul') do call :check "%%F"
-goto :eof
-
-:check
-set "n=%~nx1"
-if /i "%n%"=="nul" goto add
-if /i "%n%"=="con" goto add
-if /i "%n%"=="prn" goto add
-if /i "%n%"=="aux" goto add
-if /i "%n%"=="com1" goto add
-if /i "%n%"=="com2" goto add
-if /i "%n%"=="com3" goto add
-if /i "%n%"=="com4" goto add
-if /i "%n%"=="com5" goto add
-if /i "%n%"=="com6" goto add
-if /i "%n%"=="com7" goto add
-if /i "%n%"=="com8" goto add
-if /i "%n%"=="com9" goto add
-if /i "%n%"=="lpt1" goto add
-if /i "%n%"=="lpt2" goto add
-if /i "%n%"=="lpt3" goto add
-if /i "%n%"=="lpt4" goto add
-if /i "%n%"=="lpt5" goto add
-if /i "%n%"=="lpt6" goto add
-if /i "%n%"=="lpt7" goto add
-if /i "%n%"=="lpt8" goto add
-if /i "%n%"=="lpt9" goto add
-goto :eof
-:add
->>"%LIST%" echo("%~1"
-goto :eof
-
-:delpath
-del /f /a /q "\\?\%~1" >nul 2>&1
-rd /s /q "\\?\%~1" >nul 2>&1
-if exist "\\?\%~1" (echo [FAILED] %~1) else (echo [DELETED] %~1)
-goto :eof
+if defined HASPATHS (
+    "%PS%" -NoProfile -ExecutionPolicy Bypass -File "%PS1%" -PathsFile "%LIST%" %OPTS%
+) else (
+    del "%LIST%" >nul 2>&1
+    "%PS%" -NoProfile -ExecutionPolicy Bypass -File "%PS1%" %*
+)
+exit /b %ERRORLEVEL%

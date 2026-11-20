@@ -1,85 +1,44 @@
 @echo off
-setlocal DisableDelayedExpansion
-title Reserved-Name Cleaner (current folder only)
+rem Wrapper: with no arguments scans this folder; dragged items become -PathsFile targets.
+setlocal EnableExtensions
+title Reserved-Name Cleaner
 
-rem Root = the folder this bat is placed in
-set "ROOT=%~dp0"
+set "PS1=%~dp0delete-nul.ps1"
+if not exist "%PS1%" (
+    echo [ERROR] delete-nul.ps1 not found next to this file.
+    echo Download BOTH files from https://github.com/yancongya/delete-nul
+    pause
+    exit /b 3
+)
 
-set "LIST=%TEMP%\reserved_name_files.txt"
+set "PS=powershell.exe"
+where pwsh >nul 2>&1 && set "PS=pwsh"
+
+set "LIST=%TEMP%\rn_paths_%RANDOM%.txt"
 type nul > "%LIST%"
+set "HASPATHS="
+set "OPTS="
 
-echo ==================================================
-echo  Scanning this folder for reserved-name files:
-echo  %ROOT%
-echo ==================================================
-echo.
+:args
+if "%~1"=="" goto argsdone
+if exist "%~1" (
+    >>"%LIST%" echo(%~1
+    set "HASPATHS=1"
+) else (
+    set "OPTS=%OPTS% %1"
+)
+shift
+goto args
+:argsdone
 
-for /f "delims=" %%F in ('dir /s /b /a "%ROOT%" 2^>nul') do call :check "%%F"
-
-set /a COUNT=0
-for /f "usebackq delims=" %%C in (`type "%LIST%"`) do set /a COUNT+=1
-echo.
-if "%COUNT%"=="0" goto none
-
-echo Found %COUNT% reserved-name file(s):
-echo --------------------------------------------------
-type "%LIST%"
-echo --------------------------------------------------
-echo.
-choice /c YN /n /m "Delete ALL listed files? [Y=yes / N=no] "
-if errorlevel 2 goto cancel
-
-echo.
-for /f "usebackq delims=" %%P in ("%LIST%") do call :delpath %%P
-echo.
-echo Finished. Items marked FAILED are locked or access denied.
-del "%LIST%" >nul 2>&1
-pause
-exit /b 0
-
-:none
-echo No reserved-name files found. Nothing to delete.
-del "%LIST%" >nul 2>&1
-pause
-exit /b 0
-
-:cancel
-echo Cancelled. Nothing was changed.
-del "%LIST%" >nul 2>&1
-pause
-exit /b 0
-
-:check
-set "n=%~nx1"
-if /i "%n%"=="nul" goto add
-if /i "%n%"=="con" goto add
-if /i "%n%"=="prn" goto add
-if /i "%n%"=="aux" goto add
-if /i "%n%"=="com1" goto add
-if /i "%n%"=="com2" goto add
-if /i "%n%"=="com3" goto add
-if /i "%n%"=="com4" goto add
-if /i "%n%"=="com5" goto add
-if /i "%n%"=="com6" goto add
-if /i "%n%"=="com7" goto add
-if /i "%n%"=="com8" goto add
-if /i "%n%"=="com9" goto add
-if /i "%n%"=="lpt1" goto add
-if /i "%n%"=="lpt2" goto add
-if /i "%n%"=="lpt3" goto add
-if /i "%n%"=="lpt4" goto add
-if /i "%n%"=="lpt5" goto add
-if /i "%n%"=="lpt6" goto add
-if /i "%n%"=="lpt7" goto add
-if /i "%n%"=="lpt8" goto add
-if /i "%n%"=="lpt9" goto add
-goto :eof
-:add
->>"%LIST%" echo("%~1"
-goto :eof
-
-:delpath
-del /f /a /q "\\?\%~1" >nul 2>&1
-rd /s /q "\\?\%~1" >nul 2>&1
-if exist "\\?\%~1" (echo [FAILED] %~1) else (echo [DELETED] %~1)
-goto :eof
+if defined HASPATHS (
+    "%PS%" -NoProfile -ExecutionPolicy Bypass -File "%PS1%" -PathsFile "%LIST%" %OPTS%
+) else (
+    del "%LIST%" >nul 2>&1
+    rem No drag: default to this folder (stripped trailing backslash).
+    rem No drag: default target is this folder. Write it to the list file too,
+    rem avoiding all trailing-backslash quoting problems.
+    >>"%LIST%" echo(%~dp0
+    "%PS%" -NoProfile -ExecutionPolicy Bypass -File "%PS1%" -PathsFile "%LIST%" %*
+)
+exit /b %ERRORLEVEL%
