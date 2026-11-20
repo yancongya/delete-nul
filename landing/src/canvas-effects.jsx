@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import { DecryptReveal, supportsHtmlInCanvas } from './components/canvasui/DecryptReveal';
@@ -30,16 +30,23 @@ gpuProbe?.getExtension('WEBGL_lose_context')?.loseContext();
 
 function FeatureCard({ markup }) {
   const { light, reduceMotion, finePointer } = useVisualPreferences();
-  const active = !reduceMotion && finePointer;
+  const [decoded, setDecoded] = useState(false);
+  const timer = useRef(null);
+  const active = !decoded && !reduceMotion && finePointer;
+  useEffect(() => () => clearTimeout(timer.current), []);
+  function beginDecode(event) {
+    if (!active || event.pointerType === 'touch' || timer.current !== null) return;
+    timer.current = setTimeout(() => setDecoded(true), 540);
+  }
   // The original HTML sizes the row and stays available to assistive technology.
   // The visual copy is captured in full by the official shader.
   const body = <div className="card-body" dangerouslySetInnerHTML={{ __html: markup }} />;
-  return <div className="card-enhanced" data-active={active ? '' : undefined}>
+  return <div className="card-enhanced" data-active={active ? '' : undefined} onPointerEnter={beginDecode}>
     {body}
-    {active && <DecryptReveal className="canvasui-decrypt" radius={108} cell={8}
+    {active && <DecryptReveal className="canvasui-decrypt" radius={380} softness={0.45} smoothing={0.11} cell={8}
       style={{ overflow: 'hidden' }} colored={0} color={light ? '#363636' : '#dedede'} aberration={0}
       background={light ? '#ffffff' : '#0f0f11'}>
-      <div aria-hidden="true" style={{ minHeight: '100%', background: 'var(--panel)' }}>{body}</div>
+      <div aria-hidden="true" style={{ height: '100%', background: 'var(--panel)' }}>{body}</div>
     </DecryptReveal>}
   </div>;
 }
