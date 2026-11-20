@@ -121,6 +121,27 @@ html.light .theme-btn .moon{display:inline-block}
 .demo-line .hl{color:var(--ink);font-weight:700}
 .demo-cursor{display:inline-block;width:8px;height:15px;background:var(--ink);vertical-align:-2px;animation:blink .8s steps(1) infinite}
 
+
+/* Terminal samples, with a local ASCII reveal instead of a card lift. */
+#features .card{padding:0 0 20px;overflow:hidden}
+#features .card:hover{transform:none;border-color:var(--faint)}
+#features .card h3,#features .card p{margin-inline:18px}
+.decrypt{position:relative;display:grid;align-items:center;min-height:108px;background:var(--panel2);border-bottom:1px solid var(--line);overflow:hidden}
+.decrypt pre,.mode-screen pre{font:12px/1.65 var(--mono);margin:0;color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere}
+.decrypt pre{padding:14px 18px}
+.decrypt .noise{position:absolute;inset:0;display:grid;align-content:center;background:var(--panel2);color:var(--dim);pointer-events:none;
+  mask-image:radial-gradient(ellipse 118px 52px at var(--x,-200px) var(--y,50%),transparent 59%,#000 100%)}
+@media(hover:none),(prefers-reduced-motion:reduce){.decrypt .noise{display:none}}
+.mode-picker:not([hidden]){display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.mode-picker button{font:inherit;font-size:14px;padding:9px 13px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;cursor:pointer}
+.mode-picker button[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:transparent}
+.mode-screen{position:relative;isolation:isolate;overflow:hidden;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+.mode-panel{min-height:180px;padding:18px 20px}
+.mode-panel h3{margin:0;font-size:17px}
+.mode-panel p{margin:6px 0 12px;color:var(--dim);font-size:14px}
+.mode-panel pre{border-top:1px solid var(--line);padding-top:9px;color:var(--ink)}
+.mode-sweep{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+
 /* sections */
 section.block{padding:88px 0;border-top:1px solid var(--line)}
 .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:2px;color:var(--dim);text-transform:uppercase}
@@ -323,12 +344,26 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:56px 24px}
       <h2 class="title reveal">只做一件事，做对</h2>
       <p class="lead reveal">围绕保留名文件的查找与删除，把边界情况都处理掉。</p>
       <div class="grid">
-        <div class="card reveal"><div class="ico">[ = ]</div><h3>精确匹配</h3><p>只匹配裸保留名本体，<code>nul.txt</code> 这类正常文件不会被误删。</p></div>
-        <div class="card reveal"><div class="ico">[ ? ]</div><h3>先列后删</h3><p>列出全部结果、确认（Y）才删除，逐条报告成功 / 失败，不进回收站。</p></div>
-        <div class="card reveal"><div class="ico">[ / ]</div><h3>\\?\ 前缀</h3><p>加 <code>\\?\</code> 直达 NT 路径，绕过 Win32 把 NUL 当设备的解析。</p></div>
-        <div class="card reveal"><div class="ico">[ # ]</div><h3>多种入口</h3><p>全局扫描、选盘浏览、粘贴路径、拖拽处理——按你的习惯来。</p></div>
-        <div class="card reveal"><div class="ico">[ $ ]</div><h3>可脚本化</h3><p>JSON 输出、退出码、日志、单盘超时，方便接入自动化。</p></div>
-        <div class="card reveal"><div class="ico">[ ! ]</div><h3>权限克制</h3><p>默认普通权限即可删个人目录文件，需要时才用 <code>-Elevate</code>。</p></div>
+        <div class="card reveal"><div class="decrypt" aria-hidden="true"><pre>[+] D:\work\NUL
+[ ] D:\work\nul.txt</pre><pre class="noise">?4# 12&gt;3/1&lt;612:
+: 2 72&gt;:1371#171&gt;49</pre></div><h3>精确匹配</h3><p>只匹配裸保留名本体，<code>nul.txt</code> 这类正常文件不会被误删。</p></div>
+        <div class="card reveal"><div class="decrypt" aria-hidden="true"><pre>[1] NUL     [2] CON
+    Delete? [Y/N]</pre><pre class="noise">:4&gt; 39&gt;     536 /3&gt;
+    216.&gt;:? ++/97</pre></div><h3>先列后删</h3><p>列出全部结果、确认（Y）才删除，逐条报告成功 / 失败，不进回收站。</p></div>
+        <div class="card reveal"><div class="decrypt" aria-hidden="true"><pre>    D:\work\NUL
+ =&gt; \\?\D:\work\NUL</pre><pre class="noise">    5729&lt;.?+923
+ &lt;: 5?4.:12&gt;??/.+22</pre></div><h3>\\?\ 前缀</h3><p>加 <code>\\?\</code> 直达 NT 路径，绕过 Win32 把 NUL 当设备的解析。</p></div>
+        <div class="card reveal"><div class="decrypt" aria-hidden="true"><pre>[G] Scan all drives
+[S] Select a folder
+[D] Paste a path</pre><pre class="noise">8.2 19+9 #/0 +/53.1
+694 7##.25 + #&gt;84:&gt;
+8:/ #7425 4 770.</pre></div><h3>多种入口</h3><p>全局扫描、选盘浏览、粘贴路径、拖拽处理——按你的习惯来。</p></div>
+        <div class="card reveal"><div class="decrypt" aria-hidden="true"><pre>-Json  -LogPath
+-ScanTimeout</pre><pre class="noise">58904  :&gt;/?4&lt;1+
+&gt;####3.#1626</pre></div><h3>可脚本化</h3><p>JSON 输出、退出码、日志、单盘超时，方便接入自动化。</p></div>
+        <div class="card reveal"><div class="decrypt" aria-hidden="true"><pre>default: standard user
+option:  -Elevate</pre><pre class="noise">+53?1304 &gt;3/026#4 8//.
+33.+..9  243?8.5&lt;</pre></div><h3>权限克制</h3><p>默认普通权限即可删个人目录文件，需要时才用 <code>-Elevate</code>。</p></div>
       </div>
     </div>
   </section>
@@ -364,10 +399,16 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:56px 24px}
       <div class="eyebrow reveal">// USAGE</div>
       <h2 class="title reveal">三种模式，按习惯选</h2>
       <p class="lead reveal">双击 delete-nul.bat，用 ↑ ↓ 选择；或直接给参数。</p>
-      <div class="grid">
-        <div class="card reveal"><div class="ico">[G]</div><h3>全局扫描</h3><p>扫描所有本地固定盘，跳过网络盘 / 光驱。大容量盘可配合 <code>-Fast</code> 与 <code>-ScanTimeout</code>。</p></div>
-        <div class="card reveal"><div class="ico">[S]</div><h3>定向处理</h3><p>方向键选磁盘、进入文件夹浏览器逐层深入，<code>..</code> 返回上一层，选定当前目录即可。</p></div>
-        <div class="card reveal"><div class="ico">[D]</div><h3>粘贴 / 拖拽</h3><p>Shift+右键复制文件地址粘贴，或把文件 / 文件夹直接拖到 bat 图标上——连 NUL 文件本身也能识别。</p></div>
+      <div class="mode-picker" hidden aria-label="使用模式" role="group">
+        <button type="button" data-mode="0" aria-controls="usage-0" aria-pressed="true">全局扫描</button>
+        <button type="button" data-mode="1" aria-controls="usage-1" aria-pressed="false">定向处理</button>
+        <button type="button" data-mode="2" aria-controls="usage-2" aria-pressed="false">粘贴 / 拖拽</button>
+      </div>
+      <div class="mode-screen">
+        <div class="mode-panel" id="usage-0"><h3>全局扫描</h3><p>扫描所有本地固定盘，跳过网络盘 / 光驱。大容量盘可配合 <code>-Fast</code> 与 <code>-ScanTimeout</code>。</p><pre>delete-nul.bat -DryRun</pre></div>
+        <div class="mode-panel" id="usage-1"><h3>定向处理</h3><p>方向键选磁盘、进入文件夹浏览器逐层深入，<code>..</code> 返回上一层，选定当前目录即可。</p><pre>delete-nul.bat -Path &quot;D:\temp&quot; -DryRun</pre></div>
+        <div class="mode-panel" id="usage-2"><h3>粘贴 / 拖拽</h3><p>Shift+右键复制文件地址粘贴，或把文件 / 文件夹直接拖到 bat 图标上——连 NUL 文件本身也能识别。</p><pre>[D] Paste a path / Drop onto delete-nul.bat</pre></div>
+        <canvas class="mode-sweep" aria-hidden="true" hidden></canvas>
       </div>
     </div>
   </section>
@@ -584,6 +625,54 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:56px 24px}
     new IntersectionObserver(function(entries){visible=entries[0].isIntersecting;if(visible)wake();else leave()}).observe(hero);
     motion.addEventListener('change',function(){leave();waves=[];touch=null;wake()});
     fit();
+  })();
+
+  /* Canvas UI-inspired treatments; the samples and mode descriptions are ordinary HTML. */
+  document.querySelectorAll('.decrypt').forEach(function(sample){
+    sample.addEventListener('pointermove',function(e){
+      if(motion.matches||e.pointerType==='touch')return;
+      var r=sample.getBoundingClientRect();
+      sample.style.setProperty('--x',(e.clientX-r.left)+'px');
+      sample.style.setProperty('--y',(e.clientY-r.top)+'px');
+    },{passive:true});
+    sample.addEventListener('pointerleave',function(){sample.style.removeProperty('--x')});
+  });
+  (function(){
+    var picker=document.querySelector('.mode-picker'),screen=document.querySelector('.mode-screen');
+    var tabs=Array.from(picker.querySelectorAll('button')),panels=Array.from(screen.querySelectorAll('.mode-panel'));
+    var canvas=screen.querySelector('canvas'),ctx=canvas.getContext('2d'),frame=0,selected=0;
+    var chars='?/#:+.<>10',duration=470;
+    function stop(){cancelAnimationFrame(frame);frame=0;canvas.hidden=true;}
+    function sweep(direction){
+      stop();if(motion.matches||!ctx)return;
+      var W=screen.clientWidth,H=screen.clientHeight,dpr=Math.min(devicePixelRatio||1,2),start=performance.now();
+      var palette=getComputedStyle(screen), ink=palette.getPropertyValue('--ink').trim(), panel=palette.getPropertyValue('--panel').trim();
+      canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);canvas.hidden=false;
+      ctx.setTransform(dpr,0,0,dpr,0,0);ctx.font='bold 12px monospace';ctx.textBaseline='top';
+      function draw(now){
+        var t=Math.max(0,Math.min(1,(now-start)/duration));if(t===1){stop();return;}
+        var edge=direction>0?t*(W+75):W-t*(W+75);
+        ctx.clearRect(0,0,W,H);ctx.fillStyle=panel;ctx.globalAlpha=.94;
+        if(direction>0)ctx.fillRect(edge,0,W-edge,H);else ctx.fillRect(0,0,Math.max(0,edge),H);
+        for(var x=Math.max(0,Math.floor((edge-75)/9)*9);x<Math.min(W,edge+75);x+=9){
+          var a=1-Math.abs(x-edge)/75;if(a<=0)continue;
+          for(var y=0;y<H;y+=13){
+            ctx.globalAlpha=a*(.3+.6*((x+y)%7)/6);ctx.fillStyle=ink;
+            ctx.fillText(chars[(x+y+Math.floor(t*26))%chars.length],x,y);
+          }
+        }
+        frame=requestAnimationFrame(draw);
+      }
+      draw(start);
+    }
+    function select(i){
+      if(i===selected)return;
+      var direction=i>selected?1:-1;selected=i;
+      panels.forEach(function(panel,n){panel.hidden=n!==i;tabs[n].setAttribute('aria-pressed',String(n===i));});
+      sweep(direction);
+    }
+    tabs.forEach(function(tab,i){tab.addEventListener('click',function(){select(i)})});
+    motion.addEventListener('change',stop);panels.slice(1).forEach(function(panel){panel.hidden=true});picker.hidden=false;
   })();
 
   /* terminal demo */
