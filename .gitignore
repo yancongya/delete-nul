@@ -1,0 +1,5 @@
+# Screenshots & local test logs
+*.png
+*.log
+*.yml
+.playwright-cli/
