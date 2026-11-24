@@ -172,14 +172,186 @@ html.light #restoreHint:hover{color:var(--ink);border-color:var(--ink)}
 :focus-visible{outline:2px solid var(--ink);outline-offset:4px}
 
 /* LOADING */
-#loader{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .4s var(--ease-out-expo),visibility .4s}
-#loader.done{opacity:0;visibility:hidden;pointer-events:none}
-.load-box{width:min(440px,80vw);font-family:var(--mono)}
-.load-tag{font-size:10px;letter-spacing:4px;color:var(--faint);margin-bottom:20px;text-transform:uppercase}
-.load-spin{font-size:34px;color:var(--ink);line-height:1;margin-bottom:14px;display:inline-block}
-.load-bar{color:var(--ink);font-size:15px;letter-spacing:1px;white-space:nowrap;overflow:hidden}
-.load-pct{font-size:12px;color:var(--dim);margin-top:14px;display:flex;justify-content:space-between}
-.load-pct b{color:var(--ink);font-weight:400}
+#loader{
+  position:fixed;inset:0;z-index:9999;
+  background:#050507;color:#f0f0f4;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);padding:20px;
+  transition:opacity .45s cubic-bezier(.16,1,.3,1), transform .45s cubic-bezier(.16,1,.3,1), visibility .45s;
+  overflow:hidden;
+}
+#loader::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    repeating-linear-gradient(180deg,transparent 0 2px,rgba(255,255,255,.018) 2px 4px),
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,.04) 0%, transparent 80%);
+}
+#loader.done{
+  opacity:0;visibility:hidden;pointer-events:none;
+  transform:scale(1.03);
+}
+.loader-hud{
+  width:min(580px,94vw);
+  background:rgba(10,10,14,0.94);
+  border:1px solid rgba(255,255,255,0.22);
+  border-radius:4px;
+  box-shadow:0 0 60px rgba(0,0,0,0.85), inset 0 0 24px rgba(255,255,255,0.02);
+  padding:20px 22px;
+  position:relative;z-index:2;
+  backdrop-filter:blur(16px);
+}
+.loader-head{
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid rgba(255,255,255,0.12);
+  padding-bottom:12px;margin-bottom:14px;
+  font-size:11px;letter-spacing:.06em;
+}
+.loader-title{
+  display:flex;align-items:center;gap:8px;font-weight:700;color:#fff;
+}
+.loader-pulse{
+  width:7px;height:7px;border-radius:50%;background:#fff;
+  box-shadow:0 0 8px #fff;animation:pulse 1.2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.75)}}
+.loader-meta{
+  font-size:10px;color:#8a8a96;letter-spacing:.04em;
+}
+.loader-logs{
+  min-height:92px;margin-bottom:16px;font-size:11.5px;line-height:1.75;
+}
+.loader-log-line{
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.loader-log-line .tag{color:#9a9aa8}
+.loader-log-line .state{color:#fff;font-weight:700;letter-spacing:.05em;margin-left:12px}
+.loader-meter{
+  border-top:1px dashed rgba(255,255,255,0.14);
+  padding-top:14px;
+}
+.loader-meter-meta{
+  display:flex;justify-content:space-between;font-size:10.5px;color:#8a8a96;margin-bottom:7px;
+}
+.loader-meter-bar{
+  font-size:13px;letter-spacing:1.5px;color:#fff;white-space:nowrap;overflow:hidden;
+  font-weight:700;text-shadow:0 0 6px rgba(255,255,255,0.3);
+}
+.loader-footer{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:14px;font-size:11px;color:#7a7a88;
+}
+.loader-skip-hint{
+  cursor:pointer;transition:color .18s;letter-spacing:.02em;
+}
+.loader-skip-hint:hover{color:#fff;text-decoration:underline}
+
+html.light #loader{background:#f0f0f4;color:#0c0c0e}
+html.light #loader::before{
+  background:
+    repeating-linear-gradient(180deg,transparent 0 2px,rgba(0,0,0,.015) 2px 4px),
+    radial-gradient(circle at 50% 50%, rgba(0,0,0,.03) 0%, transparent 80%);
+}
+html.light .loader-hud{
+  background:rgba(255,255,255,0.96);
+  border:1px solid rgba(0,0,0,0.18);
+  box-shadow:0 20px 50px rgba(0,0,0,0.12);
+  color:#0c0c0e;
+}
+html.light .loader-head{border-bottom-color:rgba(0,0,0,0.1)}
+html.light .loader-title{color:#000}
+html.light .loader-pulse{background:#000;box-shadow:0 0 8px rgba(0,0,0,0.5)}
+html.light .loader-meta{color:#555560}
+html.light .loader-log-line .tag{color:#44444e}
+html.light .loader-log-line .state{color:#000}
+html.light .loader-meter{border-top-color:rgba(0,0,0,0.1)}
+html.light .loader-meter-meta{color:#555560}
+html.light .loader-meter-bar{color:#000;text-shadow:none}
+html.light .loader-footer{color:#666672}
+html.light .loader-skip-hint:hover{color:#000}
+
+/* Global Micro-UI & Badges */
+.nav-status-badge{
+  display:inline-flex;align-items:center;gap:6px;font:10px var(--mono);
+  color:var(--dim);border:1px solid var(--line);border-radius:12px;
+  padding:2px 8px;margin-left:12px;letter-spacing:.04em;
+}
+.nav-status-badge .dot{width:5px;height:5px;border-radius:50%;background:#fff}
+html.light .nav-status-badge .dot{background:#000}
+.nav-links a.active{color:var(--ink);font-weight:700}
+
+.hero-pills{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:0 auto 28px;max-width:700px}
+.pill-tag{font:11px var(--mono);color:var(--dim);background:var(--panel2);border:1px solid var(--line);padding:3px 10px;border-radius:12px;letter-spacing:.02em}
+.btn-arrow{display:inline-block;transition:transform .18s ease}
+.btn:hover .btn-arrow{transform:translateX(3px)}
+
+.tab-badge{
+  font-size:9.5px;padding:1px 5px;border-radius:2px;margin-left:5px;
+  background:rgba(255,255,255,0.12);color:var(--dim);font-weight:700;
+  vertical-align:1px;letter-spacing:0;
+}
+.install-tabs button[aria-selected=true] .tab-badge{
+  background:rgba(255,255,255,0.25);color:#fff;
+}
+html.light .tab-badge{background:rgba(0,0,0,0.06);color:var(--dim)}
+html.light .install-tabs button[aria-selected=true] .tab-badge{background:#fff;color:#000}
+
+/* AI Agent Presets */
+.agent-presets{
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  margin-bottom:8px;font:10.5px var(--mono);
+}
+.preset-label{color:var(--faint);font-size:10px;letter-spacing:.04em}
+.preset-pill{
+  background:var(--panel);border:1px solid var(--line);border-radius:2px;
+  color:var(--dim);font:10px var(--mono);padding:2px 7px;cursor:pointer;
+  transition:all .15s;
+}
+.preset-pill:hover{color:var(--ink);border-color:var(--ink);background:var(--panel2)}
+
+/* Usage Mode Metadata */
+.mode-meta{font:10px var(--mono);color:var(--dim);margin-bottom:8px;display:flex;gap:8px;align-items:center}
+.mode-tag{background:var(--panel2);border:1px solid var(--line);border-radius:2px;padding:1px 5px;color:var(--ink);font-weight:700}
+.mode-cmd-wrap{display:flex;align-items:center;gap:10px;margin-top:12px}
+.mode-cmd-wrap pre{flex:1;min-width:0;margin:0}
+.mode-cmd-wrap .copybtn{flex:none}
+
+/* Copy Toast */
+#copyToast{
+  position:fixed;bottom:28px;right:28px;z-index:9000;
+  background:#050507;color:#fff;border:1px solid rgba(255,255,255,0.3);
+  border-radius:4px;padding:10px 16px;font:11.5px/1.4 var(--mono);
+  box-shadow:0 12px 36px rgba(0,0,0,0.6);
+  display:flex;align-items:center;gap:8px;
+  opacity:0;transform:translateY(12px);pointer-events:none;
+  transition:all .22s cubic-bezier(.16,1,.3,1);
+}
+#copyToast.show{opacity:1;transform:translateY(0);pointer-events:auto}
+#copyToast .toast-ico{
+  width:14px;height:14px;border-radius:50%;background:#ffffff25;
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:700;color:#fff;
+}
+html.light #copyToast{
+  background:#ffffff;color:#000;border:1px solid #00000030;
+  box-shadow:0 12px 36px rgba(0,0,0,0.15);
+}
+html.light #copyToast .toast-ico{background:#00000015;color:#000}
+
+/* Footer Top Row & Status Indicator */
+.foot-top-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding-bottom:24px;margin-bottom:32px;border-bottom:1px solid var(--line);
+  font:11px var(--mono);flex-wrap:wrap;gap:12px;
+}
+.status-indicator{display:inline-flex;align-items:center;gap:8px;color:var(--dim)}
+.status-dot{width:6px;height:6px;border-radius:50%;background:#fff;animation:pulse 1.8s infinite}
+html.light .status-dot{background:#000}
+.back-to-top{
+  color:var(--dim);border:1px solid var(--line);border-radius:3px;
+  padding:3px 10px;transition:all .15s;text-decoration:none;
+}
+.back-to-top:hover{color:var(--ink);border-color:var(--ink);background:var(--panel2)}
 
 #field{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.55}
 
@@ -723,13 +895,27 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
 <body>
 
 <div id="loader">
-  <div class="load-box">
-    <div class="load-tag">DELETE-NUL // INITIALIZING</div>
-    <div class="load-spin" id="lspin">|</div>
-    <div class="load-bar" id="lbar">[>.....................]</div>
-    <div class="load-pct"><span id="lmsg">LOADING RESERVED-NAME INDEX</span><b id="lpct">0%</b></div>
+  <div class="loader-hud">
+    <div class="loader-head">
+      <div class="loader-title"><span class="loader-pulse"></span>DELETE-NUL // NT.KERNEL.PROBE.SYS</div>
+      <div class="loader-meta">v1.0.0 · AIR-GAPPED</div>
+    </div>
+    <div class="loader-logs" id="loaderLogs"></div>
+    <div class="loader-meter">
+      <div class="loader-meter-meta">
+        <span id="loaderStatus">PROBING WIN32 OBJECTS</span>
+        <span id="loaderAddr">0x00007FFE8040</span>
+      </div>
+      <div class="loader-meter-bar" id="loaderBar">[░░░░░░░░░░░░░░░░░░░░░░░░]</div>
+    </div>
+    <div class="loader-footer">
+      <span class="loader-pct-badge"><b id="loaderPct">0%</b> COMPLETED</span>
+      <span class="loader-skip-hint" id="loaderSkip">[点击或按任意键跳过 ↵]</span>
+    </div>
   </div>
 </div>
+
+<div id="copyToast"><span class="toast-ico">✓</span><span id="toastText">已成功复制到剪贴板</span></div>
 
 <canvas id="field" aria-hidden="true"></canvas>
 <canvas id="dissolve" aria-hidden="true"></canvas>
@@ -737,7 +923,10 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
 
 <header class="top dissolve-layer">
   <div class="wrap nav">
-    <a href="#top" class="brand">delete-nul<span class="cur">_</span></a>
+    <div style="display:flex;align-items:center">
+      <a href="#top" class="brand">delete-nul<span class="cur">_</span></a>
+      <span class="nav-status-badge"><span class="dot"></span>NT 10.0+ READY</span>
+    </div>
     <nav class="nav-links" id="navlinks">
       <a href="#features">功能</a><a href="#modes">使用</a><a href="#why">原理</a><a href="#install">安装 / 过程</a><a href="#faq">FAQ</a>
     </nav>
@@ -797,20 +986,26 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
       </div>
       <div class="hero-intro dissolve-layer">
         <h1><span class="accent slogan-glitch" data-text="⚡遗定要删掉⚡">⚡遗定要删掉⚡</span></h1>
-        <p class="sub"><code>NUL / CON / AUX / PRN / COM1-9 / LPT1-9</code> —— 资源管理器删不掉、普通 <code>del</code> 也够不着的真实文件。先列出，确认后才删。</p>
+        <p class="sub"><code>NUL / CON / AUX / PRN / COM1-9 / LPT1-9</code> —— Windows 无法删除的保留名死锁终结者。无需安装、零依赖不污染代码仓库；直达 NT 原生路径，先只读预检，确认后一键安全清除。</p>
+        <div class="hero-pills">
+          <span class="pill-tag">✦ 零依赖免安装</span>
+          <span class="pill-tag">✦ \\?\ NT 原生路径直达</span>
+          <span class="pill-tag">✦ 先列后删绝不误删</span>
+          <span class="pill-tag">✦ 100% 本地开源</span>
+        </div>
       </div>
       <div class="actions dissolve-layer">
-        <button class="btn primary" id="startBtn" type="button">立即开始 →</button>
-        <a class="btn ghost" href="#why">为什么普通方法不行？</a>
+        <button class="btn primary" id="startBtn" type="button">立即开始 <span class="btn-arrow">→</span></button>
+        <a class="btn ghost" href="#why">为什么普通方法不行？ <span class="btn-arrow">↳</span></a>
       </div>
       <div class="install dissolve-layer" id="install">
         <div class="install-head">
           <span class="eyebrow">// INSTALL</span>
           <div class="install-tabs" role="tablist" aria-label="安装方式">
-            <button type="button" role="tab" aria-selected="true" data-tab="cmd">终端命令</button>
-            <button type="button" role="tab" aria-selected="false" data-tab="agent">AI Agent</button>
-            <button type="button" role="tab" aria-selected="false" data-tab="raw">下载文件</button>
-            <button type="button" role="tab" aria-selected="false" data-tab="text">纯文本</button>
+            <button type="button" role="tab" aria-selected="true" data-tab="cmd">终端命令 <span class="tab-badge">推荐</span></button>
+            <button type="button" role="tab" aria-selected="false" data-tab="agent">AI Agent <span class="tab-badge">智能体</span></button>
+            <button type="button" role="tab" aria-selected="false" data-tab="raw">下载文件 <span class="tab-badge">拖拽</span></button>
+            <button type="button" role="tab" aria-selected="false" data-tab="text">纯文本 <span class="tab-badge">高保密</span></button>
           </div>
         </div>
         <div class="install-panel" data-panel="cmd" role="tabpanel">
@@ -858,6 +1053,12 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
           </div>
           <div class="term-body" data-lines="agent"></div>
           <div class="term-foot agent-foot">
+            <div class="agent-presets" aria-label="快捷提示词预设">
+              <span class="preset-label">快捷场景:</span>
+              <button class="preset-pill" type="button" data-prompt="请从 GitHub 获取并安装 delete-nul 工具，先只读扫描当前工作区保留名文件，汇报后再删">[当前工作区扫描]</button>
+              <button class="preset-pill" type="button" data-prompt="请下载安装 delete-nul 工具并扫描 D:\temp 目录中的 NUL、CON 等异常文件">[指定路径 D:\temp]</button>
+              <button class="preset-pill" type="button" data-prompt="请下载并运行 delete-nul 工具进行全盘只读扫描 -DryRun，统计所有保留名文件">[全盘只读预检]</button>
+            </div>
             <div class="agent-input-row">
               <div class="agent-input-wrap">
                 <span class="agent-input-icon">❯</span>
@@ -925,14 +1126,14 @@ type &quot;%RNLIST%&quot;">复制</button></div>
     <div class="wrap">
       <div class="eyebrow reveal">// FEATURES</div>
       <h2 class="title reveal">只做一件事，做对</h2>
-      <p class="lead reveal">围绕保留名文件的查找与删除，把边界情况都处理掉。</p>
+      <p class="lead reveal">针对 Windows 历史包袱与保留名死锁，提供不伤正常业务文件的终极解决方案。</p>
       <div class="grid">
-        <div class="card reveal"><div class="card-body"><h3>精确匹配</h3><p>只匹配裸保留名本体，<code>nul.txt</code> 这类正常文件不会被误删。</p><code class="card-key">NUL / nul.txt</code></div></div>
-        <div class="card reveal"><div class="card-body"><h3>先列后删</h3><p>列出全部结果、确认（Y）才删除，逐条报告成功 / 失败，不进回收站。</p><code class="card-key">-DryRun</code></div></div>
-        <div class="card reveal"><div class="card-body"><h3>\\?\ 前缀</h3><p>加 <code>\\?\</code> 直达 NT 路径，绕过 Win32 把 NUL 当设备的解析。</p><code class="card-key">\\?\D:\work\NUL</code></div></div>
-        <div class="card reveal"><div class="card-body"><h3>多种入口</h3><p>全局扫描、选盘浏览、粘贴路径、拖拽处理——按你的习惯来。</p><code class="card-key">[G] / [S] / [D]</code></div></div>
-        <div class="card reveal"><div class="card-body"><h3>可脚本化</h3><p>JSON 输出、退出码、日志、单盘超时，方便接入自动化。</p><code class="card-key">-Json / -ScanTimeout</code></div></div>
-        <div class="card reveal"><div class="card-body"><h3>权限克制</h3><p>默认普通权限即可删个人目录文件，需要时才用 <code>-Elevate</code>。</p><code class="card-key">-Elevate</code></div></div>
+        <div class="card reveal"><div class="card-body"><h3>精确匹配本体</h3><p>只匹配裸保留名本体；像 <code>nul.txt</code>、<code>con.png</code> 这类正常业务文件绝不误伤。</p><code class="card-key">NUL / nul.txt [SAFE]</code></div></div>
+        <div class="card reveal"><div class="card-body"><h3>先列后删预检</h3><p>先完整罗列扫描结果，经人工授权确认（Y）才执行物理清除，绝不静默删除。</p><code class="card-key">-DryRun [READONLY]</code></div></div>
+        <div class="card reveal"><div class="card-body"><h3>\\?\ NT 原生路径</h3><p>为路径注入 NT 命名空间直达前缀，绕过 Win32 子系统把保留名劫持为 DOS 设备的底层陷阱。</p><code class="card-key">\\?\D:\work\NUL [BYPASS]</code></div></div>
+        <div class="card reveal"><div class="card-body"><h3>多维交互入口</h3><p>全局排查、磁盘层级深入浏览、剪贴板粘贴路径，或直接拖拽文件夹至 bat 图标——全场景适配。</p><code class="card-key">[G] / [S] / [D] / [DROP]</code></div></div>
+        <div class="card reveal"><div class="card-body"><h3>企业级自动化</h3><p>支持标准 JSON 结构化输出、严谨退出码、详细审计日志与单盘扫描超时熔断，轻松接入运维管线。</p><code class="card-key">-Json / -ScanTimeout</code></div></div>
+        <div class="card reveal"><div class="card-body"><h3>最小权限克制</h3><p>默认普通用户权限即可运行，安全清理当前用户空间；仅在触及系统特权目录时才请求 UAC 提权。</p><code class="card-key">-Elevate [ON-DEMAND]</code></div></div>
       </div>
     </div>
   </section>
@@ -941,16 +1142,31 @@ type &quot;%RNLIST%&quot;">复制</button></div>
     <div class="wrap">
       <div class="eyebrow reveal">// USAGE</div>
       <h2 class="title reveal">三种模式，按习惯选</h2>
-      <p class="lead reveal">双击 delete-nul.bat，用 ↑ ↓ 选择；或直接给参数。</p>
+      <p class="lead reveal">双击 delete-nul.bat 启动交互式 TUI 菜单，或直接在命令行传入参数运行。</p>
       <div class="mode-picker" hidden aria-label="使用模式" role="group">
         <button type="button" data-mode="0" aria-controls="usage-0" aria-pressed="true"><span class="mode-index" aria-hidden="true">01</span><span class="mode-label">全局扫描</span><span class="mode-caret" aria-hidden="true">›</span></button>
         <button type="button" data-mode="1" aria-controls="usage-1" aria-pressed="false"><span class="mode-index" aria-hidden="true">02</span><span class="mode-label">定向处理</span><span class="mode-caret" aria-hidden="true">›</span></button>
         <button type="button" data-mode="2" aria-controls="usage-2" aria-pressed="false"><span class="mode-index" aria-hidden="true">03</span><span class="mode-label">粘贴 / 拖拽</span><span class="mode-caret" aria-hidden="true">›</span></button>
       </div>
       <div class="mode-screen">
-        <div class="mode-panel" id="usage-0"><h3>全局扫描</h3><p>扫描所有本地固定盘，跳过网络盘 / 光驱。大容量盘可配合 <code>-Fast</code> 与 <code>-ScanTimeout</code>。</p><pre>delete-nul.bat -DryRun</pre></div>
-        <div class="mode-panel" id="usage-1"><h3>定向处理</h3><p>方向键选磁盘、进入文件夹浏览器逐层深入，<code>..</code> 返回上一层，选定当前目录即可。</p><pre>delete-nul.bat -Path &quot;D:\temp&quot; -DryRun</pre></div>
-        <div class="mode-panel" id="usage-2"><h3>粘贴 / 拖拽</h3><p>Shift+右键复制文件地址粘贴，或把文件 / 文件夹直接拖到 bat 图标上——连 NUL 文件本身也能识别。</p><pre>[D] Paste a path / Drop onto delete-nul.bat</pre></div>
+        <div class="mode-panel" id="usage-0">
+          <div class="mode-meta"><span class="mode-tag">适用场景</span> <span>整机清理 · 跨盘全面排查 · 外部移动硬盘/U盘检测</span></div>
+          <h3>全局扫描（全盘自动排查）</h3>
+          <p>自动枚举并扫描系统所有固定磁盘，智能跳过网络驱动器与虚拟光驱。对大容量机械盘或大型代码库可搭配 <code>-Fast</code> 快速索引与 <code>-ScanTimeout</code> 超时防护。</p>
+          <div class="mode-cmd-wrap"><pre><code>delete-nul.bat -DryRun</code></pre><button class="copybtn" type="button" data-copy="delete-nul.bat -DryRun">复制命令</button></div>
+        </div>
+        <div class="mode-panel" id="usage-1">
+          <div class="mode-meta"><span class="mode-tag">适用场景</span> <span>特定开发目录 · Git 仓库检出死锁 · 构建产物目录</span></div>
+          <h3>定向处理（精准路径排查）</h3>
+          <p>方向键选定目标磁盘、进入文件夹浏览器逐层深入排查；或直接给路径参数。仅在目标子树内递归检测，瞬间完成毫秒级定位。</p>
+          <div class="mode-cmd-wrap"><pre><code>delete-nul.bat -Path "D:\workspace\project" -DryRun</code></pre><button class="copybtn" type="button" data-copy="delete-nul.bat -Path &quot;D:\workspace\project&quot; -DryRun">复制命令</button></div>
+        </div>
+        <div class="mode-panel" id="usage-2">
+          <div class="mode-meta"><span class="mode-tag">适用场景</span> <span>桌面拖拽 · 剪贴板快速粘贴 · 极简 GUI 直觉交互</span></div>
+          <h3>粘贴 / 拖拽（直觉式清理）</h3>
+          <p>在资源管理器中按住 Shift+右键复制受损文件夹路径并粘贴；或直接把包含异常文件的文件夹拖到 <code>delete-nul.bat</code> 图标上——连资源管理器选不中的 NUL 文件本身也能被精准识别。</p>
+          <div class="mode-cmd-wrap"><pre><code>[拖拽直达] 直接将损坏文件夹拖入 delete-nul.bat 图标即可触发清理</code></pre><button class="copybtn" type="button" data-copy="delete-nul.bat -Path .">复制参数</button></div>
+        </div>
       </div>
     </div>
   </section>
@@ -959,24 +1175,24 @@ type &quot;%RNLIST%&quot;">复制</button></div>
     <div class="wrap">
       <div class="eyebrow reveal">// WHY</div>
       <h2 class="title reveal">为什么普通方法删不掉？</h2>
-      <p class="lead reveal">问题出在路径解析阶段，不在文件本身。继续向下滚动页面，看内容从沙粒重新聚拢。</p>
+      <p class="lead reveal">问题根源在于 Windows 系统的路径解析阶段，而非文件系统损坏。深入理解底层差异，安全清理更放心。</p>
       <div data-why-scroll>
         <div class="why-scroll-inner">
           <div class="split">
             <div class="pane">
-              <h3>✕ 普通方式</h3>
+              <h3>✕ Win32 子系统劫持（资源管理器 / del / rm / 常见工具）</h3>
               <ul>
-                <li>资源管理器、<code>del NUL</code> 操作的都是“NUL 设备”，不是那个真实文件。</li>
-                <li>Win32 API 在解析路径时就把 NUL 识别成 DOS 设备对象。</li>
-                <li>于是你永远删不到磁盘上那个字面叫 NUL 的文件。</li>
+                <li><strong>历史包袱</strong>：DOS 1.0 时代为了将 <code>NUL</code>、<code>CON</code>、<code>PRN</code> 用作流重定向，将保留名硬编码进系统。</li>
+                <li><strong>路径解析劫持</strong>：Win32 API（<code>kernel32.dll</code> / <code>CreateFileW</code>）在解析路径时，一律将其重定向至 <code>\Device\Null</code> 等字符设备。</li>
+                <li><strong>死锁假象</strong>：普通删除命令以为自己在删设备，根本无法触及 NTFS 磁盘底层那个字面名叫 NUL 的物理文件。</li>
               </ul>
             </div>
             <div class="pane good">
-              <h3>✓ delete-nul</h3>
+              <h3>✓ delete-nul（直达 NT 原生对象管理器）</h3>
               <ul>
-                <li>枚举不受影响，可正常列出真实文件名。</li>
-                <li>给路径加 <code>\\?\</code> 前缀，跳过 Win32 规范化，直达 NT 对象管理器。</li>
-                <li>此时它就是字面路径，可以精确删除并复核。</li>
+                <li><strong>NT 原生路径直通</strong>：给路径注入 <code>\\?\</code>（Unicode NT 扩展前缀），告知操作系统直接跳过 Win32 规范化过滤。</li>
+                <li><strong>精准文件枚举</strong>：通过底层原生 API 枚举真实物理磁盘项，精准定位受困文件。</li>
+                <li><strong>物理定点清除与复核</strong>：直达 NT 对象管理器执行精准物理抹除，并再次递归复核确认残留数为 0。</li>
               </ul>
             </div>
           </div>
@@ -985,7 +1201,7 @@ type &quot;%RNLIST%&quot;">复制</button></div>
             <div class="why-path-row"><span class="why-tag">WIN32</span><code>del NUL</code><span>命中 DOS 设备对象，磁盘上的文件纹丝不动</span></div>
             <div class="why-path-row"><span class="why-tag">NT</span><code>del \\?\C:\work\NUL</code><span>跳过规范化，按字面路径精确命中</span></div>
           </div>
-          <p class="why-note">流程：枚举 → 按名字精确匹配 → 记录完整路径 → 加 <code>\\?\</code> 前缀删除 → 复核报告。删除不进回收站，先看列表再按 Y。</p>
+          <p class="why-note">规范流程：底层枚举 → 精确匹配裸保留名 → 锁定物理路径 → 注入 <code>\\?\</code> 前缀精准清除 → 自动复核残留。先只读预检，经确认才删除。</p>
         </div>
       </div>
     </div>
@@ -994,14 +1210,15 @@ type &quot;%RNLIST%&quot;">复制</button></div>
   <section class="block dissolve-layer" id="faq">
     <div class="wrap">
       <div class="eyebrow reveal">// FAQ</div>
-      <h2 class="title reveal">常见问题</h2>
-      <p class="lead reveal">使用前先确认哪些文件会被删除。</p>
+      <h2 class="title reveal">常见问题解答</h2>
+      <p class="lead reveal">针对真实开发与日常系统维护中的高频疑问，提供清晰权威的解答。</p>
       <div>
-        <details class="reveal"><summary>闪退 / 被杀软删除？</summary><p>当前 bat 是调用 ps1 的薄包装，无 Base64、无混淆。若杀软仍拦截"下载并执行"，从项目仓库下载并检查脚本内容，再按你的安全设置决定是否运行。</p></details>
-        <details class="reveal"><summary>提示 FAILED 怎么办？</summary><p>文件被占用或权限不足。关闭占用程序，或删除系统目录时加 <code>-Elevate</code> 以管理员重试。</p></details>
-        <details class="reveal"><summary>能恢复吗？</summary><p>不能。删除不进回收站，务必核对列表后再按 Y。</p></details>
-        <details class="reveal"><summary>会误删 nul.txt 吗？</summary><p>默认不会，只匹配裸名。如需连同带扩展名的保留名一起处理，显式加 <code>-IncludeExtension</code>。</p></details>
-        <details class="reveal"><summary>拖到图标显示禁止符号 / 拖进窗口没反应？</summary><p>前者多为 .bat 被关联到编辑器或拖拽源是压缩包内路径；后者多因 UIPI——脚本默认不提权以避免此问题。两种都可改用菜单里的"粘贴路径"。</p></details>
+        <details class="reveal"><summary>Git 克隆/检出报错 "unable to create file ...: Invalid argument" 怎么办？</summary><p>这是因为跨平台拉取了由 Linux / macOS 开发者提交的包含 <code>nul</code>、<code>aux</code> 等文件的仓库。Windows 资源管理器与普通 Git 无法创建或删除它们。只需用 delete-nul 扫描当前仓库路径，先只读预检，再确认清除该异常文件，随后 <code>git status</code> 即可恢复正常。</p></details>
+        <details class="reveal"><summary>为什么不用第三方“强力粉碎机”或重启进入 WinPE？</summary><p>绝大多数第三方粉碎工具同样基于 Win32 API 查找文件，面对保留名依然会死循环或提示“找不到指定文件”；而进入 WinPE 操作门槛高、容易误操作且无法自动化。delete-nul 原生几行轻量脚本直接调用 NT 原生路径，零成本、免安装、秒级解决。</p></details>
+        <details class="reveal"><summary>杀毒软件报毒或 PowerShell 策略拦截怎么处理？</summary><p>本项目 100% 开源纯透明，不含任何可执行二进制文件、无混淆、无 Base64 加密。bat 只是调用系统自带 PowerShell 的薄包装。若受组织组策略拦截，可直接切换到 Hero 区域的【纯文本】Tab，使用系统纯原生 CMD 管道命令运行，无需加载 PowerShell。</p></details>
+        <details class="reveal"><summary>提示 FAILED 或文件正被占用无法删除？</summary><p>通常是因为资源管理器的“预览窗格”、VSCode、终端或其它后台程序正打开着该目录。只需关闭相关程序后重试；若涉及系统特权路径（如 Program Files），运行时加上 <code>-Elevate</code> 参数以管理员身份执行提权。</p></details>
+        <details class="reveal"><summary>删除后能恢复吗？会进回收站吗？</summary><p>不能恢复，也不会进回收站。因为 Windows 回收站本身依赖 Win32 子系统，无法接收保留名文件。因此 delete-nul 严格贯彻「先列后删」安全策略，先只读罗列所有待删文件，经人工确认（Y）后才执行物理移除。</p></details>
+        <details class="reveal"><summary>会误伤 nul.txt 或正常业务文件吗？</summary><p>默认绝不误伤！匹配引擎采用强正则 <code>\\nul$</code> 进行裸名全字匹配，<code>nul.txt</code>、<code>con.png</code> 等带扩展名的正常文件会被系统完全豁免保护。如需显式连同扩展名一起处理，才需手动加上 <code>-IncludeExtension</code> 参数。</p></details>
       </div>
     </div>
   </section>
@@ -1010,6 +1227,13 @@ type &quot;%RNLIST%&quot;">复制</button></div>
 <!-- footer: 4-column structure reused from ASCII Motion -->
 <footer class="dissolve-layer">
   <div class="fcontainer">
+    <div class="foot-top-row">
+      <div class="status-indicator">
+        <span class="status-dot"></span>
+        <span class="status-text">SYSTEM STATUS: NT 10.0+ READY · ALL SUB-SYSTEMS OPERATIONAL</span>
+      </div>
+      <a href="#top" class="back-to-top" aria-label="回到顶部">回到顶部 ↑</a>
+    </div>
     <div class="foot-grid">
       <div class="foot-brand">
         <div class="flogo"><span class="p">delete</span><span class="f">-nul</span></div>
@@ -1031,20 +1255,17 @@ type &quot;%RNLIST%&quot;">复制</button></div>
         </ul>
       </div>
       <div class="foot-col">
-        <h4>Connect</h4>
-        <div class="foot-social">
-          <a href="https://github.com/yancongya/delete-nul" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>
-          </a>
-          <a href="https://github.com/yancongya" target="_blank" rel="noopener noreferrer" aria-label="Profile">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"></path></svg>
-          </a>
-        </div>
+        <h4>Security & License</h4>
+        <ul>
+          <li><span style="color:var(--dim);font-size:12.5px">MIT License · 自由使用</span></li>
+          <li><span style="color:var(--dim);font-size:12.5px">100% 本地开源 · 零数据回传</span></li>
+          <li><span style="color:var(--dim);font-size:12.5px">无外部依赖 · 免运行库</span></li>
+        </ul>
       </div>
     </div>
   </div>
   <div class="foot-divider">
-    <div class="foot-bottom">© 2026 delete-nul. All rights reserved.</div>
+    <div class="foot-bottom">© 2026 delete-nul. Open source software under the MIT License.</div>
     <button class="theme-btn" id="themeBtn" aria-label="浅色主题" aria-pressed="false">
       <svg class="sun" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
       <svg class="moon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 13.34A9 9 0 0 1 10.66 3.1 9 9 0 1 0 20.9 13.34Z"/></svg>
@@ -1071,35 +1292,114 @@ type &quot;%RNLIST%&quot;">复制</button></div>
   themeBtn.setAttribute('aria-pressed',String(document.documentElement.classList.contains('light')));
 
   var copyTimers=new WeakMap();
+  function showToast(msg){
+    var t = document.getElementById('copyToast');
+    if(!t) return;
+    var txt = document.getElementById('toastText');
+    if(txt && msg) txt.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+  }
+
   document.addEventListener('click',async function(e){
     var b=e.target.closest('#copybtn,.copybtn'); if(!b)return;
-    var code=b.parentElement.querySelector('code'); if(!code)return;
-    var text=b.getAttribute('data-copy')||code.textContent;
+    var code=b.parentElement.querySelector('code'); if(!code && !b.getAttribute('data-copy'))return;
+    var text=b.getAttribute('data-copy')||(code?code.textContent:'');
     var orig=b.getAttribute('data-orig')||b.textContent;
     if(!b.getAttribute('data-orig'))b.setAttribute('data-orig',orig);
     clearTimeout(copyTimers.get(b));
-    try{await navigator.clipboard.writeText(text);b.textContent='已复制';}
-    catch(e){
-      var r=document.createRange(); r.selectNodeContents(code);
-      var s=window.getSelection(); s.removeAllRanges(); s.addRange(r);b.textContent='已选中';
+    try{
+      await navigator.clipboard.writeText(text);
+      b.textContent='已复制';
+      showToast('已经成功复制到剪贴板，可直接粘贴使用！');
+    }
+    catch(err){
+      if(code){
+        var r=document.createRange(); r.selectNodeContents(code);
+        var s=window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      }
+      b.textContent='已选中';
+      showToast('已选中文本，请使用 Ctrl+C 复制');
     }
     copyTimers.set(b,setTimeout(function(){b.textContent=orig},1600));
   });
 
-  /* loading */
+  /* High-Tech NT Kernel Diagnostic Loader (Immersive Boot Sequence) */
   (function(){
-    var spin=document.getElementById('lspin'),bar=document.getElementById('lbar'),pct=document.getElementById('lpct'),msg=document.getElementById('lmsg'),loader=document.getElementById('loader');
-    if(!loader)return; if(motion.matches){loader.classList.add('done');return;}
-    var frames='|/-\\',fi=0,p=0,start=performance.now(),DUR=1900;
-    var tick=setInterval(function(){
-      spin.textContent=frames[fi++%4];
-      p=Math.min(100,Math.round((performance.now()-start)/DUR*100));
-      var filled=Math.round(p/100*21),s='[';
-      for(var i=0;i<21;i++)s+=i<filled?'=':(i===filled?'>':'.');
-      bar.textContent=s+']'; pct.textContent=p+'%';
-      if(p>60)msg.textContent='READY TO CLEAN';
-      if(p>=100){clearInterval(tick);setTimeout(function(){loader.classList.add('done')},180);}
-    },60);
+    var loader = document.getElementById('loader');
+    if(!loader) return;
+    if(motion.matches){ loader.classList.add('done'); return; }
+
+    var logContainer = document.getElementById('loaderLogs');
+    var barEl = document.getElementById('loaderBar');
+    var pctEl = document.getElementById('loaderPct');
+    var statusEl = document.getElementById('loaderStatus');
+    var addrEl = document.getElementById('loaderAddr');
+    var skipBtn = document.getElementById('loaderSkip');
+
+    var logs = [
+      { tag: 'STAGE 01: PROBING DOS DEVICE TRAP IN WIN32 SUBSYSTEM...', state: '[DETECTED: 22]' },
+      { tag: 'STAGE 02: BYPASSING REGEX CHECK VIA \\\\?\\ UNICODE NT PATHS...', state: '[INITIALIZED]' },
+      { tag: 'STAGE 03: ARMING NON-DESTRUCTIVE DRYRUN INSPECTOR...', state: '[READY]' },
+      { tag: 'STAGE 04: MOUNTING MEMORY REPOSITORY BUFFER...', state: '[SYNCED]' },
+      { tag: 'STAGE 05: SYSTEM APERTURE EXPANDED. RELEASING SHELL...', state: '[COMPLETED]' }
+    ];
+
+    var progress = 0;
+    var logIndex = 0;
+    var duration = 1600; // 1.6s smooth cinematic pace
+    var start = performance.now();
+    var hexBases = [0x7ffe8040, 0x7ffe9100, 0x7ffea200, 0x7ffeb500, 0x7ffec900, 0x7ffeffff];
+
+    function finish(){
+      if(loader.classList.contains('done')) return;
+      loader.classList.add('done');
+      if(window.__runProcess) window.__runProcess('cmd');
+    }
+
+    loader.addEventListener('click', finish);
+    if(skipBtn) skipBtn.addEventListener('click', finish);
+    document.addEventListener('keydown', function onKey(e){
+      if(!loader.classList.contains('done')){
+        finish();
+      }
+    }, {once: true});
+
+    var interval = setInterval(function(){
+      var elapsed = performance.now() - start;
+      progress = Math.min(100, Math.round((elapsed / duration) * 100));
+
+      var targetLog = Math.min(logs.length - 1, Math.floor((progress / 100) * logs.length));
+      while(logIndex <= targetLog && logIndex < logs.length){
+        var item = logs[logIndex];
+        var row = document.createElement('div');
+        row.className = 'loader-log-line';
+        row.innerHTML = '<span class="tag">&gt; ' + item.tag + '</span><span class="state">' + item.state + '</span>';
+        if(logContainer) logContainer.appendChild(row);
+        logIndex++;
+      }
+
+      var totalSegments = 24;
+      var filled = Math.round((progress / 100) * totalSegments);
+      var barStr = '[';
+      for(var i = 0; i < totalSegments; i++){
+        barStr += i < filled ? '█' : (i === filled ? '▒' : '░');
+      }
+      barStr += ']';
+      if(barEl) barEl.textContent = barStr;
+      if(pctEl) pctEl.textContent = progress + '%';
+      if(addrEl) addrEl.textContent = '0x' + (hexBases[Math.min(hexBases.length-1, Math.floor(progress / 20))] || 0x7ffeffff).toString(16).toUpperCase();
+
+      if(progress < 40 && statusEl) statusEl.textContent = 'PROBING WIN32 OBJECTS';
+      else if(progress < 80 && statusEl) statusEl.textContent = 'INJECTING NT NATIVE RESOLVER';
+      else if(statusEl) statusEl.textContent = 'ALL SUBSYSTEMS READY';
+
+      if(progress >= 100){
+        clearInterval(interval);
+        setTimeout(finish, 180);
+      }
+    }, 45);
   })();
 
   /* Global pointer-reactive ASCII field — full viewport, behind all content. */
@@ -1649,6 +1949,17 @@ type &quot;%RNLIST%&quot;">复制</button></div>
       });
     }
 
+    document.querySelectorAll('.preset-pill').forEach(function(pill){
+      pill.addEventListener('click', function(){
+        var pr = pill.getAttribute('data-prompt');
+        var inp = document.querySelector('.agent-prompt-input');
+        if(inp && pr){
+          inp.value = pr;
+          play('agent', pr);
+        }
+      });
+    });
+
     document.querySelectorAll('.tip-replay-action, .process-replay').forEach(function(btn){
       btn.addEventListener('click', function(e){
         e.stopPropagation();
@@ -1663,8 +1974,37 @@ type &quot;%RNLIST%&quot;">复制</button></div>
     });
     window.__runProcess = play;
     if(motion.matches) play('cmd');
-    else setTimeout(function(){ play('cmd'); }, 1900); // start with the loading screen
+    else setTimeout(function(){ play('cmd'); }, 1800); // starts naturally with boot sequence
     motion.addEventListener('change', function(){ play('cmd'); });
+
+    /* Navigation scrollspy & back-to-top */
+    (function(){
+      var secIds = ['features','modes','why','install','faq'];
+      var sections = secIds.map(function(id){ return document.getElementById(id); }).filter(Boolean);
+      var links = document.querySelectorAll('.nav-links a');
+      if(sections.length && links.length && 'IntersectionObserver' in window){
+        var spy = new IntersectionObserver(function(entries){
+          entries.forEach(function(entry){
+            if(entry.isIntersecting){
+              var activeId = entry.target.id;
+              links.forEach(function(link){
+                var match = link.getAttribute('href') === '#' + activeId;
+                link.classList.toggle('active', match);
+              });
+            }
+          });
+        }, {rootMargin: '-20% 0px -65% 0px'});
+        sections.forEach(function(s){ spy.observe(s); });
+      }
+
+      var topBtn = document.querySelector('.back-to-top');
+      if(topBtn){
+        topBtn.addEventListener('click', function(e){
+          e.preventDefault();
+          window.scrollTo({top: 0, behavior: 'smooth'});
+        });
+      }
+    })();
   })();
 
   /* scroll reveal (with safety fallback: never leave content hidden) */
