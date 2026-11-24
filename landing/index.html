@@ -235,12 +235,13 @@ html.light .theme-btn .moon{display:inline-block}
 .term-foot code{flex:1;min-width:0;font:11px/1.5 var(--mono);color:var(--dim);white-space:pre-wrap;overflow-wrap:anywhere}
 .install button.copybtn,.term-foot a{flex:none;font-family:var(--mono);font-size:11px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:3px;padding:6px 12px;cursor:pointer;transition:.15s;text-decoration:none}
 .term-foot a:hover,.install button.copybtn:hover{border-color:#fff;color:#fff}
-/* 立即开始 → the whole page scatters away, leaving only the global field. */
+/* 立即开始 → 从上往下逐个消失、补位、消散 */
 #dissolve{position:fixed;inset:0;z-index:120;pointer-events:none}
-body.page-dissolving header.top,body.page-dissolving main,body.page-dissolving footer{animation:page-dissolve .9s cubic-bezier(.55,0,.85,.35) forwards}
-@keyframes page-dissolve{to{opacity:0;filter:blur(16px);transform:translateY(-26px) scale(1.03)}}
-body.page-gone header.top,body.page-gone main,body.page-gone footer{display:none}
-#restoreHint{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:130;font:11px var(--mono);color:var(--dim);background:var(--panel);border:1px solid var(--line-bright);border-radius:4px;padding:8px 18px;cursor:pointer;backdrop-filter:blur(12px);transition:all .2s}
+.dissolve-layer{will-change:height,margin,padding,transform,opacity,filter}
+body.page-dissolving{pointer-events:none}
+body.page-dissolving #restoreHint{pointer-events:auto}
+body.page-gone header.top,body.page-gone #page-body{display:none}
+#restoreHint{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:130;font:11px var(--mono);color:var(--dim);background:var(--panel);border:1px solid var(--line-bright);border-radius:4px;padding:8px 18px;cursor:pointer;backdrop-filter:blur(12px);transition:all .2s;box-shadow:0 0 20px rgba(0,0,0,0.5)}
 #restoreHint:hover{color:#fff;border-color:#fff}
 
 /* each animated row of a method's execution process */
@@ -545,7 +546,7 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
 <canvas id="dissolve" aria-hidden="true"></canvas>
 <button id="restoreHint" type="button" hidden>点击任意位置或按 Esc 恢复页面</button>
 
-<header class="top">
+<header class="top dissolve-layer">
   <div class="wrap nav">
     <a href="#top" class="brand">delete-nul<span class="cur">_</span></a>
     <nav class="nav-links" id="navlinks">
@@ -559,7 +560,7 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
 <main id="top">
   <section class="hero">
     <div class="wrap">
-      <div class="wordmark" aria-hidden="true">
+      <div class="wordmark dissolve-layer" aria-hidden="true">
         <svg class="line1" viewBox="0 0 568 112" focusable="false">
           <defs>
             <path id="mark-1" fill-rule="evenodd" d="M0 0H60V16H80V80H60V96H0ZM20 16V80H50V64H60V32H50V16ZM94 0H174V16H114V40H164V56H114V80H174V96H94ZM188 0H208V80H268V96H188ZM282 0H362V16H302V40H352V56H302V80H362V96H282ZM376 0H456V16H426V96H406V16H376ZM470 0H550V16H490V40H540V56H490V80H550V96H470Z"/>
@@ -605,13 +606,15 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
           </g>
         </svg>
       </div>
-      <h1><span class="accent slogan-glitch" data-text="⚡遗定要删掉⚡">⚡遗定要删掉⚡</span></h1>
-      <p class="sub"><code>NUL / CON / AUX / PRN / COM1-9 / LPT1-9</code> —— 资源管理器删不掉、普通 <code>del</code> 也够不着的真实文件。先列出，确认后才删。</p>
-      <div class="actions">
+      <div class="hero-intro dissolve-layer">
+        <h1><span class="accent slogan-glitch" data-text="⚡遗定要删掉⚡">⚡遗定要删掉⚡</span></h1>
+        <p class="sub"><code>NUL / CON / AUX / PRN / COM1-9 / LPT1-9</code> —— 资源管理器删不掉、普通 <code>del</code> 也够不着的真实文件。先列出，确认后才删。</p>
+      </div>
+      <div class="actions dissolve-layer">
         <button class="btn primary" id="startBtn" type="button">立即开始 →</button>
         <a class="btn ghost" href="#why">为什么普通方法不行？</a>
       </div>
-      <div class="install" id="install">
+      <div class="install dissolve-layer" id="install">
         <div class="install-head">
           <span class="eyebrow">// INSTALL</span>
           <div class="install-tabs" role="tablist" aria-label="安装方式">
@@ -642,7 +645,7 @@ type &quot;%RNLIST%&quot;">复制</button></div>
     </div>
   </section>
 
-  <section class="block" id="features">
+  <section class="block dissolve-layer" id="features">
     <div class="wrap">
       <div class="eyebrow reveal">// FEATURES</div>
       <h2 class="title reveal">只做一件事，做对</h2>
@@ -658,7 +661,7 @@ type &quot;%RNLIST%&quot;">复制</button></div>
     </div>
   </section>
 
-  <section class="block" id="modes">
+  <section class="block dissolve-layer" id="modes">
     <div class="wrap">
       <div class="eyebrow reveal">// USAGE</div>
       <h2 class="title reveal">三种模式，按习惯选</h2>
@@ -676,7 +679,7 @@ type &quot;%RNLIST%&quot;">复制</button></div>
     </div>
   </section>
 
-  <section class="block" id="why">
+  <section class="block dissolve-layer" id="why">
     <div class="wrap">
       <div class="eyebrow reveal">// WHY</div>
       <h2 class="title reveal">为什么普通方法删不掉？</h2>
@@ -712,7 +715,7 @@ type &quot;%RNLIST%&quot;">复制</button></div>
     </div>
   </section>
 
-  <section class="block" id="faq">
+  <section class="block dissolve-layer" id="faq">
     <div class="wrap">
       <div class="eyebrow reveal">// FAQ</div>
       <h2 class="title reveal">常见问题</h2>
@@ -729,7 +732,7 @@ type &quot;%RNLIST%&quot;">复制</button></div>
 </main>
 
 <!-- footer: 4-column structure reused from ASCII Motion -->
-<footer>
+<footer class="dissolve-layer">
   <div class="fcontainer">
     <div class="foot-grid">
       <div class="foot-brand">
@@ -920,51 +923,133 @@ type &quot;%RNLIST%&quot;">复制</button></div>
     });
   })();
 
-  /* 立即开始 → the page scatters into particles; the global field stays. */
+  /* 立即开始 → 从上往下逐个消失、补位、消散，留下全局星野 field。 */
   (function(){
     var btn=document.getElementById('startBtn'),cv=document.getElementById('dissolve'),hint=document.getElementById('restoreHint');
     if(!btn||!cv)return;
-    var ctx=cv.getContext('2d'),parts=[],raf=0,active=false,dpr=1;
-    function fit(){dpr=Math.min(devicePixelRatio||1,2);cv.width=innerWidth*dpr;cv.height=innerHeight*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);}
-    function burst(){
-      fit();parts=[];
-      var n=Math.min(1800,Math.floor(innerWidth*innerHeight/1100));
-      for(var i=0;i<n;i++){
-        var ang=Math.random()*Math.PI*2,spd=Math.random()*3+.4,g=Math.round(70+Math.random()*180);
+    var ctx=cv.getContext('2d'),parts=[],raf=0,active=false,dpr=1,timers=[];
+    function fit(){
+      dpr=Math.min(devicePixelRatio||1,2);
+      cv.width=Math.round(innerWidth*dpr);
+      cv.height=Math.round(innerHeight*dpr);
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+    }
+    function spawnLayer(rect){
+      if(rect.bottom<0||rect.top>innerHeight)return;
+      var count=Math.min(200,Math.max(40,Math.floor((rect.width*Math.min(rect.height,innerHeight))/2400)));
+      var chars=['·','+','*','#','0','1','[',']','/','_','▫','■'];
+      var isLight=document.documentElement.classList.contains('light');
+      for(var i=0;i<count;i++){
+        var ang=-Math.PI/2+(Math.random()-0.5)*1.4;
+        var spd=Math.random()*2.4+0.6;
+        var tone=isLight?Math.round(20+Math.random()*60):Math.round(180+Math.random()*75);
         parts.push({
-          x:Math.random()*innerWidth,y:Math.random()*innerHeight,
-          vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd-.6,
-          s:Math.random()*1.8+.6,tone:g,tw:Math.random()*6.28,
-          life:.008+Math.random()*.014,a:1
+          x:rect.left+Math.random()*rect.width,
+          y:rect.top+Math.random()*Math.min(rect.height,innerHeight),
+          vx:Math.cos(ang)*spd,
+          vy:Math.sin(ang)*spd-0.5,
+          ch:chars[Math.floor(Math.random()*chars.length)],
+          tone:tone,
+          tw:Math.random()*6.28,
+          life:0.012+Math.random()*0.016,
+          a:1
         });
       }
     }
+    function collapseLayer(el){
+      var h=el.offsetHeight;
+      el.style.boxSizing='border-box';
+      el.style.height=h+'px';
+      el.style.overflow='hidden';
+      el.style.pointerEvents='none';
+      el.style.transition='height .32s cubic-bezier(.4, 0, .2, 1), margin .32s cubic-bezier(.4, 0, .2, 1), padding .32s cubic-bezier(.4, 0, .2, 1), opacity .20s ease, filter .20s ease, transform .20s ease';
+      void el.offsetHeight;
+      el.style.opacity='0';
+      el.style.transform='translateY(-14px)';
+      el.style.filter='blur(6px)';
+      el.style.height='0px';
+      el.style.minHeight='0px';
+      el.style.maxHeight='0px';
+      el.style.marginTop='0px';
+      el.style.marginBottom='0px';
+      el.style.paddingTop='0px';
+      el.style.paddingBottom='0px';
+      el.style.borderTopWidth='0px';
+      el.style.borderBottomWidth='0px';
+    }
     function frame(){
-      raf=0;ctx.clearRect(0,0,innerWidth,innerHeight);
+      raf=0;
+      ctx.clearRect(0,0,innerWidth,innerHeight);
+      ctx.font='10px monospace';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
       for(var i=0;i<parts.length;i++){
-        var p=parts[i];p.tw+=.15;p.vy+=.018;p.vx*=.995;
-        p.x+=p.vx+Math.sin(p.tw)*.25;p.y+=p.vy;p.a-=p.life;
+        var p=parts[i];
+        p.tw+=0.12;
+        p.vy+=0.018;
+        p.vx*=0.992;
+        p.x+=p.vx+Math.sin(p.tw)*0.25;
+        p.y+=p.vy;
+        p.a-=p.life;
         if(p.a<=0){parts.splice(i,1);i--;continue;}
-        var flick=.65+.35*Math.sin(p.tw*1.7),g=p.tone;
-        ctx.fillStyle='rgba('+g+','+g+','+g+','+(Math.max(0,p.a)*flick*.9)+')';
-        ctx.fillRect(p.x,p.y,p.s,p.s);
+        var flick=0.7+0.3*Math.sin(p.tw*1.6);
+        ctx.fillStyle='rgba('+p.tone+','+p.tone+','+p.tone+','+(Math.max(0,p.a)*flick)+')';
+        ctx.fillText(p.ch,p.x,p.y);
       }
-      if(active&&parts.length)raf=requestAnimationFrame(frame);
+      if(active&&(parts.length||timers.length))raf=requestAnimationFrame(frame);
     }
     function start(){
-      if(active)return;active=true;
-      document.body.classList.add('page-dissolving');
+      if(active)return;active=true;timers=[];
       if(motion.matches){
-        document.body.classList.add('page-gone');hint.hidden=false;
-      }else{
-        burst();raf=requestAnimationFrame(frame);
-        setTimeout(function(){if(active){document.body.classList.add('page-gone');hint.hidden=false;}},820);
+        document.body.classList.add('page-gone');hint.hidden=false;return;
       }
+      fit();parts=[];
+      window.scrollTo(0,0);
+      document.body.classList.add('page-dissolving');
+      raf=requestAnimationFrame(frame);
+
+      var layers=Array.from(document.querySelectorAll('.dissolve-layer'));
+      var hero=document.querySelector('.hero');
+      var stepDelay=260;
+
+      layers.forEach(function(el,idx){
+        var t=setTimeout(function(){
+          if(!active)return;
+          var rect=el.getBoundingClientRect();
+          spawnLayer(rect);
+          collapseLayer(el);
+          if(el.id==='install'&&hero){
+            hero.style.transition='padding .32s cubic-bezier(.4, 0, .2, 1)';
+            hero.style.paddingTop='0px';
+            hero.style.paddingBottom='0px';
+          }
+        },idx*stepDelay);
+        timers.push(t);
+      });
+
+      var totalTime=layers.length*stepDelay+550;
+      var endTimer=setTimeout(function(){
+        if(active){
+          document.body.classList.add('page-gone');
+          hint.hidden=false;
+          timers=[];
+        }
+      },totalTime);
+      timers.push(endTimer);
     }
     function restore(){
       if(!active)return;active=false;
+      timers.forEach(clearTimeout);timers=[];
+      cancelAnimationFrame(raf);parts=[];ctx.clearRect(0,0,innerWidth,innerHeight);
+
+      document.querySelectorAll('.dissolve-layer').forEach(function(el){
+        el.style.cssText='';
+      });
+      var hero=document.querySelector('.hero');
+      if(hero) hero.style.cssText='';
+
       document.body.classList.remove('page-dissolving','page-gone');
-      hint.hidden=true;cancelAnimationFrame(raf);parts=[];ctx.clearRect(0,0,innerWidth,innerHeight);
+      hint.hidden=true;
     }
     btn.addEventListener('click',start);
     hint.addEventListener('click',restore);
