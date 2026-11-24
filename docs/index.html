@@ -3,656 +3,1682 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>有一种文件，Windows 自己也删不掉 · delete-nul</title>
-<meta name="description" content="delete-nul 实战手册：查找并安全删除 Windows 保留名文件（NUL/CON/AUX/PRN/COM1-9/LPT1-9）。先列出、确认后才删除，只精确匹配保留名本体。">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='3' fill='%23f7f4ee'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='17' text-anchor='middle' fill='%23c1301c'%3EN%3C/text%3E%3Cpath d='M7 25L25 7' stroke='%23c1301c' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
-<style>
-:root{
-  --paper:#f7f4ee; --paper-2:#f1ede4; --ink:#1c1917; --muted:#57534e; --faint:#a39e93;
-  --rule:#e5e0d4; --rule-strong:#cfc9bb; --red:#c1301c; --red-deep:#9a2413; --red-soft:rgba(193,48,28,.07);
-  --code-bg:#211d19; --code-ink:#ece7de;
-  --serif:"Songti SC","Noto Serif CJK SC","Source Han Serif SC","Noto Serif SC","STSong","SimSun",Georgia,serif;
-  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
-}
-@media (prefers-color-scheme: dark){
-  :root{
-    --paper:#171412; --paper-2:#201c18; --ink:#ece7de; --muted:#b5aea1; --faint:#7d7669;
-    --rule:#2c2823; --rule-strong:#3d372f; --red:#e8593f; --red-deep:#f07a5f; --red-soft:rgba(232,89,63,.09);
-    --code-bg:#0f0d0b; --code-ink:#e6e0d5;
-  }
-}
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
-  font-size:17px;line-height:1.75;-webkit-font-smoothing:antialiased;
-  font-variant-numeric:oldstyle-nums}
-a{color:var(--red);text-decoration:none}
-a:hover{text-decoration:underline;text-underline-offset:3px}
-.mono{font-family:var(--mono)}
-.skip{position:absolute;left:-9999px;top:0;background:var(--red);color:#fff;padding:8px 14px;z-index:99}
-.skip:focus{left:14px;top:14px}
-:focus-visible{outline:2px solid var(--red);outline-offset:3px;border-radius:2px}
-
-/* ---------- custom scrollbars ---------- */
-html{scrollbar-width:thin;scrollbar-color:var(--rule-strong) transparent}
-::-webkit-scrollbar{width:11px;height:11px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-corner{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--rule-strong);border:3px solid var(--paper);border-radius:0}
-::-webkit-scrollbar-thumb:hover{background:var(--red)}
-::-webkit-scrollbar-thumb:active{background:var(--red-deep)}
-
-/* ---------- masthead ---------- */
-.mast{border-bottom:3px double var(--rule-strong)}
-.mast .in{max-width:980px;margin:0 auto;padding:26px 22px 20px;display:flex;align-items:baseline;gap:18px;flex-wrap:wrap}
-.brand{font-family:var(--serif);font-weight:700;font-size:22px;letter-spacing:.01em}
-.brand em{font-style:normal;color:var(--red)}
-.mast .meta{font-size:13px;color:var(--faint);letter-spacing:.12em;flex:1}
-.mast a.gh{font-family:var(--serif);font-size:14.5px}
-
-/* ---------- layout ---------- */
-.col{max-width:720px;margin:0 auto;padding:0 22px}
-.wide{max-width:980px;margin:0 auto;padding:0 22px}
-
-/* ---------- hero ---------- */
-.hero{padding:74px 22px 58px;text-align:center;max-width:900px;margin:0 auto}
-.kicker{font-family:var(--serif);font-size:14px;letter-spacing:.42em;color:var(--red);text-transform:uppercase}
-.hero h1{font-family:var(--serif);font-weight:800;font-size:clamp(26px,5.6vw,54px);
-  line-height:1.22;letter-spacing:.01em;margin:22px 0 0}
-.hero .lead{font-size:18px;color:var(--muted);max-width:36em;margin:24px auto 0;text-align:center}
-.struck{display:flex;justify-content:center;gap:clamp(18px,5vw,52px);flex-wrap:wrap;
-  margin:46px 0 8px;font-family:var(--serif);font-weight:700;
-  font-size:clamp(38px,7.5vw,78px);line-height:1.15;color:var(--ink)}
-.struck .nm{position:relative;animation:rise .6s ease both;animation-delay:var(--d,0s)}
-.struck .nm::after{content:"";position:absolute;left:-4%;right:-4%;top:54%;height:.075em;
-  background:var(--red);border-radius:3px;transform-origin:left center;
-  animation:strike .55s cubic-bezier(.65,0,.35,1) both;animation-delay:calc(var(--d,0s) + .35s)}
-@keyframes strike{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.struck-cap{font-size:13px;color:var(--faint);letter-spacing:.2em;margin-top:14px}
-.cta{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:40px}
-.btn{display:inline-flex;align-items:center;gap:9px;font-size:15px;font-weight:600;
-  font-family:var(--sans);padding:13px 24px;border:1px solid var(--ink);border-radius:0;
-  background:transparent;color:var(--ink);cursor:pointer;transition:.18s}
-.btn:hover{text-decoration:none}
-.btn-primary{background:var(--ink);color:var(--paper)}
-.btn-primary:hover{background:var(--red);border-color:var(--red);color:#fff}
-.btn-ghost:hover{border-color:var(--red);color:var(--red)}
-.btn svg{width:15px;height:15px}
-.btn.done{border-color:var(--red);color:var(--red);background:var(--red-soft)}
-.byline{margin-top:30px;font-size:13.5px;color:var(--faint);display:flex;justify-content:center;
-  gap:22px;flex-wrap:wrap}
-.byline span{display:inline-flex;align-items:center;gap:7px}
-.byline i{width:6px;height:6px;background:var(--red);display:inline-block;border-radius:1px}
-
-/* ---------- toc ---------- */
-.toc{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:30px 0;margin:14px 0 0}
-.toc .cap{font-family:var(--serif);font-size:13px;letter-spacing:.35em;color:var(--faint);text-align:center;margin-bottom:18px}
-.toc ol{list-style:none;margin:0 auto;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px 0}
-.toc li{text-align:center}
-.toc a{font-family:var(--serif);font-size:16px;color:var(--ink);display:inline-flex;gap:10px;align-items:baseline}
-.toc a:hover{color:var(--red);text-decoration:none}
-.toc .n{color:var(--red);font-size:13px;letter-spacing:.1em}
-@media (max-width:640px){.toc ol{grid-template-columns:repeat(2,1fr);gap:8px 0}}
-
-/* ---------- wall of names (scroll scene) ---------- */
-.wall-stage{position:relative;height:320vh}
-.wall-pin{position:sticky;top:0;height:100vh;height:100svh;display:flex;align-items:center;justify-content:center}
-.wall-inner{width:100%;max-width:980px;padding:0 22px;max-height:700px;overflow:hidden;
-  transition:max-height .7s ease,opacity .55s ease,transform .7s ease}
-.wall-stage.fold .wall-inner{max-height:0;opacity:0;transform:translateY(-26px)}
-.wall-stage .cap{text-align:center;font-family:var(--serif);font-size:14px;letter-spacing:.35em;
-  color:var(--faint);margin:0 0 34px}
-.gridwrap{position:relative}
-.wrow{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--rule);
-  max-height:110px;overflow:hidden;
-  transition:max-height .5s ease .34s,border-top-width .25s ease .6s}
-.wrow:last-of-type{border-bottom:1px solid var(--rule)}
-.wrow.short{grid-template-columns:repeat(2,1fr)}
-.wrow.del{max-height:0;border-top-width:0}
-.wall-stage .cell{padding:16px 8px;text-align:center;position:relative}
-.wall-stage .cell .t{display:inline-block;font-family:var(--serif);font-size:19px;color:var(--muted);
-  position:relative;transition:color .3s}
-.wall-stage .cell:hover .t{color:var(--ink)}
-.wall-stage .cell .t::after{content:"";position:absolute;left:-12%;right:-12%;top:53%;height:1.5px;
-  background:var(--red);opacity:.55;transform:scaleX(1);transform-origin:left center;
-  transition:transform .16s ease,opacity .2s}
-.wall-stage .cell.hot .t{color:var(--ink);font-weight:700}
-.wall-stage .cell.hot .t::after{height:2.5px;opacity:1}
-/* armed = JS scene active */
-.wall-stage.armed .cell .t{opacity:0;transform:translateY(8px);transition:opacity .4s ease,transform .4s ease,color .3s}
-.wall-stage.armed .cell.on .t{opacity:1;transform:none}
-.wall-stage.armed .cell.on .t::after{transform:scaleX(0)}
-.wall-stage.armed .cell.on.del .t{opacity:0;transform:none;color:var(--red);
-  transition:opacity .5s ease .18s,transform .3s,color .2s}
-.wall-stage.armed .cell.on.del .t::after{transform:scaleX(1);opacity:1}
-.wall-stage.armed .cell:nth-child(2) .t{transition-delay:.05s}
-.wall-stage.armed .cell:nth-child(3) .t{transition-delay:.1s}
-.wall-stage.armed .cell:nth-child(4) .t{transition-delay:.15s}
-.wall-stage.armed .cell:nth-child(5) .t{transition-delay:.2s}
-.scanline{position:absolute;left:-8px;right:-8px;top:0;height:2px;background:var(--red);
-  box-shadow:0 0 14px rgba(193,48,28,.55);opacity:0;pointer-events:none;transition:opacity .3s}
-.wall-stage.scanning .scanline{opacity:1}
-.wall-status{margin:26px 0 0;text-align:center;font-family:var(--serif);font-size:14px;
-  letter-spacing:.3em;color:var(--faint);min-height:1.8em}
-.wall-stage.gone{height:0;overflow:hidden}
-.wall-stage.gone .wall-pin{position:static;height:auto}
-.wall-stage.reduced{height:auto}
-.wall-stage.reduced .wall-pin{position:static;height:auto;padding:64px 0 70px}
-.wall-stage.reduced .scanline,.wall-stage.reduced .wall-status{display:none}
-@media (max-width:640px){
-  .wall-stage .cell{padding:11px 4px}
-  .wall-stage .cell .t{font-size:15px}
-  .wall-stage .cap{margin-bottom:22px;font-size:12.5px;letter-spacing:.25em}
-  .wall-status{margin-top:18px;font-size:12.5px;letter-spacing:.2em}
-}
-
-/* ---------- chapters ---------- */
-section.chap{padding:70px 0 66px;border-top:1px solid var(--rule)}
-.chap-head{display:flex;align-items:baseline;gap:16px;border-bottom:1px solid var(--rule-strong);
-  padding-bottom:16px;margin-bottom:30px}
-.chap-head .no{font-family:var(--serif);color:var(--red);font-size:clamp(26px,3vw,32px);font-weight:700}
-.chap-head h2{font-family:var(--serif);font-weight:800;font-size:clamp(24px,3.6vw,33px);margin:0;letter-spacing:.01em}
-.chap-head .en{margin-left:auto;font-size:12px;letter-spacing:.22em;color:var(--faint);text-transform:uppercase;white-space:nowrap}
-.chap p{color:var(--muted);margin:0 0 18px}
-.chap p strong,.chap li strong{color:var(--ink);font-weight:650}
-.dropcap::first-letter{float:left;font-family:var(--serif);font-weight:800;font-size:3.15em;
-  line-height:.92;padding:6px 12px 0 0;color:var(--ink)}
-
-/* editorial list */
-.elist{list-style:none;margin:6px 0 20px;padding:0}
-.elist li{display:flex;gap:16px;padding:17px 0;border-bottom:1px solid var(--rule);color:var(--muted)}
-.elist li:last-child{border-bottom:none}
-.elist .k{flex:none;font-family:var(--serif);color:var(--red);font-size:15px;min-width:2.2em;
-  letter-spacing:.05em;padding-top:2px}
-.elist b{display:block;font-family:var(--serif);font-size:18px;color:var(--ink);font-weight:700;margin-bottom:2px}
-
-/* pull quote / code */
-.pull{margin:30px 0;border-left:3px solid var(--red);background:var(--red-soft);padding:22px 26px 18px}
-.pull .q{font-family:var(--serif);font-size:15px;color:var(--red);letter-spacing:.25em;margin-bottom:10px}
-.code{position:relative;background:var(--code-bg);color:var(--code-ink);border-radius:2px;
-  padding:20px 56px 20px 20px;font-family:var(--mono);font-size:13.5px;line-height:1.7;overflow-x:auto;
-  scrollbar-width:thin;scrollbar-color:rgba(236,231,222,.32) transparent}
-.code::-webkit-scrollbar{width:9px;height:9px}
-.code::-webkit-scrollbar-thumb{background:rgba(236,231,222,.32);border:2px solid var(--code-bg)}
-.code::-webkit-scrollbar-thumb:hover{background:rgba(236,231,222,.6)}
-.code::-webkit-scrollbar-thumb:active{background:rgba(236,231,222,.85)}
-.code code{white-space:pre;display:block}
-.copy{position:absolute;top:10px;right:10px;display:inline-flex;align-items:center;gap:6px;
-  background:transparent;color:var(--code-ink);border:1px solid rgba(236,231,222,.35);border-radius:2px;
-  padding:6px 10px;font-size:12px;cursor:pointer;font-family:var(--mono)}
-.copy:hover{border-color:var(--code-ink)}
-.copy svg{width:13px;height:13px}
-.copy.done{color:#8ee38e;border-color:#8ee38e}
-.pull figcaption{font-size:14.5px;color:var(--muted);margin-top:12px;font-family:var(--sans);line-height:1.7}
-.note{font-size:13.5px;color:var(--faint);margin-top:10px}
-.note .warn{color:var(--red-deep)}
-
-/* steps */
-.steps{list-style:none;margin:8px 0 14px;padding:0;counter-reset:s}
-.steps li{counter-increment:s;display:flex;gap:22px;padding:24px 0;border-bottom:1px solid var(--rule)}
-.steps li:last-child{border-bottom:none}
-.steps .n{flex:none;font-family:var(--serif);font-size:34px;font-weight:800;color:var(--red);
-  width:1.4em;line-height:1.1}
-.steps .n::before{content:counter(s)}
-.steps h3{font-family:var(--serif);font-size:19px;margin:0 0 6px;font-weight:700}
-.steps p{margin:0;font-size:15.5px}
-
-/* table */
-.tablewrap{overflow-x:auto;margin:6px 0 14px}
-table{width:100%;border-collapse:collapse;font-size:15px}
-th{font-family:var(--serif);font-weight:700;text-align:left;font-size:14px;letter-spacing:.06em;
-  color:var(--ink);border-top:2px solid var(--ink);border-bottom:1px solid var(--rule-strong);padding:12px 14px}
-td{padding:13px 14px;border-bottom:1px solid var(--rule);color:var(--muted);vertical-align:top}
-td a{font-family:var(--mono);font-size:13.5px}
-td .rec{color:var(--red);font-family:var(--serif);font-size:13px;margin-left:8px;white-space:nowrap}
-
-/* faq */
-.faq details{border-bottom:1px solid var(--rule);padding:4px 0}
-.faq details:first-of-type{border-top:1px solid var(--rule)}
-.faq summary{cursor:pointer;font-family:var(--serif);font-size:17.5px;font-weight:700;
-  padding:17px 0 17px 38px;position:relative;list-style:none}
-.faq summary::-webkit-details-marker{display:none}
-.faq summary::before{content:"问";position:absolute;left:0;top:19px;font-size:13px;color:var(--red);
-  border:1px solid var(--red);width:22px;height:22px;display:grid;place-items:center;border-radius:50%}
-.faq p{font-size:15.5px;color:var(--muted);margin:0 0 20px 38px}
-.faq details[open] summary{color:var(--red)}
-
-/* footer */
-footer{border-top:3px double var(--rule-strong);padding:36px 0 46px;margin-top:10px}
-footer .in{max-width:980px;margin:0 auto;padding:0 22px;display:flex;justify-content:space-between;
-  gap:14px;flex-wrap:wrap;align-items:baseline}
-footer .fin{font-family:var(--serif);font-size:15px}
-footer .sub{font-size:13px;color:var(--faint)}
-footer a{font-family:var(--serif);font-size:14.5px}
-
-@media (max-width:640px){
-  body{font-size:16px}
-  .chap-head .en{display:none}
-  .code{padding-right:52px}
-}
-@media (prefers-reduced-motion: reduce){
-  html{scroll-behavior:auto}
-  .struck .nm,.struck .nm::after{animation:none}
-  .btn,.wall-stage .cell .t{transition:none}
-  .wall-stage{height:auto}
-  .wall-pin{position:static;height:auto;padding:64px 0 70px}
-  .scanline,.wall-status{display:none}
-}
-</style>
+<title>delete-nul — Windows 保留名文件清理工具</title>
+<meta name="description" content="查找并删除 Windows 上普通方法删不掉的 NUL / CON / AUX / PRN / COM1-9 / LPT1-9 保留名文件。先列出，确认后才删。">
+<script>try{if(localStorage.getItem('dn-theme')==='light')document.documentElement.classList.add('light');var l=localStorage.getItem('dn-lang');if(l==='en')document.documentElement.lang='en';}catch(e){}</script>
+<style>:root{--bg:#070708;--panel:#0d0d10;--panel2:#131317;--line:#ffffff1a;--line-bright:#fff3;--ink:#f5f5f7;--dim:#9494a0;--faint:#626270;--sb-track:#070708;--sb-thumb:#ffffff38;--sb-thumb-hover:#ffffff7a;--mono:ui-monospace,"Cascadia Code",SFMono-Regular,Menlo,Consolas,"Microsoft YaHei Mono","Microsoft YaHei",monospace;--sans:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;--ease-out-expo:cubic-bezier(.16,1,.3,1);--card-shadow:0 0 0 1px var(--line), 0 4px 20px #00000060;--card-shadow-hover:0 0 0 1px #fff5, 0 8px 30px #00000080}*{box-sizing:border-box;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;scrollbar-width:thin;scrollbar-color:var(--sb-thumb) var(--sb-track)}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:var(--sb-track)}::-webkit-scrollbar-thumb{background:var(--sb-thumb);border-radius:3px}::-webkit-scrollbar-thumb:hover{background:var(--sb-thumb-hover)}::-webkit-scrollbar-corner{background:0 0}html{scroll-behavior:smooth}body{background:var(--bg);color:var(--ink);font-family:var(--sans);isolation:isolate;margin:0;line-height:1.65;overflow-x:hidden}a{color:inherit;text-decoration:none}.wrap{width:min(1120px,100% - 48px);margin:0 auto}.sr-only{clip:rect(0,0,0,0);white-space:nowrap;border:0;width:1px;height:1px;margin:-1px;padding:0;position:absolute;overflow:hidden}::selection{color:#000;background:#fff}html.light{--bg:#f5f5f7;--panel:#fff;--panel2:#ececee;--line:#00000014;--ink:#0c0c0e;--dim:#484852;--faint:#6e6e78;--sb-track:#f0f0f4;--sb-thumb:#00000038;--sb-thumb-hover:#00000073;--card-shadow:0 1px 3px #0001,0 6px 20px #0001;--card-shadow-hover:0 2px 6px #0001,0 12px 36px #0000000f;--term-dot:#00000059;--term-scan:#00000005;--term-glow:#00000006}html.light body{background:var(--bg)}html.light ::selection{color:#fff;background:#000}html.light #field{filter:none;opacity:.88}html.light [data-hero-field] canvas{filter:invert()}html.light header.top{background:#ffffffe0}html.light .nav-links.open{background:var(--panel2)}html.light .brand .cur,html.light .nav-links a:hover,html.light .theme-btn:hover,html.light .lang-btn:hover{color:var(--ink)}html.light .lang-btn,html.light .nav-theme-btn,html.light .foot-theme-btn{background:var(--panel);border-color:var(--line-bright);color:var(--ink)}html.light .lang-btn:hover,html.light .nav-theme-btn:hover,html.light .foot-theme-btn:hover{background:var(--panel2);border-color:var(--ink)}html.light .nav-cta{border-color:var(--line-bright);background:var(--panel);color:var(--ink)}html.light .nav-cta:hover{color:#fff;background:#000;border-color:#000}html.light .hero h1 .accent{color:inherit;border-color:#999}html.light .hero p.sub code{background:var(--panel2);color:var(--ink)}html.light .btn.primary{color:#fff;background:#000;border-color:#000;box-shadow:0 0 14px #00000026}html.light .btn.primary:hover{color:#fff;background:#222}html.light .btn.ghost{background:var(--panel);color:var(--ink);border-color:var(--line-bright)}html.light .btn.ghost:hover{border-color:var(--ink);background:var(--panel2);color:var(--ink)}html.light .cmd{background:#fff}html.light .cmd code{color:var(--ink)}html.light .cmd code:before{color:var(--dim)}html.light .cmd button{background:var(--panel2);color:var(--ink);border-color:var(--line)}html.light .cmd button:hover{border-color:var(--ink);color:var(--ink);background:#0000000d}html.light .slogan-glitch{text-shadow:0 0 1px #0000004d}html.light .slogan-glitch:before{text-shadow:-1px 0 #00000080}html.light .slogan-glitch:after{text-shadow:1px 0 #64646480}html.light .slogan-glitch:hover,html.light .slogan-glitch:active{text-shadow:2px 0 #000,-2px 0 #888,0 0 6px #00000040}html.light .slogan-glitch:hover:before,html.light .slogan-glitch:active:before{text-shadow:-2px 0 #000}html.light .slogan-glitch:hover:after,html.light .slogan-glitch:active:after{text-shadow:2px 0 #666}html.light .eyebrow,html.light .install-head .eyebrow{color:var(--dim)}html.light .install{background:var(--panel);border-color:var(--line-bright)}html.light .install-head{background:var(--panel2)}html.light .install-tabs button{color:var(--dim)}html.light .install-tabs button:hover{color:var(--ink);background:#0000000a}html.light .install-tabs button[aria-selected=true]{color:#fff;background:#000}html.light .term-head{border-left-color:var(--ink);background:var(--panel2)}html.light .term-title{color:var(--dim)}html.light .term-tip-btn{background:var(--panel);border-color:var(--line);color:var(--dim)}html.light .term-tip-btn:hover{color:var(--ink);border-color:var(--ink);background:var(--panel2)}html.light .term-foot{background:var(--panel2)}html.light .term-foot code{color:var(--ink)}html.light .term-foot a,html.light .install button.copybtn{background:var(--panel);color:var(--ink);border-color:var(--line)}html.light .term-foot a:hover,html.light .install button.copybtn:hover{border-color:var(--ink);color:var(--ink);background:#0000000d}html.light .agent-input-wrap{background:var(--panel);border-color:var(--line)}html.light .agent-prompt-input{color:var(--ink)}html.light .agent-send-btn:hover{color:#fff;background:#222}html.light #features .card,html.light .card{background:var(--panel);border-color:var(--line)}html.light #features .card:hover,html.light .card:hover{border-color:#0000004d}html.light #features .card h3,html.light .card h3,html.light .step h3,html.light #features .card h3:before{color:var(--ink)}html.light #features .card p,html.light #features .card-key{color:var(--dim)}html.light #features .card-key:before,html.light #features .card-key:after,html.light #features .card:hover:after,html.light .card .ico,html.light .step:before{color:var(--ink)}html.light .card code{color:var(--ink);background:var(--panel2)}html.light .mode-picker{background:var(--panel2);border-color:var(--line-bright)}html.light .mode-picker button{color:var(--dim)}html.light .mode-picker button:hover{color:var(--ink);background:#0000000d}html.light .mode-picker button:hover .mode-caret{color:var(--ink);opacity:.8}html.light .mode-picker button[aria-pressed=true]{color:#fff;background:#000}html.light .mode-picker button[aria-pressed=true] .mode-index,html.light .mode-picker button[aria-pressed=true] .mode-caret{color:#fff}html.light .mode-screen{background:var(--panel);border-color:var(--line-bright)}html.light .mode-panel h3,html.light .mode-panel h3:before{color:var(--ink)}html.light .mode-panel p{color:var(--dim)}html.light .mode-panel pre{border-left-color:var(--ink);background:var(--panel2);color:var(--ink)}html.light .pane{background:var(--panel);border-color:var(--line)}html.light .pane.good,html.light #why .pane.good{background:var(--panel);border-color:#0003}html.light #why .pane.good:after,html.light #why .pane li:before{color:var(--ink)}html.light .pane code{color:var(--ink);background:var(--panel2)}html.light .why-path h4,html.light #why .why-path h4,html.light .why-path-row code{color:var(--ink)}html.light #why .why-path-row code:before{color:var(--faint)}html.light #why .why-path-row:last-of-type .why-tag:before{color:var(--ink)}html.light .why-note code{color:var(--ink);background:var(--panel2);border:1px solid var(--line)}html.light #faq details,html.light details{background:var(--panel);border-color:var(--line)}html.light #faq details:before{color:var(--faint)}html.light #faq summary,html.light summary{color:var(--ink)}html.light #faq summary:hover{color:var(--ink);background:#00000008}html.light #faq details[open],html.light details[open]{background:var(--panel);border-color:#00000038}html.light #faq details[open] summary:after,html.light details[open] summary:after{color:var(--ink)}html.light #faq details p{border-left-color:var(--ink);background:var(--panel2);color:var(--ink)}html.light .foot-brand .flogo .p{color:var(--ink)}html.light .foot-brand .flogo .f,html.light .foot-brand p{color:var(--dim)}html.light .foot-col h4{color:var(--ink)}html.light .foot-col a{color:var(--dim)}html.light .foot-col a:hover{color:var(--ink)}html.light .foot-social{background:0 0}html.light .foot-social a{color:var(--dim)}html.light .foot-social a:hover,html.light .load-spin,html.light .load-bar,html.light .load-pct b{color:var(--ink)}html.light #restoreHint{background:var(--panel);color:var(--dim);border-color:var(--line-bright)}html.light #restoreHint:hover{color:var(--ink);border-color:var(--ink)}:focus-visible{outline:2px solid var(--ink);outline-offset:4px}#loader{z-index:9999;color:#f0f0f4;font-family:var(--mono);background:#050507;justify-content:center;align-items:center;padding:20px;transition:opacity .45s cubic-bezier(.16,1,.3,1),transform .45s cubic-bezier(.16,1,.3,1),visibility .45s;display:flex;position:fixed;inset:0;overflow:hidden}#loader:before{content:"";pointer-events:none;background:repeating-linear-gradient(#0000 0 2px,#ffffff05 2px 4px),radial-gradient(circle,#ffffff0a 0%,#0000 80%);position:absolute;inset:0}#loader.done{opacity:0;visibility:hidden;pointer-events:none;transform:scale(1.03)}.loader-hud{z-index:2;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);background:#0a0a0ef0;border:1px solid #ffffff38;border-radius:4px;width:min(580px,94vw);padding:20px 22px;position:relative;box-shadow:0 0 60px #000000d9,inset 0 0 24px #ffffff05}.loader-head{letter-spacing:.06em;border-bottom:1px solid #ffffff1f;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;font-size:11px;display:flex}.loader-title{color:#fff;align-items:center;gap:8px;font-weight:700;display:flex}.loader-pulse{background:#fff;border-radius:50%;width:7px;height:7px;animation:1.2s infinite pulse;box-shadow:0 0 8px #fff}@keyframes pulse{0%,to{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.75)}}.loader-meta{color:#8a8a96;letter-spacing:.04em;font-size:10px}.loader-logs{min-height:92px;margin-bottom:16px;font-size:11.5px;line-height:1.75}.loader-log-line{white-space:nowrap;text-overflow:ellipsis;justify-content:space-between;align-items:center;display:flex;overflow:hidden}.loader-log-line .tag{color:#9a9aa8}.loader-log-line .state{color:#fff;letter-spacing:.05em;margin-left:12px;font-weight:700}.loader-meter{border-top:1px dashed #ffffff24;padding-top:14px}.loader-meter-meta{color:#8a8a96;justify-content:space-between;margin-bottom:7px;font-size:10.5px;display:flex}.loader-meter-bar{letter-spacing:1.5px;color:#fff;white-space:nowrap;text-shadow:0 0 6px #ffffff4d;font-size:13px;font-weight:700;overflow:hidden}.loader-footer{color:#7a7a88;justify-content:space-between;align-items:center;margin-top:14px;font-size:11px;display:flex}.loader-skip-hint{cursor:pointer;letter-spacing:.02em;transition:color .18s}.loader-skip-hint:hover{color:#fff;text-decoration:underline}html.light #loader{color:#0c0c0e;background:#f0f0f4}html.light #loader:before{background:repeating-linear-gradient(#0000 0 2px,#00000004 2px 4px),radial-gradient(circle,#00000008 0%,#0000 80%)}html.light .loader-hud{color:#0c0c0e;background:#fffffff5;border:1px solid #0000002e;box-shadow:0 20px 50px #0000001f}html.light .loader-head{border-bottom-color:#0000001a}html.light .loader-title{color:#000}html.light .loader-pulse{background:#000;box-shadow:0 0 8px #00000080}html.light .loader-meta{color:#555560}html.light .loader-log-line .tag{color:#44444e}html.light .loader-log-line .state{color:#000}html.light .loader-meter{border-top-color:#0000001a}html.light .loader-meter-meta{color:#555560}html.light .loader-meter-bar{color:#000;text-shadow:none}html.light .loader-footer{color:#666672}html.light .loader-skip-hint:hover{color:#000}.nav-status-badge{font:10px var(--mono);color:var(--dim);border:1px solid var(--line);letter-spacing:.04em;border-radius:12px;align-items:center;gap:6px;margin-left:12px;padding:2px 8px;display:inline-flex}.nav-status-badge .dot{background:#fff;border-radius:50%;width:5px;height:5px}html.light .nav-status-badge .dot{background:#000}.nav-links a.active{color:var(--ink);font-weight:700}.hero-pills{flex-wrap:wrap;justify-content:center;gap:8px;max-width:700px;margin:0 auto 28px;display:flex}.pill-tag{font:11px var(--mono);color:var(--dim);background:var(--panel2);border:1px solid var(--line);letter-spacing:.02em;border-radius:12px;padding:3px 10px}.btn-arrow{transition:transform .18s;display:inline-block}.btn:hover .btn-arrow{transform:translate(3px)}.tab-badge{color:var(--dim);vertical-align:1px;letter-spacing:0;background:#ffffff1f;border-radius:2px;margin-left:5px;padding:1px 5px;font-size:9.5px;font-weight:700}.install-tabs button[aria-selected=true] .tab-badge{color:#fff;background:#ffffff40}html.light .tab-badge{color:var(--dim);background:#0000000f}html.light .install-tabs button[aria-selected=true] .tab-badge{color:#000;background:#fff}.agent-presets{font:10.5px var(--mono);flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:8px;display:flex}.preset-label{color:var(--faint);letter-spacing:.04em;font-size:10px}.preset-pill{background:var(--panel);border:1px solid var(--line);color:var(--dim);font:10px var(--mono);cursor:pointer;border-radius:2px;padding:2px 7px;transition:all .15s}.preset-pill:hover{color:var(--ink);border-color:var(--ink);background:var(--panel2)}.mode-meta{font:10px var(--mono);color:var(--dim);align-items:center;gap:8px;margin-bottom:8px;display:flex}.mode-tag{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:2px;padding:1px 5px;font-weight:700}.mode-cmd-wrap{align-items:center;gap:10px;margin-top:12px;display:flex}.mode-cmd-wrap pre{flex:1;min-width:0;margin:0}.mode-cmd-wrap .copybtn{flex:none}#copyToast{z-index:9000;color:#fff;font:11.5px/1.4 var(--mono);opacity:0;pointer-events:none;background:#050507;border:1px solid #ffffff4d;border-radius:4px;align-items:center;gap:8px;padding:10px 16px;transition:all .22s cubic-bezier(.16,1,.3,1);display:flex;position:fixed;bottom:28px;right:28px;transform:translateY(12px);box-shadow:0 12px 36px #0009}#copyToast.show{opacity:1;pointer-events:auto;transform:translateY(0)}#copyToast .toast-ico{color:#fff;background:#ffffff25;border-radius:50%;justify-content:center;align-items:center;width:14px;height:14px;font-size:9px;font-weight:700;display:inline-flex}html.light #copyToast{color:#000;background:#fff;border:1px solid #00000030;box-shadow:0 12px 36px #00000026}html.light #copyToast .toast-ico{color:#000;background:#00000015}.foot-top-row{border-bottom:1px solid var(--line);font:11px var(--mono);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-bottom:32px;padding-bottom:24px;display:flex}.status-indicator{color:var(--dim);align-items:center;gap:8px;display:inline-flex}.status-dot{background:#fff;border-radius:50%;width:6px;height:6px;animation:1.8s infinite pulse}html.light .status-dot{background:#000}.back-to-top{color:var(--dim);border:1px solid var(--line);border-radius:3px;padding:3px 10px;text-decoration:none;transition:all .15s}.back-to-top:hover{color:var(--ink);border-color:var(--ink);background:var(--panel2)}#field{z-index:-1;pointer-events:none;opacity:.55;position:fixed;inset:0}header.top{z-index:50;background:color-mix(in srgb,var(--bg) 88%,transparent);-webkit-backdrop-filter:blur(20px)saturate(1.4);backdrop-filter:blur(20px)saturate(1.4);border-bottom:1px solid var(--line);transition:background .2s;position:sticky;top:0}.nav{justify-content:space-between;align-items:center;height:56px;display:flex}.brand{font-family:var(--mono);letter-spacing:-.5px;font-size:16px;font-weight:700}.brand .cur{color:#fff;animation:1s step-end infinite blink}@keyframes blink{50%{opacity:0}}.nav-links{color:var(--dim);font-size:12.5px;font-family:var(--mono);gap:26px;display:flex}.nav-links a{transition:color .15s}.nav-links a:hover{color:#fff}.nav-actions{flex:none;align-items:center;gap:8px;display:flex}.lang-btn{font-family:var(--mono);letter-spacing:.05em;border:1px solid var(--line-bright);background:var(--panel);color:var(--dim);cursor:pointer;border-radius:3px;flex:none;justify-content:center;align-items:center;padding:4px 9px;font-size:11px;font-weight:700;transition:all .18s;display:inline-flex}.lang-btn:hover{color:var(--ink);border-color:var(--ink);background:var(--panel2)}.nav-theme-btn{border:1px solid var(--line-bright);background:var(--panel);color:var(--dim);cursor:pointer;border-radius:3px;flex:none;justify-content:center;align-items:center;padding:5px 6px;transition:all .18s;display:inline-flex;position:relative!important}.nav-theme-btn:hover{color:var(--ink);border-color:var(--ink);background:var(--panel2)}.nav-theme-btn svg{width:16px;height:16px}.nav-cta{font-family:var(--mono);border:1px solid var(--line-bright);background:var(--panel);border-radius:3px;padding:6px 14px;font-size:11.5px;transition:all .18s}.nav-cta:hover{color:#000;background:#fff;border-color:#fff}.menu-btn{border:1px solid var(--line);color:var(--ink);font-family:var(--mono);background:0 0;border-radius:3px;padding:6px 12px;font-size:12px;display:none}.hero{text-align:center;padding:100px 0 80px;position:relative;overflow:hidden}.hero .wrap{z-index:1;position:relative}.wordmark{--face-top:#b7b7b7;--face-bottom:#fafafa;--tile:#141414;--edge:#dedede;--far-edge:#888;--shine:#fff;justify-items:center;gap:clamp(9px,2.4vw,27px);width:min(700px,100%);margin:0 auto 26px;display:grid}html.light .wordmark{--face-top:#2a2a2e;--face-bottom:#0a0a0c;--tile:#fff;--edge:#000;--far-edge:#555;--shine:#fff}.wordmark svg{width:100%;display:block;overflow:visible}.wordmark .line2{width:54%}.mark-edge{fill:var(--bg);stroke:var(--edge);stroke-width:1.55px;stroke-linejoin:miter}.mark-edge.far{stroke:var(--far-edge);stroke-width:1.3px}.mark-spot{visibility:hidden;pointer-events:none}.mark-spot.active{visibility:visible}.theme-btn .moon,html.light .theme-btn .sun{display:none}html.light .theme-btn .moon{display:inline-block}.theme-btn:hover{background:var(--panel2)}.hero{cursor:crosshair}.hero .wrap{cursor:auto}.hero .wordmark{cursor:crosshair}@media (prefers-reduced-motion:reduce){.hero,.hero .wordmark{cursor:auto}}.hero h1{letter-spacing:-1.2px;margin:8px 0 16px;font-size:clamp(26px,4.4vw,44px);font-weight:700}.hero h1 .accent{color:#fff;border-bottom:1px solid #ffffff40}.slogan-glitch{cursor:pointer;-webkit-user-select:none;user-select:none;text-shadow:0 0 1px #fffc;transition:color .2s;display:inline-block;position:relative}.slogan-glitch:before,.slogan-glitch:after{content:attr(data-text);pointer-events:none;background:0 0;width:100%;height:100%;position:absolute;top:0;left:0}.slogan-glitch:before{text-shadow:-1px 0 #fffa;animation:4s linear infinite alternate-reverse glitch-idle-1;left:1px}.slogan-glitch:after{text-shadow:1px 0 #fff7;animation:3.5s linear infinite alternate-reverse glitch-idle-2;left:-1px}@keyframes glitch-idle-1{0%,92%{clip-path:inset(0);opacity:0;transform:none}93%{clip-path:inset(20% 0 50%);opacity:.8;transform:translate(-2px)}95%{clip-path:inset(65% 0 10%);opacity:.9;transform:translate(2px)}97%{clip-path:inset(10% 0 80%);opacity:.7;transform:translate(-1px)}to{clip-path:inset(0);opacity:0;transform:none}}@keyframes glitch-idle-2{0%,90%{clip-path:inset(0);opacity:0;transform:none}91%{clip-path:inset(40% 0 30%);opacity:.8;transform:translate(2px)}94%{clip-path:inset(15% 0 60%);opacity:.9;transform:translate(-2px)}96%{clip-path:inset(80% 0 5%);opacity:.7;transform:translate(1px)}to{clip-path:inset(0);opacity:0;transform:none}}.slogan-glitch:hover,.slogan-glitch:active{text-shadow:2px 0 #fff,-2px 0 #888,0 0 8px #fff9;animation:.25s ease-in-out infinite glitch-shake}.slogan-glitch:hover:before,.slogan-glitch:active:before{opacity:1;text-shadow:-2px 0 #fff;animation:.3s steps(2,end) infinite glitch-burst-1}.slogan-glitch:hover:after,.slogan-glitch:active:after{opacity:1;text-shadow:2px 0 #aaa;animation:.35s steps(2,end) infinite glitch-burst-2}@keyframes glitch-shake{0%{transform:translate(0)}20%{transform:translate(-2px,1px)}40%{transform:translate(2px,-1px)}60%{transform:translate(-1px,-1px)}80%{transform:translate(1px,2px)}to{transform:translate(0)}}@keyframes glitch-burst-1{0%{clip-path:inset(10% 0 75%);transform:translate(-4px)}25%{clip-path:inset(60% 0 15%);transform:translate(5px)}50%{clip-path:inset(35% 0 45%);transform:translate(-3px)}75%{clip-path:inset(80% 0 5%);transform:translate(4px)}to{clip-path:inset(5% 0 85%);transform:translate(-2px)}}@keyframes glitch-burst-2{0%{clip-path:inset(70% 0 10%);transform:translate(4px)}25%{clip-path:inset(15% 0 65%);transform:translate(-4px)}50%{clip-path:inset(50% 0 30%);transform:translate(3px)}75%{clip-path:inset(5% 0 80%);transform:translate(-5px)}to{clip-path:inset(85% 0 5%);transform:translate(2px)}}.hero p.sub{color:var(--dim);max-width:660px;margin:0 auto 36px;font-size:clamp(14.5px,1.9vw,17px);line-height:1.75}.hero p.sub code{font-family:var(--mono);color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:2px 7px;font-size:.88em}.actions{flex-wrap:wrap;justify-content:center;gap:14px;display:flex}.btn{font-family:var(--mono);border:1px solid var(--line-bright);cursor:pointer;transition:all .18s var(--ease-out-expo);background:var(--panel);color:var(--ink);letter-spacing:.03em;text-transform:uppercase;border-radius:4px;padding:12px 22px;font-size:13px}.btn.primary{color:#000;background:#fff;border-color:#fff;font-weight:700;box-shadow:0 0 16px #ffffff40}.btn.primary:hover{background:#e0e0e0;transform:translateY(-1px);box-shadow:0 0 24px #ffffff73}.btn.ghost:hover{background:var(--panel2);color:#fff;border-color:#fff}.cmd{background:var(--panel);border:1px solid var(--line);text-align:left;border-radius:4px;align-items:center;gap:12px;max-width:740px;margin:36px auto 0;padding:14px 16px;display:flex}.cmd code{font-family:var(--mono);color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere;flex:1;min-width:0;font-size:12px;line-height:1.7}.cmd button{font-family:var(--mono);background:var(--panel2);color:var(--ink);border:1px solid var(--line);cursor:pointer;border-radius:4px;flex:none;padding:6px 12px;font-size:11px;transition:all .15s}.cmd button:hover{background:#ffffff15;border-color:#fff}.hint{color:var(--faint);font-size:11px;font-family:var(--mono);margin-top:12px}.install{text-align:left;border:1px solid var(--line-bright);background:var(--panel);max-width:820px;box-shadow:var(--card-shadow);border-radius:4px;margin:36px auto 0;overflow:hidden}.install-head{border-bottom:1px solid var(--line);background:var(--panel2);align-items:center;gap:18px;padding:0 16px;display:flex}.install-head .eyebrow{white-space:nowrap;color:#fff;letter-spacing:1px;margin:0;font-size:11px;font-weight:700}.install-tabs{gap:0;margin-left:auto;display:flex}.install-tabs button{font:600 11.5px/1.2 var(--mono);color:var(--dim);border:0;border-left:1px solid var(--line);cursor:pointer;letter-spacing:.04em;background:0 0;padding:12px 16px;transition:all .18s;position:relative}.install-tabs button:hover{color:#fff;background:#ffffff08}.install-tabs button[aria-selected=true]{color:#000;background:#fff}.install-tabs button[aria-selected=true]:after{display:none}.install-panel{border:1px solid var(--line);background:#050507;border-radius:4px;margin:14px;overflow:hidden}.install-panel[hidden]{display:none}.term-head{border-bottom:1px solid var(--line);background:var(--panel2);font:11px var(--mono);color:var(--faint);border-left:3px solid #fff;align-items:center;gap:10px;padding:8px 12px;display:flex}.term-dots{gap:5px;display:flex}.term-dots i{background:var(--faint);opacity:.6;border-radius:2px;width:8px;height:8px}.term-title{letter-spacing:.04em;color:var(--dim);flex:1;font-weight:600}.term-tip-wrap{margin-left:auto;position:relative}.term-tip-btn{background:var(--panel);border:1px solid var(--line);color:var(--dim);font:11px var(--mono);cursor:pointer;letter-spacing:.02em;border-radius:3px;align-items:center;gap:5px;padding:3px 9px;transition:all .18s;display:inline-flex}.term-tip-btn .tip-ico{color:#fff;background:#ffffff20;border-radius:50%;justify-content:center;align-items:center;width:13px;height:13px;font-size:9.5px;font-weight:700;display:inline-flex}.term-tip-btn:hover{color:#fff;background:var(--panel2);border-color:#fff}.term-tip-pop{z-index:90;border:1px solid var(--line-bright);width:max(300px,44vw);max-width:390px;font:11px/1.65 var(--mono);color:#e2e2e6;opacity:0;visibility:hidden;pointer-events:none;background:#0d0d10;border-radius:4px;padding:14px;transition:all .2s cubic-bezier(.16,1,.3,1);position:absolute;top:calc(100% + 8px);right:0;transform:translateY(-4px);box-shadow:0 14px 40px #000c}.term-tip-wrap:hover .term-tip-pop,.term-tip-wrap:focus-within .term-tip-pop{opacity:1;visibility:visible;pointer-events:auto;transform:none}.tip-pop-head{color:#fff;letter-spacing:.5px;border-bottom:1px dashed var(--line);margin-bottom:10px;padding-bottom:6px;font-size:11px;font-weight:700}.tip-pop-section{margin-bottom:9px}.tip-pop-label{color:#fff;margin-bottom:3px;font-size:10.5px;font-weight:700}.tip-pop-text{color:var(--dim);font-size:11px;line-height:1.6}.tip-pop-replay{border-top:1px dashed var(--line);justify-content:flex-end;margin-top:10px;padding-top:8px;display:flex}.tip-replay-action{border:1px solid var(--line);color:var(--dim);font:10px var(--mono);cursor:pointer;background:0 0;border-radius:3px;padding:3px 8px;transition:all .15s}.tip-replay-action:hover{color:#fff;background:#ffffff10;border-color:#fff}html.light .term-tip-pop{color:#1a1a1f;background:#fff;border:1px solid #d0d0d5;box-shadow:0 14px 40px #0000002e}html.light .tip-pop-head{color:#000;border-bottom-color:#e0e0e4}html.light .tip-pop-label{color:#000}html.light .tip-pop-text{color:#55555c}html.light .tip-replay-action{color:#222;border-color:#ccc}html.light .tip-replay-action:hover{color:#000;background:#0000000a;border-color:#000}html.light .term-tip-btn .tip-ico{color:#000;background:#00000015}.term-body{min-height:300px;max-height:340px;font:11.5px/1.75 var(--mono);color:#f0f0f3;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;scroll-behavior:smooth;padding:14px;overflow-y:auto}.term-body::-webkit-scrollbar{width:5px}.term-body::-webkit-scrollbar-track{background:#050507}.term-body::-webkit-scrollbar-thumb{background:#fff2;border-radius:2px}.term-body::-webkit-scrollbar-thumb:hover{background:#fff4}.term-body .demo-line{white-space:pre-wrap;overflow-wrap:anywhere;min-height:1.75em}.term-body .ok{color:#fff;font-weight:600}.term-body .dim{color:#90909c}.term-body .hl{color:#fff;font-weight:600}.term-body .warn{color:#ddd;font-weight:500}.term-body code{font-family:var(--mono);color:#fff;background:#ffffff14;border:1px solid #ffffff1f;border-radius:2px;padding:1px 5px}.term-cursor{vertical-align:-2px;background:#fff;width:7px;height:13px;animation:.8s step-end infinite blink;display:inline-block}.chat-turn{margin-bottom:12px}.chat-badge{letter-spacing:.8px;text-transform:uppercase;border-radius:2px;align-items:center;gap:4px;margin-bottom:5px;padding:1px 6px;font-size:9.5px;font-weight:700;display:inline-flex}.chat-badge.user{color:#fff;background:#ffffff20;border:1px solid #ffffff40}.chat-badge.agent{color:#bbb;border:1px solid var(--line);background:#ffffff0d}.chat-bubble{border-radius:3px;padding:9px 12px;font-size:11.5px;line-height:1.65}.chat-bubble.user{color:#fff;background:#ffffff12;border-left:3px solid #fff}.chat-bubble.agent{color:#e6e6ea;background:#ffffff0a;border-left:3px solid #888}.chat-bubble .msg-text{margin-bottom:6px}.chat-bubble .agent-body{margin-top:6px}.term-foot{border-top:1px solid var(--line);background:var(--panel2);align-items:center;gap:10px;padding:9px 12px;display:flex}.term-foot code{min-width:0;font:11px/1.5 var(--mono);color:var(--dim);white-space:pre-wrap;overflow-wrap:anywhere;flex:1}.install button.copybtn,.term-foot a{font-family:var(--mono);background:var(--panel);color:var(--ink);border:1px solid var(--line);cursor:pointer;border-radius:3px;flex:none;padding:6px 12px;font-size:11px;text-decoration:none;transition:all .15s}.term-foot a:hover,.install button.copybtn:hover{color:#fff;border-color:#fff}.agent-foot{padding:8px 12px}.agent-input-row{align-items:center;gap:8px;width:100%;display:flex}.agent-input-wrap{background:var(--panel);border:1px solid var(--line);border-radius:3px;flex:1;align-items:center;gap:6px;min-width:0;padding:2px 8px;transition:border-color .18s;display:flex}.agent-input-wrap:focus-within{border-color:#fff}.agent-input-icon{color:var(--faint);font:11px var(--mono)}.agent-prompt-input{min-width:0;font:11px var(--mono);color:var(--ink);background:0 0;border:none;outline:none;flex:1;padding:4px 0}.agent-send-btn{font-family:var(--mono);color:#000;cursor:pointer;background:#fff;border:1px solid #fff;border-radius:3px;flex:none;padding:6px 12px;font-size:11px;font-weight:700;transition:all .15s}.agent-send-btn:hover{background:#e0e0e0;transform:translateY(-1px)}html.light .agent-input-wrap:focus-within{border-color:#000}html.light .agent-send-btn{color:#fff;background:#000;border-color:#000}html.light .agent-send-btn:hover{background:#222}#dissolve{z-index:120;pointer-events:none;position:fixed;inset:0}.dissolve-layer{will-change:opacity, transform, filter;transition:opacity .82s cubic-bezier(.16,1,.3,1),transform .82s cubic-bezier(.16,1,.3,1),filter .82s cubic-bezier(.16,1,.3,1)}body.page-dissolving{pointer-events:none;overflow:hidden!important}body.page-dissolving .dissolve-layer.is-dissolving{opacity:0!important;filter:blur(12px)brightness(1.6)contrast(1.2)!important;pointer-events:none!important;transform:translateY(-24px)scale(.985)!important}body.page-dissolving #restoreHint{pointer-events:auto}body.page-gone header.top,body.page-gone #page-body{opacity:0!important;pointer-events:none!important;visibility:hidden!important}#restoreHint{z-index:130;font:12px/1.2 var(--mono);color:var(--ink);background:var(--panel);border:1px solid var(--line-bright);cursor:pointer;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);opacity:0;letter-spacing:.02em;border-radius:24px;align-items:center;gap:10px;padding:12px 22px;transition:all .45s cubic-bezier(.16,1,.3,1);display:inline-flex;position:fixed;bottom:36px;left:50%;transform:translate(-50%)translateY(20px);box-shadow:0 8px 32px #000000a6,0 0 0 1px #ffffff14}#restoreHint:not([hidden]){opacity:1;transform:translate(-50%)translateY(0)}#restoreHint:hover{color:#fff;border-color:#ffffff73;transform:translate(-50%)translateY(-2px);box-shadow:0 12px 40px #000000d9,0 0 24px #ffffff38}#restoreHint .restore-dot{background:#fff;border-radius:50%;width:7px;height:7px;animation:1.8s ease-in-out infinite restorePulse;display:inline-block;box-shadow:0 0 10px #fff}#restoreHint .restore-key{color:var(--dim);border:1px solid var(--line);letter-spacing:.06em;background:#ffffff1f;border-radius:3px;padding:2px 7px;font-size:10px}@keyframes restorePulse{0%,to{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}}html.light #restoreHint{color:#000;background:#fff;border-color:#0000002e;box-shadow:0 10px 30px #00000024}html.light #restoreHint:hover{color:#000;border-color:#00000080;box-shadow:0 14px 40px #0003,0 0 20px #0000001a}html.light #restoreHint .restore-dot{background:#000;box-shadow:0 0 8px #0006}html.light #restoreHint .restore-key{color:#444;background:#0000000f;border-color:#0000001f}.demo-line{white-space:pre-wrap;overflow-wrap:anywhere;min-height:1.6em}#features .card{border:1px solid var(--line);background:var(--panel);box-shadow:var(--card-shadow);border-radius:4px;padding:0;position:relative;overflow:hidden}#features .card:hover{box-shadow:var(--card-shadow-hover);border-color:#fff5;transform:translateY(-2px)}#features .card-body{background:var(--panel);flex-direction:column;height:100%;min-height:162px;padding:40px 18px 16px;display:flex;position:relative}#features .card h3{font-size:15px;line-height:1.35;font-family:var(--mono);color:#fff;margin:0 0 7px}#features .card p{color:var(--dim);margin:0 0 16px;font-size:13px;line-height:1.65}#features .card-key{border-top:1px dashed var(--line);color:var(--dim);overflow-wrap:anywhere;font-family:var(--mono);margin-top:auto;padding-top:10px;font-size:11px;display:block}#features .card-enhanced{height:100%;display:grid}#features .card-enhanced>*{grid-area:1/1;min-width:0}#features .card-enhanced[data-active]>.card-body{opacity:0}#features .card-enhanced[data-active].decoded>.card-body{opacity:1;z-index:2;transition:opacity .55s cubic-bezier(.22,1,.36,1)}#features .card-enhanced[data-active].restoring>.card-body{opacity:0;transition:opacity 1.1s cubic-bezier(.65,0,.35,1)}#features .canvasui-decrypt{background:var(--panel);min-height:0}.mode-screen pre{font:12px/1.65 var(--mono);color:var(--ink);white-space:pre-wrap;overflow-wrap:anywhere;margin:0}.mode-screen:has(.canvasui-sweep){min-height:200px}.canvasui-sweep .mode-panel{background:var(--panel);min-height:100%;color:var(--ink)}.mode-picker:not([hidden]){background:var(--panel2);border:1px solid var(--line-bright);border-bottom:0;border-radius:4px 4px 0 0;align-items:stretch;margin:0;display:flex;overflow:hidden}.mode-picker button{min-width:0;font:600 12px/1.2 var(--mono);letter-spacing:.04em;color:var(--dim);border:0;border-right:1px solid var(--line);outline-offset:-3px;cursor:pointer;text-transform:uppercase;background:0 0;outline:2px solid #0000;flex:1 1 0;justify-content:center;align-items:center;gap:clamp(6px,1.4vw,10px);padding:13px 12px;transition:all .18s;display:flex;position:relative}.mode-picker button:last-child{border-right:0}.mode-picker .mode-index{letter-spacing:0;color:var(--faint);font-size:10px;transition:color .2s}.mode-picker .mode-label{white-space:nowrap;text-overflow:ellipsis;overflow:hidden}.mode-picker .mode-caret{color:#fff;opacity:0;font-size:14px;line-height:1;transition:all .18s;transform:translate(-4px)}@media (hover:hover){.mode-picker button:hover{color:#fff;background:#ffffff10}.mode-picker button:hover .mode-caret{opacity:.8;transform:none}}html.light .mode-picker button:hover{background:#0000000a}.mode-picker button:focus-visible{outline-color:#fff}.mode-picker button:active{transform:translateY(1px)}.mode-picker button[aria-pressed=true]{color:#000;background:#fff;font-weight:700}.mode-picker button[aria-pressed=true] .mode-index{color:#000;font-weight:700}.mode-picker button[aria-pressed=true] .mode-caret{opacity:1;color:#000;transform:none}.mode-picker button[aria-disabled=true]{opacity:.5;cursor:not-allowed}.mode-picker button:after{display:none}.mode-screen{isolation:isolate;border:1px solid var(--line-bright);border-top:1px solid var(--line);background:#050507;border-radius:0 0 4px 4px;position:relative;overflow:hidden}.mode-panel{min-height:180px;padding:20px 22px}.mode-panel h3{font-size:15px;font-family:var(--mono);color:#fff;letter-spacing:.02em;margin:0}.mode-panel p{color:var(--dim);margin:8px 0 14px;font-size:13.5px;line-height:1.7}.mode-panel pre{border-top:1px dashed var(--line);color:var(--ink);background:#ffffff05;border-radius:2px;padding:10px 12px;font-size:12px}section.block{border-top:1px solid var(--line);padding:96px 0}.eyebrow{font-family:var(--mono);letter-spacing:3px;color:#fff;text-transform:uppercase;font-size:11px;font-weight:700}h2.title{letter-spacing:-1px;margin:12px 0 8px;font-size:clamp(24px,3.4vw,38px);font-weight:700}p.lead{color:var(--dim);max-width:640px;margin:0 0 44px;font-size:15px;line-height:1.75}.grid{grid-template-columns:repeat(3,1fr);gap:16px;display:grid}.card{background:var(--panel);border:1px solid var(--line);transition:transform .2s var(--ease-out-expo),border-color .2s,box-shadow .2s;box-shadow:var(--card-shadow);border-radius:4px;padding:24px}.card:hover{box-shadow:var(--card-shadow-hover);border-color:#fff5;transform:translateY(-2px)}.card .ico{font-family:var(--mono);color:#fff;font-size:22px}.card h3{font-size:15px;font-family:var(--mono);color:#fff;margin:14px 0 8px}.card p{color:var(--dim);margin:0;font-size:13px;line-height:1.65}.card code{font-family:var(--mono);color:var(--ink);font-size:11.5px}.split{grid-template-columns:1fr 1fr;align-items:start;gap:20px;display:grid}.pane{background:var(--panel);border:1px solid var(--line);box-shadow:var(--card-shadow);border-radius:4px;padding:26px}.pane.good{background:#050507;border-color:#fff4}.pane h3{font-size:15px;font-family:var(--mono);letter-spacing:.02em;margin:0 0 14px}.pane ul{color:var(--dim);margin:0;padding-left:18px;font-size:13.5px}.pane li{margin:8px 0}.pane code{font-family:var(--mono);color:var(--ink);background:var(--panel2);border-radius:2px;padding:1px 5px}#why .why-scroll{height:580px;position:relative}#why .why-scroll-inner{align-content:start;gap:24px;height:100%;display:grid}#why .why-scroll-inner .pane{min-height:230px}.why-path{border-top:1px dashed var(--line);padding-top:20px}.why-path h4{font-size:13.5px;font-family:var(--mono);color:#fff;letter-spacing:.03em;margin:0 0 14px}.why-path-row{border-bottom:1px dashed var(--line);grid-template-columns:auto minmax(0,1fr);align-items:baseline;gap:6px 12px;padding:12px 0;display:grid}.why-path-row:last-child{border-bottom:0}.why-tag{font:10px var(--mono);letter-spacing:1px;color:var(--dim);border:1px solid var(--line);border-radius:2px;padding:2px 6px}.why-path-row code{font:12px var(--mono);color:#fff;overflow-wrap:anywhere}.why-path-row span:last-child{color:var(--dim);grid-column:2;font-size:13px}.why-note{color:var(--dim);font-size:13px;line-height:1.75;font-family:var(--mono);margin:0}.why-note code{font-family:var(--mono);color:#fff}.steps{counter-reset:s;grid-template-columns:repeat(4,1fr);gap:14px;display:grid}.step{counter-increment:s;background:var(--panel);border:1px solid var(--line);box-shadow:var(--card-shadow);border-radius:4px;padding:20px;position:relative}.step:before{content:"[" counter(s,decimal-leading-zero) "]";font-family:var(--mono);color:#fff;font-size:11px;font-weight:700}.step h3{font-size:14px;font-family:var(--mono);color:#fff;margin:10px 0 6px}.step p{color:var(--dim);margin:0;font-size:12.5px}section#faq{background:var(--bg)}details{background:var(--panel);border:1px solid var(--line);box-shadow:var(--card-shadow);border-radius:4px;margin:12px 0;padding:16px 18px;transition:border-color .18s}summary{cursor:pointer;font-size:13.5px;font-weight:600;font-family:var(--mono);color:var(--ink);list-style:none}summary::-webkit-details-marker{display:none}summary:after{content:"[+]";float:right;color:var(--dim);font-family:var(--mono);font-size:11px}details[open] summary:after{content:"[-]";color:#fff}details[open]{background:#050507;border-color:#fff5}details p{color:var(--dim);border-left:2px solid #fff4;margin:14px 0 2px;padding-left:12px;font-size:13px;line-height:1.75}:root{--term-radius:4px;--term-dot:#ffffff73;--term-scan:#ffffff05;--term-glow:#ffffff09}html.light{--term-dot:#00000059;--term-scan:#00000005;--term-glow:#00000006}.btn{border-radius:4px}.btn.primary:before{content:"> ";opacity:.7}.cmd code:before{content:"$ ";color:#fff}.install{border-radius:var(--term-radius)}.install-panel{border-radius:4px}.term-body{background:repeating-linear-gradient(180deg,transparent 0 3px,var(--term-scan) 3px 4px), #050507}#features .grid{counter-reset:fcnt}#features .card{counter-increment:fcnt;border-radius:var(--term-radius)}#features .card:before{content:"";z-index:3;pointer-events:none;background:radial-gradient(circle at 12px 13px,var(--term-dot) 0 2px,transparent 2.5px), radial-gradient(circle at 21px 13px,var(--term-dot) 0 2px,transparent 2.5px), radial-gradient(circle at 30px 13px,var(--term-dot) 0 2px,transparent 2.5px), var(--panel2);border-bottom:1px solid var(--line);border-radius:var(--term-radius) var(--term-radius) 0 0;height:26px;position:absolute;top:0;left:0;right:0}#features .card:after{content:"SYS_0" counter(fcnt) ".CFG";z-index:4;pointer-events:none;font:9px/14px var(--mono);letter-spacing:.08em;color:var(--faint);font-weight:700;transition:color .2s;position:absolute;top:6px;right:12px}#features .card:hover{box-shadow:var(--card-shadow-hover);border-color:#fff5}#features .card:hover:after{color:#fff}#features .card-body{background:repeating-linear-gradient(180deg,transparent 0 3px,var(--term-scan) 3px 4px), var(--panel);padding:36px 18px 16px}#features .card h3{font-family:var(--mono);letter-spacing:.02em;margin:0 0 10px;font-size:14px;font-weight:700}#features .card h3:before{content:"> ";color:#fff}#features .card p{font-family:var(--sans);margin:0 0 16px;font-size:13px;line-height:1.65}#features .card p code{color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:2px;padding:1px 5px;font-size:.9em}#features .card-key{font:10.5px/1.6 var(--mono);letter-spacing:.02em;color:var(--dim);border-top:1px dashed var(--line);padding-top:10px}#features .card-key:before{content:"$ ";color:#fff}#features .card-key:after{content:"█";color:#fff;margin-left:4px;animation:1s step-end infinite blink}.mode-screen{border-radius:0 0 var(--term-radius) var(--term-radius);background:repeating-linear-gradient(180deg,transparent 0 3px,var(--term-scan) 3px 4px),#050507}.mode-panel h3{font-family:var(--mono);letter-spacing:.02em;font-size:14px;font-weight:700}.mode-panel h3:before{content:"> ";color:#fff}.mode-panel p{font-size:13px}.mode-panel pre{font:11.5px/1.7 var(--mono);background:#ffffff06;border-left:2px solid #fff;padding:10px 14px}#why .pane{border-radius:var(--term-radius);padding:46px 22px 20px;position:relative;overflow:hidden}#why .pane:before{content:"";z-index:2;pointer-events:none;background:radial-gradient(circle at 12px 13px,var(--term-dot) 0 2px,transparent 2.5px), radial-gradient(circle at 21px 13px,var(--term-dot) 0 2px,transparent 2.5px), radial-gradient(circle at 30px 13px,var(--term-dot) 0 2px,transparent 2.5px), var(--panel2);border-bottom:1px solid var(--line);border-radius:var(--term-radius) var(--term-radius) 0 0;height:26px;position:absolute;top:0;left:0;right:0}#why .pane:after{content:"WIN32.SYS";z-index:3;pointer-events:none;font:9px/14px var(--mono);letter-spacing:.08em;color:var(--faint);font-weight:700;position:absolute;top:6px;right:12px}#why .pane.good:after{content:"NT_NATIVE.SYS";color:#fff}#why .pane.good{background:repeating-linear-gradient(180deg,transparent 0 3px,var(--term-scan) 3px 4px), #050507;border-color:#fff5}html.light #why .pane.good{background:var(--panel);border-color:#0003}#why .pane h3{font-family:var(--mono);letter-spacing:.02em;margin:0 0 14px;font-size:14px;font-weight:700}#why .pane h3:before{content:"[SESSION] ";color:var(--faint)}#why .pane ul{margin:0;padding:0;font-size:13px;line-height:1.75;list-style:none}#why .pane li{margin:9px 0;padding-left:16px;position:relative}#why .pane li:before{content:">";color:#fff;position:absolute;left:0}#why .pane li code{font-family:var(--mono);color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:2px;padding:1px 5px;font-size:11.5px}#why .why-path{border-top:1px dashed var(--line)}#why .why-path h4{font-family:var(--mono);letter-spacing:.04em;color:#fff;margin:0 0 14px;font-size:12.5px;font-weight:700}#why .why-path h4:before{content:"// ";color:var(--dim)}#why .why-path-row{border-bottom:1px dashed var(--line);padding:11px 0}#why .why-tag{font:9px/1.4 var(--mono);letter-spacing:.08em;color:var(--ink);border:1px solid var(--line-bright);background:var(--panel2);border-radius:2px;justify-self:start;padding:2px 6px;font-weight:700}#why .why-path-row:first-of-type .why-tag:before{content:"[-] "}#why .why-path-row:last-of-type .why-tag:before{content:"[+] ";color:#fff}#why .why-path-row code:before{content:"> ";color:var(--faint)}#faq>.wrap>div{counter-reset:qcnt}#faq details{counter-increment:qcnt;border-radius:var(--term-radius);border:1px solid var(--line);padding:0;position:relative;overflow:hidden}#faq details:before{content:"[" counter(qcnt,decimal-leading-zero) "]";font:10px/1.4 var(--mono);color:#fff;pointer-events:none;font-weight:700;position:absolute;top:15px;left:16px}#faq details[open]{background:#050507;border-color:#fff6}#faq summary{font-family:var(--mono);letter-spacing:.02em;padding:14px 50px 14px 48px;font-size:13px;font-weight:700;transition:color .15s;position:relative}#faq summary:hover{color:#fff;background:#ffffff06}#faq summary:after{content:"[+]";float:none;color:var(--dim);font:10px var(--mono);position:absolute;top:50%;right:16px;transform:translateY(-50%)}#faq details[open] summary:after{content:"[-]";color:#fff}#faq details p{background:var(--panel2);font-size:13px;line-height:1.75;font-family:var(--mono);border-left:2px solid #fff6;border-radius:0 2px 2px 0;margin:0 16px 16px 48px;padding:12px 14px}#faq details p:before{content:"RETURN: ";font-family:var(--mono);color:var(--faint);font-weight:700}.step{border-radius:var(--term-radius);font-family:var(--mono)}.step h3{font-size:14px;font-weight:700}footer{border-top:1px solid var(--line);background:var(--bg);position:relative}footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}.foot-grid{grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;display:grid}.foot-brand .flogo{font-family:var(--mono);letter-spacing:-.5px;margin-bottom:16px;font-size:18px;font-weight:700}.foot-brand .flogo .p{color:#fff}.foot-brand .flogo .f{color:var(--dim)}.foot-brand p{color:var(--dim);max-width:280px;font-size:13px;line-height:1.75;font-family:var(--mono);margin:0}.foot-col h4{color:#fff;font-size:13px;font-weight:700;font-family:var(--mono);letter-spacing:1px;text-transform:uppercase;margin:0 0 16px}.foot-col ul{gap:12px;margin:0;padding:0;list-style:none;display:grid}.foot-col a{color:var(--dim);font-size:13px;font-family:var(--mono);transition:color .15s}.foot-col a:hover{color:#fff;text-decoration:underline}.foot-social{gap:16px;margin-top:2px;display:flex}.foot-social a{color:var(--dim);transition:color .15s}.foot-social a:hover{color:#fff}.foot-social svg{width:18px;height:18px}.foot-divider{border-top:1px solid var(--line)}.foot-bottom-row{max-width:1200px;font-size:12px;font-family:var(--mono);color:var(--faint);flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px;margin:0 auto;padding:20px 24px;display:flex}.theme-btn{cursor:pointer;color:var(--dim);background:0 0;border:none;justify-content:center;align-items:center;transition:all .18s;display:inline-flex}.theme-btn:hover{color:var(--ink)}.theme-btn svg{width:16px;height:16px;display:block}.foot-theme-btn{border:1px solid var(--line);background:var(--panel);color:var(--dim);cursor:pointer;border-radius:3px;justify-content:center;align-items:center;padding:6px 9px;transition:all .18s;display:inline-flex}.foot-theme-btn:hover{background:var(--panel2);border-color:var(--ink);color:var(--ink)}.reveal{opacity:0;transition:opacity .6s var(--ease-out-expo),transform .6s var(--ease-out-expo);transform:translateY(20px)}.reveal.in{opacity:1;transform:none}@media (width<=820px){.grid,.steps{grid-template-columns:1fr 1fr}.split{grid-template-columns:1fr}.nav-links{display:none}.menu-btn{display:block}.nav-cta{display:none}.nav-links.open{background:var(--panel);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-bottom:1px solid var(--line);flex-direction:column;gap:14px;padding:16px 20px;display:flex;position:absolute;top:60px;left:0;right:0}.foot-grid{grid-template-columns:1fr 1fr;gap:32px}}@media (width<=640px){#download .cmd{gap:10px;display:grid}#download .cmd button{justify-self:end}#why .why-scroll{height:820px}#why .why-scroll-inner{padding:18px}.why-path-row{grid-template-columns:1fr}.why-path-row span:last-child{grid-column:1}}@media (width<=520px){.nav-status-badge{display:none}.lang-btn{padding:3px 7px;font-size:10px}.grid,.steps,.foot-grid{grid-template-columns:1fr}.hero{padding:56px 0 48px}.wordmark{width:calc(100% + 12px);margin-inline:-6px}.hero .cmd{gap:8px;padding-inline:12px}.hero .cmd code{font-size:11.5px}.mode-picker button{gap:5px;padding:14px 4px;font-size:11.5px}.mode-picker .mode-caret{display:none}.install-head{gap:0;padding:0 10px}.install-head .eyebrow{display:none}.install-tabs{width:100%;margin-left:0}.install-tabs button{flex:1;padding:12px 4px;font-size:10.5px}.install-row{flex-direction:column}.install-row .copybtn{align-self:flex-end}.foot-bottom-row{text-align:center;flex-direction:column;gap:12px;padding:16px 20px}section.block{padding:72px 0}}@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}.reveal{opacity:1;transform:none}#loader{display:none}}</style>
+  <script type="module" crossorigin src="/delete-nul/assets/index-BhjtfKSW.js"></script>
 </head>
 <body>
-<a class="skip" href="#main">跳到主内容</a>
 
-<header class="mast">
-  <div class="in">
-    <div class="brand">delete<em>—</em>nul</div>
-    <div class="meta">WINDOWS 保留名文件 · 实战手册</div>
-    <a class="gh" href="https://github.com/yancongya/delete-nul">GitHub ↗</a>
+<div id="loader">
+  <div class="loader-hud">
+    <div class="loader-head">
+      <div class="loader-title"><span class="loader-pulse"></span>DELETE-NUL // NT.KERNEL.PROBE.SYS</div>
+      <div class="loader-meta">v1.0.0 · AIR-GAPPED</div>
+    </div>
+    <div class="loader-logs" id="loaderLogs"></div>
+    <div class="loader-meter">
+      <div class="loader-meter-meta">
+        <span id="loaderStatus">PROBING WIN32 OBJECTS</span>
+        <span id="loaderAddr">0x00007FFE8040</span>
+      </div>
+      <div class="loader-meter-bar" id="loaderBar">[░░░░░░░░░░░░░░░░░░░░░░░░]</div>
+    </div>
+    <div class="loader-footer">
+      <span class="loader-pct-badge"><b id="loaderPct">0%</b> COMPLETED</span>
+      <span class="loader-skip-hint" id="loaderSkip" data-i18n="loader.skip">[点击或按任意键跳过 ↵]</span>
+    </div>
+  </div>
+</div>
+
+<div id="copyToast"><span class="toast-ico">✓</span><span id="toastText">已成功复制到剪贴板</span></div>
+
+<canvas id="field" aria-hidden="true"></canvas>
+<canvas id="dissolve" aria-hidden="true"></canvas>
+<button id="restoreHint" type="button" hidden><span class="restore-dot"></span><span data-i18n="install.restore_hint">点击任意位置或按 Esc 恢复页面</span><span class="restore-key">ESC</span></button>
+
+<header class="top dissolve-layer">
+  <div class="wrap nav">
+    <div style="display:flex;align-items:center">
+      <a href="#top" class="brand">delete-nul<span class="cur">_</span></a>
+      <span class="nav-status-badge"><span class="dot"></span>NT 10.0+ READY</span>
+    </div>
+    <nav class="nav-links" id="navlinks">
+      <a href="#features" data-i18n="nav.features">功能</a><a href="#modes" data-i18n="nav.modes">使用</a><a href="#why" data-i18n="nav.why">原理</a><a href="#install" data-i18n="nav.install">安装 / 过程</a><a href="#faq" data-i18n="nav.faq">FAQ</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="lang-btn" id="langBtn" type="button" aria-label="切换语言" title="切换语言 / Switch Language">
+        <span class="lang-code" id="langCode">EN</span>
+      </button>
+      <button class="theme-btn nav-theme-btn" id="navThemeBtn" type="button" aria-label="浅色主题" aria-pressed="false" title="切换亮/暗色模式">
+        <svg class="sun" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
+        <svg class="moon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 13.34A9 9 0 0 1 10.66 3.1 9 9 0 1 0 20.9 13.34Z"/></svg>
+      </button>
+      <button class="menu-btn" id="menubtn" aria-label="菜单" data-i18n="nav.menu">菜单</button>
+    </div>
   </div>
 </header>
 
-<main id="main">
-
-  <!-- ============ HERO ============ -->
-  <div class="hero col">
-    <p class="kicker">A Field Guide</p>
-    <h1>有一种文件，<br>Windows 自己也删不掉。</h1>
-    <p class="lead">NUL、CON、AUX——这些 DOS 时代的设备名，一旦变成磁盘上的真实文件，资源管理器便束手无策。delete-nul 把它们逐个找出来、列清楚，等你点头之后，再划掉。</p>
-    <div class="struck" aria-hidden="true">
-      <span class="nm" style="--d:.05s">NUL</span>
-      <span class="nm" style="--d:.2s">CON</span>
-      <span class="nm" style="--d:.35s">PRN</span>
-      <span class="nm" style="--d:.5s">AUX</span>
-    </div>
-    <p class="struck-cap">右划之 · 皆可清理</p>
-    <div class="cta">
-      <button class="btn btn-primary copy" aria-label="复制下载并运行命令" data-text="curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat&quot; -o &quot;%TEMP%\delete-nul.bat&quot; &amp;&amp; call &quot;%TEMP%\delete-nul.bat&quot;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="1"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>
-        <span class="lbl">复制一行命令运行</span>
-      </button>
-      <a class="btn btn-ghost" href="https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat" download>下载 delete-nul.bat</a>
-    </div>
-    <div class="byline">
-      <span><i></i>纯 CMD 实现，无编码混淆</span>
-      <span><i></i>删前先确认</span>
-      <span><i></i>只匹配保留名本体</span>
-    </div>
-  </div>
-
-  <!-- ============ TOC ============ -->
-  <nav class="toc col" aria-label="目录">
-    <p class="cap">目 录</p>
-    <ol>
-      <li><a href="#c1"><span class="n">壹</span>缘起</a></li>
-      <li><a href="#c2"><span class="n">贰</span>病因</a></li>
-      <li><a href="#c3"><span class="n">叁</span>疗法</a></li>
-      <li><a href="#c4"><span class="n">肆</span>药方</a></li>
-      <li><a href="#c5"><span class="n">伍</span>服用</a></li>
-      <li><a href="#c6"><span class="n">陆</span>问诊</a></li>
-    </ol>
-  </nav>
-
-  <!-- ============ WALL OF NAMES (scroll scene) ============ -->
-  <div class="wall-stage" id="wallStage">
-    <div class="wall-pin">
-      <div class="wall-inner">
-        <p class="cap">全部二十二个目标 · 皆在清理之列</p>
-        <div class="gridwrap" aria-label="可清理的保留名：NUL、CON、PRN、AUX、COM1 至 COM9、LPT1 至 LPT9">
-          <div class="wrow">
-            <div class="cell hot"><span class="t">NUL</span></div><div class="cell hot"><span class="t">CON</span></div><div class="cell hot"><span class="t">PRN</span></div><div class="cell hot"><span class="t">AUX</span></div><div class="cell"><span class="t">COM1</span></div>
-          </div>
-          <div class="wrow">
-            <div class="cell"><span class="t">COM2</span></div><div class="cell"><span class="t">COM3</span></div><div class="cell"><span class="t">COM4</span></div><div class="cell"><span class="t">COM5</span></div><div class="cell"><span class="t">COM6</span></div>
-          </div>
-          <div class="wrow">
-            <div class="cell"><span class="t">COM7</span></div><div class="cell"><span class="t">COM8</span></div><div class="cell"><span class="t">COM9</span></div><div class="cell"><span class="t">LPT1</span></div><div class="cell"><span class="t">LPT2</span></div>
-          </div>
-          <div class="wrow">
-            <div class="cell"><span class="t">LPT3</span></div><div class="cell"><span class="t">LPT4</span></div><div class="cell"><span class="t">LPT5</span></div><div class="cell"><span class="t">LPT6</span></div><div class="cell"><span class="t">LPT7</span></div>
-          </div>
-          <div class="wrow short">
-            <div class="cell"><span class="t">LPT8</span></div><div class="cell"><span class="t">LPT9</span></div>
-          </div>
-          <div class="scanline" aria-hidden="true"></div>
+<div id="page-body">
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <div class="wordmark dissolve-layer" aria-hidden="true">
+        <svg class="line1" viewBox="0 0 568 112" focusable="false">
+          <defs>
+            <path id="mark-1" fill-rule="evenodd" d="M0 0H60V16H80V80H60V96H0ZM20 16V80H50V64H60V32H50V16ZM94 0H174V16H114V40H164V56H114V80H174V96H94ZM188 0H208V80H268V96H188ZM282 0H362V16H302V40H352V56H302V80H362V96H282ZM376 0H456V16H426V96H406V16H376ZM470 0H550V16H490V40H540V56H490V80H550V96H470Z"/>
+            <linearGradient id="mark-face-1" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop stop-color="var(--face-top)"/><stop offset="1" stop-color="var(--face-bottom)"/>
+            </linearGradient>
+            <pattern id="mark-grid-1" width="10" height="16" patternUnits="userSpaceOnUse">
+              <path d="M0 16V0H10" fill="none" stroke="var(--tile)" stroke-opacity=".20"/>
+            </pattern>
+            <radialGradient id="mark-spot-1" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="54" gradientTransform="scale(1 1.4)">
+              <stop stop-color="var(--shine)" stop-opacity=".92"/>
+              <stop offset="1" stop-color="var(--shine)" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <g transform="translate(4 2)">
+            <use href="#mark-1" class="mark-edge far" x="11" y="10"/>
+            <use href="#mark-1" class="mark-edge" x="7" y="6"/>
+            <use href="#mark-1" fill="url(#mark-face-1)"/>
+            <use href="#mark-1" fill="url(#mark-grid-1)"/>
+            <use href="#mark-1" class="mark-spot" fill="url(#mark-spot-1)"/>
+          </g>
+        </svg>
+        <svg class="line2" viewBox="0 0 298 112" focusable="false">
+          <defs>
+            <path id="mark-2" fill-rule="evenodd" d="M0 0H20V16H30V32H40V48H50V64H60V0H80V96H50V80H40V64H30V48H20V96H0ZM100 0H120V80H160V0H180V80H170V96H110V80H100ZM200 0H220V80H280V96H200Z"/>
+            <linearGradient id="mark-face-2" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop stop-color="var(--face-top)"/><stop offset="1" stop-color="var(--face-bottom)"/>
+            </linearGradient>
+            <pattern id="mark-grid-2" width="10" height="16" patternUnits="userSpaceOnUse">
+              <path d="M0 16V0H10" fill="none" stroke="var(--tile)" stroke-opacity=".20"/>
+            </pattern>
+            <radialGradient id="mark-spot-2" gradientUnits="userSpaceOnUse" cx="0" cy="0" r="54" gradientTransform="scale(1 1.4)">
+              <stop stop-color="var(--shine)" stop-opacity=".92"/>
+              <stop offset="1" stop-color="var(--shine)" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <g transform="translate(4 2)">
+            <use href="#mark-2" class="mark-edge far" x="11" y="10"/>
+            <use href="#mark-2" class="mark-edge" x="7" y="6"/>
+            <use href="#mark-2" fill="url(#mark-face-2)"/>
+            <use href="#mark-2" fill="url(#mark-grid-2)"/>
+            <use href="#mark-2" class="mark-spot" fill="url(#mark-spot-2)"/>
+          </g>
+        </svg>
+      </div>
+      <div class="hero-intro dissolve-layer">
+        <h1><span class="accent slogan-glitch" data-text="⚡遗定要删掉⚡" data-i18n="hero.slogan">⚡遗定要删掉⚡</span></h1>
+        <p class="sub" data-i18n="hero.sub"><code>NUL / CON / AUX / PRN / COM1-9 / LPT1-9</code> —— Windows 无法删除的保留名死锁终结者。无需安装、零依赖不污染代码仓库；直达 NT 原生路径，先只读预检，确认后一键安全清除。</p>
+        <div class="hero-pills">
+          <span class="pill-tag" data-i18n="hero.pill1">✦ 零依赖免安装</span>
+          <span class="pill-tag" data-i18n="hero.pill2">✦ \\?\ NT 原生路径直达</span>
+          <span class="pill-tag" data-i18n="hero.pill3">✦ 先列后删绝不误删</span>
+          <span class="pill-tag" data-i18n="hero.pill4">✦ 100% 本地开源</span>
         </div>
-        <p class="wall-status" aria-live="polite"></p>
+      </div>
+      <div class="actions dissolve-layer">
+        <button class="btn primary" id="startBtn" type="button" data-i18n="hero.start">立即开始 <span class="btn-arrow">→</span></button>
+        <a class="btn ghost" href="#why" data-i18n="hero.why">为什么普通方法不行？ <span class="btn-arrow">↳</span></a>
+      </div>
+      <div class="install dissolve-layer" id="install">
+        <div class="install-head">
+          <span class="eyebrow" data-i18n="install.eyebrow">// INSTALL</span>
+          <div class="install-tabs" role="tablist" aria-label="安装方式">
+            <button type="button" role="tab" aria-selected="true" data-tab="cmd" data-i18n="install.tab_cmd">终端命令 <span class="tab-badge">推荐</span></button>
+            <button type="button" role="tab" aria-selected="false" data-tab="agent" data-i18n="install.tab_agent">AI Agent <span class="tab-badge">智能体</span></button>
+            <button type="button" role="tab" aria-selected="false" data-tab="raw" data-i18n="install.tab_raw">下载文件 <span class="tab-badge">拖拽</span></button>
+            <button type="button" role="tab" aria-selected="false" data-tab="text" data-i18n="install.tab_text">纯文本 <span class="tab-badge">高保密</span></button>
+          </div>
+        </div>
+        <div class="install-panel" data-panel="cmd" role="tabpanel">
+          <div class="term-head">
+            <span class="term-dots"><i></i><i></i><i></i></span>
+            <span class="term-title" data-i18n="install.term_cmd">cmd.exe — 终端命令</span>
+            <div class="term-tip-wrap">
+              <button class="term-tip-btn" type="button" aria-haspopup="dialog" aria-label="方式说明与特点" data-i18n="install.tip_btn"><span class="tip-ico">?</span> 提示</button>
+              <div class="term-tip-pop" role="tooltip">
+                <div class="tip-pop-head" data-i18n="install.tip_cmd_head">// 终端命令 (cmd.exe) · 方式提示</div>
+                <div class="tip-pop-section">
+                  <div class="tip-pop-label" data-i18n="install.tip_label_method">▶ 使用方法</div>
+                  <div class="tip-pop-text" data-i18n="install.tip_cmd_method">复制下方单行命令在 Windows CMD 或 PowerShell 中回车运行；启动后用 ↑ ↓ 选择模式，回车确认。</div>
+                </div>
+                <div class="tip-pop-section">
+                  <div class="tip-pop-label" data-i18n="install.tip_label_feat">★ 核心特点</div>
+                  <div class="tip-pop-text" data-i18n="install.tip_cmd_feat">一键拉取至系统临时目录 %TEMP%，不污染工作区；提供全局全盘扫描、逐级选盘、超时防卡死等完整功能。</div>
+                </div>
+                <div class="tip-pop-replay"><button class="tip-replay-action" type="button" data-replay="cmd" data-i18n="install.tip_replay_cmd">↻ 重新演示此操作</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="term-body" data-lines="cmd"></div>
+          <div class="term-foot"><code>curl -fsSL ".../delete-nul.ps1" -o "%TEMP%\delete-nul.ps1" &amp;&amp; ... &amp;&amp; call "%TEMP%\delete-nul.bat"</code><button class="copybtn" type="button" data-copy="curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1&quot; -o &quot;%TEMP%\delete-nul.ps1&quot; &amp;&amp; curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat&quot; -o &quot;%TEMP%\delete-nul.bat&quot; &amp;&amp; call &quot;%TEMP%\delete-nul.bat&quot;" data-i18n="install.copy">复制</button></div>
+        </div>
+        <div class="install-panel" data-panel="agent" role="tabpanel" hidden>
+          <div class="term-head">
+            <span class="term-dots"><i></i><i></i><i></i></span>
+            <span class="term-title" data-i18n="install.term_agent">agent — AI 智能助手对话演示</span>
+            <div class="term-tip-wrap">
+              <button class="term-tip-btn" type="button" aria-haspopup="dialog" aria-label="方式说明与特点" data-i18n="install.tip_btn"><span class="tip-ico">?</span> 提示</button>
+              <div class="term-tip-pop" role="tooltip">
+                <div class="tip-pop-head" data-i18n="install.tip_agent_head">// AI Agent 提示词 · 方式提示</div>
+                <div class="tip-pop-section">
+                  <div class="tip-pop-label" data-i18n="install.tip_label_method">▶ 使用方法</div>
+                  <div class="tip-pop-text" data-i18n="install.tip_agent_method">点击下方【复制提示词】，直接粘贴发送给 Cursor、Claude Code、Antigravity、Copilot 等 AI 助手对话框。</div>
+                </div>
+                <div class="tip-pop-section">
+                  <div class="tip-pop-label" data-i18n="install.tip_label_feat">★ 核心特点</div>
+                  <div class="tip-pop-text" data-i18n="install.tip_agent_feat">对话式交互执行：自动查阅仓库原理、临时目录零污染下载、强制只读预检并向你汇报，经你确认后才精准清除。</div>
+                </div>
+                <div class="tip-pop-replay"><button class="tip-replay-action" type="button" data-replay="agent" data-i18n="install.tip_replay_agent">↻ 重新演示此对话</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="term-body" data-lines="agent"></div>
+          <div class="term-foot agent-foot">
+            <div class="agent-presets" aria-label="快捷提示词预设">
+              <span class="preset-label" data-i18n="install.agent_preset_label">快捷场景:</span>
+              <button class="preset-pill" type="button" data-prompt-key="install.agent_preset_1_prompt" data-i18n="install.agent_preset_1" data-prompt="请从 GitHub 获取并安装 delete-nul 工具，先只读扫描当前工作区保留名文件，汇报后再删">[当前工作区扫描]</button>
+              <button class="preset-pill" type="button" data-prompt-key="install.agent_preset_2_prompt" data-i18n="install.agent_preset_2" data-prompt="请下载安装 delete-nul 工具并扫描 D:\temp 目录中的 NUL、CON 等异常文件">[指定路径 D:\temp]</button>
+              <button class="preset-pill" type="button" data-prompt-key="install.agent_preset_3_prompt" data-i18n="install.agent_preset_3" data-prompt="请下载并运行 delete-nul 工具进行全盘只读扫描 -DryRun，统计所有保留名文件">[全盘只读预检]</button>
+            </div>
+            <div class="agent-input-row">
+              <div class="agent-input-wrap">
+                <span class="agent-input-icon">❯</span>
+                <input type="text" class="agent-prompt-input" value="请从 GitHub 获取并安装 delete-nul 工具，安全扫描并清理当前工作区保留名文件" placeholder="输入提示词发给 Agent..." aria-label="提示词输入框" data-i18n-ph="install.agent_input_ph">
+              </div>
+              <button class="agent-send-btn" type="button" title="点击发送提示词并启动下载安装交互" data-i18n="install.agent_send_btn">↵ 发送</button>
+              <button class="copybtn" type="button" data-i18n="install.agent_copy_btn" data-copy="请帮我安全清理当前工作区（或指定路径）中无法正常删除的 Windows 保留名文件（NUL / CON / AUX / PRN / COM1-9 / LPT1-9 等）：&#10;&#10;1. 查看仓库与原理：&#10;   - 仓库地址：https://github.com/yancongya/delete-nul&#10;   - 或查阅文档：curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/README.md&quot;&#10;   - 核心原理：Win32 命名空间将保留名劫持为 DOS 字符设备，普通 del 无法删除；必须通过 \\?\ 前缀直达 NT 原生路径，且必须严格遵循「先列后删」安全规范。&#10;&#10;2. 下载工具至临时目录（零依赖、免安装、不污染代码仓库）：&#10;   curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1&quot; -o &quot;%TEMP%\delete-nul.ps1&quot;&#10;&#10;3. 执行只读预检扫描（-DryRun）：&#10;   powershell -ExecutionPolicy Bypass -File &quot;%TEMP%\delete-nul.ps1&quot; -Path . -DryRun&#10;   - 仅扫描并输出匹配的保留名文件列表，不进行任何删除操作。&#10;   - 向我汇报扫描结果并等待我的确认。&#10;&#10;4. 获得确认后执行安全清理与复核：&#10;   powershell -ExecutionPolicy Bypass -File &quot;%TEMP%\delete-nul.ps1&quot; -Path . -Yes&#10;   - 使用 \\?\ 前缀精准移除异常文件，并复核确认残留数为 0。">复制完整提示词</button>
+            </div>
+          </div>
+        </div>
+        <div class="install-panel" data-panel="raw" role="tabpanel" hidden>
+          <div class="term-head">
+            <span class="term-dots"><i></i><i></i><i></i></span>
+            <span class="term-title" data-i18n="install.term_raw">browser — 下载文件</span>
+            <div class="term-tip-wrap">
+              <button class="term-tip-btn" type="button" aria-haspopup="dialog" aria-label="方式说明与特点" data-i18n="install.tip_btn"><span class="tip-ico">?</span> 提示</button>
+              <div class="term-tip-pop" role="tooltip">
+                <div class="tip-pop-head" data-i18n="install.tip_raw_head">// 下载文件 (本地脚本) · 方式提示</div>
+                <div class="tip-pop-section">
+                  <div class="tip-pop-label" data-i18n="install.tip_label_method">▶ 使用方法</div>
+                  <div class="tip-pop-text" data-i18n="install.tip_raw_method">下载 delete-nul.ps1 和 delete-nul.bat 至同一文件夹；双击 bat 运行，或直接把异常文件夹拖到 bat 图标上。</div>
+                </div>
+                <div class="tip-pop-section">
+                  <div class="tip-pop-label" data-i18n="install.tip_label_feat">★ 核心特点</div>
+                  <div class="tip-pop-text" data-i18n="install.tip_raw_feat">本地持久保存；支持强大的鼠标拖拽交互（连资源管理器选不中的 NUL 文件都能直接拖入图标清除）。</div>
+                </div>
+                <div class="tip-pop-replay"><button class="tip-replay-action" type="button" data-replay="raw" data-i18n="install.tip_replay_raw">↻ 重新演示此操作</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="term-body" data-lines="raw"></div>
+          <div class="term-foot"><code>raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1 + delete-nul.bat</code><a href="https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1" target="_blank" rel="noopener" download data-i18n="install.download_ps1">下载 ps1</a><a href="https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat" target="_blank" rel="noopener" download data-i18n="install.download_bat">下载 bat</a></div>
+        </div>
+        <div class="install-panel" data-panel="text" role="tabpanel" hidden>
+          <div class="term-head">
+            <span class="term-dots"><i></i><i></i><i></i></span>
+            <span class="term-title" data-i18n="install.term_text">cmd.exe — 纯文本</span>
+            <div class="term-tip-wrap">
+              <button class="term-tip-btn" type="button" aria-haspopup="dialog" aria-label="方式说明与特点" data-i18n="install.tip_btn"><span class="tip-ico">?</span> 提示</button>
+              <div class="term-tip-pop" role="tooltip">
+                <div class="tip-pop-head" data-i18n="install.tip_text_head">// 纯文本 (免落地批处理) · 方式提示</div>
+                <div class="tip-pop-section">
+                  <div class="tip-pop-label" data-i18n="install.tip_label_method">▶ 使用方法</div>
+                  <div class="tip-pop-text" data-i18n="install.tip_text_method">先复制【第 1 部分】贴进 CMD 回车（只检索生成清单）；核对生成的清单确认无误后，再复制【第 2 部分】贴进 CMD 执行删除。</div>
+                </div>
+                <div class="tip-pop-section">
+                  <div class="tip-pop-label" data-i18n="install.tip_label_feat">★ 核心特点</div>
+                  <div class="tip-pop-text" data-i18n="install.tip_text_feat">零文件落地、免 PowerShell 依赖！100% 采用 Windows 原生 CMD 管道命令，专为金融/政企内网高保密机设计。</div>
+                </div>
+                <div class="tip-pop-replay"><button class="tip-replay-action" type="button" data-replay="text" data-i18n="install.tip_replay_text">↻ 重新演示此操作</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="term-body" data-lines="text"></div>
+          <div class="term-foot"><code>set "RNLIST=..." &amp; dir /s /b /a | findstr /r /i /c:"\\nul$" ... &gt;&gt; "%RNLIST%" &amp; type "%RNLIST%"</code><button class="copybtn" type="button" data-i18n="install.copy" data-copy="set &quot;RNLIST=%TEMP%\reserved_name_files.txt&quot;
+type nul &gt; &quot;%RNLIST%&quot;
+dir /s /b /a 2&gt;nul | &quot;%SystemRoot%\System32\findstr.exe&quot; /r /i /c:&quot;\\nul$&quot; /c:&quot;\\con$&quot; /c:&quot;\\prn$&quot; /c:&quot;\\aux$&quot; /c:&quot;\\com1$&quot; /c:&quot;\\com2$&quot; /c:&quot;\\com3$&quot; /c:&quot;\\com4$&quot; /c:&quot;\\com5$&quot; /c:&quot;\\com6$&quot; /c:&quot;\\com7$&quot; /c:&quot;\\com8$&quot; /c:&quot;\\com9$&quot; /c:&quot;\\lpt1$&quot; /c:&quot;\\lpt2$&quot; /c:&quot;\\lpt3$&quot; /c:&quot;\\lpt4$&quot; /c:&quot;\\lpt5$&quot; /c:&quot;\\lpt6$&quot; /c:&quot;\\lpt7$&quot; /c:&quot;\\lpt8$&quot; /c:&quot;\\lpt9$&quot; &gt;&gt; &quot;%RNLIST%&quot;
+type &quot;%RNLIST%&quot;">复制</button></div>
+        </div>
       </div>
     </div>
-  </div>
-
-  <!-- ============ 一 缘起 ============ -->
-  <section class="chap col" id="c1" aria-labelledby="h-c1">
-    <header class="chap-head">
-      <span class="no">壹</span>
-      <h2 id="h-c1">缘起——它们从哪来</h2>
-      <span class="en">Origin</span>
-    </header>
-    <p class="dropcap">从 DOS 时代继承的设备保留名，本不该以文件形态出现在磁盘上。但总有意外让它们"字面落盘"——于是你的目录里，多出一个右键删不掉、Shift+Delete 也删不掉的东西。</p>
-    <ol class="elist">
-      <li><span class="k">其一</span><div><b>重定向命令写错位置</b>如 <span class="mono">copy a.txt NUL</span>，某些非标准 API 会把 NUL 当成真实文件名创建。</div></li>
-      <li><span class="k">其二</span><div><b>跨平台解压与同步</b>Linux 下 <span class="mono">nul</span>、<span class="mono">aux.c</span> 是合法文件名；解压、Git、网盘同步到 Windows 时被原样写入。</div></li>
-      <li><span class="k">其三</span><div><b>下载与传输工具的 bug</b>不检查保留名，收到什么就落盘什么。</div></li>
-      <li><span class="k">其四</span><div><b>恶意软件故意为之</b>利用"删不掉"的特性，把保留名文件当作对抗清理的堡垒。</div></li>
-    </ol>
   </section>
 
-  <!-- ============ 二 病因 ============ -->
-  <section class="chap col" id="c2" aria-labelledby="h-c2">
-    <header class="chap-head">
-      <span class="no">贰</span>
-      <h2 id="h-c2">病因——为什么删不掉</h2>
-      <span class="en">Cause</span>
-    </header>
-    <p>Win32 在<strong>解析路径的阶段</strong>就把 <span class="mono">NUL</span> 识别成 DOS 设备对象，而非文件。你在资源管理器里按下删除、在命令行里敲 <span class="mono">del NUL</span>，操作的都是"NUL 设备"，从来不是那个真实文件——所以它永远安然无恙。</p>
-    <p>解法只有一个：绕开 Win32 的路径规范化，直达 NT 对象管理器。</p>
-    <figure class="pull">
-      <p class="q">答 案</p>
-      <div class="code">
-        <button class="copy" aria-label="复制删除命令" data-text="del /f /a /q &quot;\\?\C:\某个目录\NUL&quot;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="1"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>
-          <span class="lbl">复制</span>
-        </button>
-        <code>del /f /a /q "\\?\C:\某个目录\NUL"</code>
+  <section class="block dissolve-layer" id="features">
+    <div class="wrap">
+      <div class="eyebrow reveal" data-i18n="features.eyebrow">// FEATURES</div>
+      <h2 class="title reveal" data-i18n="features.title">只做一件事，做对</h2>
+      <p class="lead reveal" data-i18n="features.lead">针对 Windows 历史包袱与保留名死锁，提供不伤正常业务文件的终极解决方案。</p>
+      <div class="grid">
+        <div class="card reveal"><div class="card-body"><h3 data-i18n="features.card1_title">精确匹配本体</h3><p data-i18n="features.card1_desc">只匹配裸保留名本体；像 <code>nul.txt</code>、<code>con.png</code> 这类正常业务文件绝不误伤。</p><code class="card-key">NUL / nul.txt [SAFE]</code></div></div>
+        <div class="card reveal"><div class="card-body"><h3 data-i18n="features.card2_title">先列后删预检</h3><p data-i18n="features.card2_desc">先完整罗列扫描结果，经人工授权确认（Y）才执行物理清除，绝不静默删除。</p><code class="card-key">-DryRun [READONLY]</code></div></div>
+        <div class="card reveal"><div class="card-body"><h3 data-i18n="features.card3_title">\\?\ NT 原生路径</h3><p data-i18n="features.card3_desc">为路径注入 NT 命名空间直达前缀，绕过 Win32 子系统把保留名劫持为 DOS 设备的底层陷阱。</p><code class="card-key">\\?\D:\work\NUL [BYPASS]</code></div></div>
+        <div class="card reveal"><div class="card-body"><h3 data-i18n="features.card4_title">多维交互入口</h3><p data-i18n="features.card4_desc">全局排查、磁盘层级深入浏览、剪贴板粘贴路径，或直接拖拽文件夹至 bat 图标——全场景适配。</p><code class="card-key">[G] / [S] / [D] / [DROP]</code></div></div>
+        <div class="card reveal"><div class="card-body"><h3 data-i18n="features.card5_title">企业级自动化</h3><p data-i18n="features.card5_desc">支持标准 JSON 结构化输出、严谨退出码、详细审计日志与单盘扫描超时熔断，轻松接入运维管线。</p><code class="card-key">-Json / -ScanTimeout</code></div></div>
+        <div class="card reveal"><div class="card-body"><h3 data-i18n="features.card6_title">最小权限克制</h3><p data-i18n="features.card6_desc">默认普通用户权限即可运行，安全清理当前用户空间；仅在触及系统特权目录时才请求 UAC 提权。</p><code class="card-key">-Elevate [ON-DEMAND]</code></div></div>
       </div>
-      <figcaption>给路径加上 <span class="mono">\\?\</span> 前缀，跳过规范化、直达内核——此时它只是一个字面上的文件路径，可删。完整流程：<span class="mono">dir</span> 枚举不受影响 → 按名字精确匹配 → 记录完整路径 → 加前缀删除 → 复核报告。</figcaption>
-    </figure>
-  </section>
-
-  <!-- ============ 三 疗法 ============ -->
-  <section class="chap col" id="c3" aria-labelledby="h-c3">
-    <header class="chap-head">
-      <span class="no">叁</span>
-      <h2 id="h-c3">疗法——列出，确认，再删</h2>
-      <span class="en">Method</span>
-    </header>
-    <p>所有版本的共同行为：<strong>先列出全部结果，输入 <span class="mono">Y</span> 确认后才删除，逐条报告成败。</strong>绝不静默操作，绝不碰清单之外的东西。</p>
-    <ol class="steps">
-      <li><span class="n"></span><div><h3>枚举扫描</h3><p>遍历所有本地磁盘，按保留名精确匹配，把命中文件的完整路径写入清单。只匹配名字本体——<span class="mono">nul.txt</span> 这类正常文件永远不在清单上。</p></div></li>
-      <li><span class="n"></span><div><h3>列出并确认</h3><p>把找到的文件逐条打印出来，等你过目。输入 <span class="mono">Y</span> 才继续；其他任何键立即取消，不做任何修改。</p></div></li>
-      <li><span class="n"></span><div><h3>加前缀删除</h3><p>对每个路径加 <span class="mono">\\?\</span> 前缀执行删除，逐条标记 <span class="mono">[DELETED]</span> 或 <span class="mono">[FAILED]</span>（被占用 / 权限不足），最后汇总报告。</p></div></li>
-    </ol>
-    <p class="note"><span class="warn">注意：</span>删除不进回收站，务必核对列表后再按 Y。</p>
-  </section>
-
-  <!-- ============ 四 药方 ============ -->
-  <section class="chap col" id="c4" aria-labelledby="h-c4">
-    <header class="chap-head">
-      <span class="no">肆</span>
-      <h2 id="h-c4">药方——四种形态</h2>
-      <span class="en">Prescription</span>
-    </header>
-    <p>同一套逻辑，四种用法。点击文件名即可在 GitHub 查看 / 下载。</p>
-    <div class="tablewrap">
-      <table>
-        <thead><tr><th>文件</th><th>用途</th><th>管理员</th><th>用法</th></tr></thead>
-        <tbody>
-          <tr><td><a href="https://github.com/yancongya/delete-nul/blob/main/delete-nul.bat">delete-nul.bat</a><span class="rec">荐</span></td><td>全盘扫描＋删除</td><td>建议</td><td>双击运行</td></tr>
-          <tr><td><a href="https://github.com/yancongya/delete-nul/blob/main/delete-nul.ps1">delete-nul.ps1</a></td><td>全盘扫描＋删除，中文界面</td><td>自动 UAC 提权</td><td>右键 → 使用 PowerShell 运行</td></tr>
-          <tr><td><a href="https://github.com/yancongya/delete-nul/blob/main/delete-nul-here.bat">delete-nul-here.bat</a></td><td>只清理所在文件夹</td><td>通常不需要</td><td>放进目标文件夹后双击</td></tr>
-          <tr><td><a href="https://github.com/yancongya/delete-nul/blob/main/paste-to-cmd-current-dir.txt">paste-to-cmd-current-dir.txt</a></td><td>免落地：清理当前目录</td><td>不需要</td><td>cmd 中 cd 到目录后粘贴</td></tr>
-          <tr><td><a href="https://github.com/yancongya/delete-nul/blob/main/paste-to-cmd-fullscan.txt">paste-to-cmd-fullscan.txt</a></td><td>免落地：全盘扫描</td><td>建议</td><td>管理员 cmd 中粘贴</td></tr>
-        </tbody>
-      </table>
     </div>
   </section>
 
-  <!-- ============ 五 服用 ============ -->
-  <section class="chap col" id="c5" aria-labelledby="h-c5">
-    <header class="chap-head">
-      <span class="no">伍</span>
-      <h2 id="h-c5">服用——快速开始</h2>
-      <span class="en">Usage</span>
-    </header>
-
-    <p>根据你的使用习惯，选择最适合的方式：</p>
-
-    <!-- 方式一：下载脚本文件 -->
-    <p style="margin-top:34px"><strong>方式一 · 下载脚本文件，双击运行</strong><span class="note" style="margin-left:10px">适合所有用户 · 最简单</span></p>
-    <p>从 GitHub 下载 <span class="mono">delete-nul.bat</span>，放到任意位置后<strong>双击</strong>即可。建议右键「以管理员身份运行」以覆盖更多目录。</p>
-    <div class="cta" style="justify-content:flex-start;margin-top:16px">
-      <a class="btn btn-primary" href="https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat" download>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
-        下载 delete-nul.bat
-      </a>
-      <a class="btn btn-ghost" href="https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1" download>下载 delete-nul.ps1（中文界面）</a>
+  <section class="block dissolve-layer" id="modes">
+    <div class="wrap">
+      <div class="eyebrow reveal" data-i18n="modes.eyebrow">// USAGE</div>
+      <h2 class="title reveal" data-i18n="modes.title">三种模式，按习惯选</h2>
+      <p class="lead reveal" data-i18n="modes.lead">双击 delete-nul.bat 启动交互式 TUI 菜单，或直接在命令行传入参数运行。</p>
+      <div class="mode-picker" hidden aria-label="使用模式" role="group">
+        <button type="button" data-mode="0" aria-controls="usage-0" aria-pressed="true"><span class="mode-index" aria-hidden="true">01</span><span class="mode-label" data-i18n="modes.tab0">全局扫描</span><span class="mode-caret" aria-hidden="true">›</span></button>
+        <button type="button" data-mode="1" aria-controls="usage-1" aria-pressed="false"><span class="mode-index" aria-hidden="true">02</span><span class="mode-label" data-i18n="modes.tab1">定向处理</span><span class="mode-caret" aria-hidden="true">›</span></button>
+        <button type="button" data-mode="2" aria-controls="usage-2" aria-pressed="false"><span class="mode-index" aria-hidden="true">03</span><span class="mode-label" data-i18n="modes.tab2">粘贴 / 拖拽</span><span class="mode-caret" aria-hidden="true">›</span></button>
+      </div>
+      <div class="mode-screen">
+        <div class="mode-panel" id="usage-0">
+          <div class="mode-meta"><span class="mode-tag" data-i18n="modes.tag">适用场景</span> <span data-i18n="modes.mode0_meta">整机清理 · 跨盘全面排查 · 外部移动硬盘/U盘检测</span></div>
+          <h3 data-i18n="modes.mode0_title">全局扫描（全盘自动排查）</h3>
+          <p data-i18n="modes.mode0_desc">自动枚举并扫描系统所有固定磁盘，智能跳过网络驱动器与虚拟光驱。对大容量机械盘或大型代码库可搭配 <code>-Fast</code> 快速索引与 <code>-ScanTimeout</code> 超时防护。</p>
+          <div class="mode-cmd-wrap"><pre><code>delete-nul.bat -DryRun</code></pre><button class="copybtn" type="button" data-copy="delete-nul.bat -DryRun" data-i18n="modes.copy_cmd">复制命令</button></div>
+        </div>
+        <div class="mode-panel" id="usage-1">
+          <div class="mode-meta"><span class="mode-tag" data-i18n="modes.tag">适用场景</span> <span data-i18n="modes.mode1_meta">特定开发目录 · Git 仓库检出死锁 · 构建产物目录</span></div>
+          <h3 data-i18n="modes.mode1_title">定向处理（精准路径排查）</h3>
+          <p data-i18n="modes.mode1_desc">方向键选定目标磁盘、进入文件夹浏览器逐层深入排查；或直接给路径参数。仅在目标子树内递归检测，瞬间完成毫秒级定位。</p>
+          <div class="mode-cmd-wrap"><pre><code>delete-nul.bat -Path "D:\workspace\project" -DryRun</code></pre><button class="copybtn" type="button" data-copy="delete-nul.bat -Path &quot;D:\workspace\project&quot; -DryRun" data-i18n="modes.copy_cmd">复制命令</button></div>
+        </div>
+        <div class="mode-panel" id="usage-2">
+          <div class="mode-meta"><span class="mode-tag" data-i18n="modes.tag">适用场景</span> <span data-i18n="modes.mode2_meta">桌面拖拽 · 剪贴板快速粘贴 · 极简 GUI 直觉交互</span></div>
+          <h3 data-i18n="modes.mode2_title">粘贴 / 拖拽（直觉式清理）</h3>
+          <p data-i18n="modes.mode2_desc">在资源管理器中按住 Shift+右键复制受损文件夹路径并粘贴；或直接把包含异常文件的文件夹拖到 <code>delete-nul.bat</code> 图标上——连资源管理器选不中的 NUL 文件本身也能被精准识别。</p>
+          <div class="mode-cmd-wrap"><pre><code data-i18n="modes.mode2_code">[拖拽直达] 直接将损坏文件夹拖入 delete-nul.bat 图标即可触发清理</code></pre><button class="copybtn" type="button" data-copy="delete-nul.bat -Path ." data-i18n="modes.copy_param">复制参数</button></div>
+        </div>
+      </div>
     </div>
-    <p class="note" style="margin-top:10px">PowerShell 版（.ps1）会自动弹出 UAC 提权，界面为中文；bat 版为纯 ASCII 英文界面，兼容性更好。</p>
-
-    <!-- 方式二：一行命令 -->
-    <p style="margin-top:40px"><strong>方式二 · 一行命令，下载即用</strong><span class="note" style="margin-left:10px">适合有终端经验的用户</span></p>
-    <p>打开 <strong>cmd</strong>（建议管理员），粘贴以下命令，自动下载并执行：</p>
-    <div class="code">
-      <button class="copy" aria-label="复制下载并运行命令" data-text="curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat&quot; -o &quot;%TEMP%\delete-nul.bat&quot; &amp;&amp; call &quot;%TEMP%\delete-nul.bat&quot;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="1"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>
-        <span class="lbl">复制</span>
-      </button>
-      <code>curl -fsSL "https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat" -o "%TEMP%\delete-nul.bat" &amp;&amp; call "%TEMP%\delete-nul.bat"</code>
-    </div>
-    <p class="note"><span class="warn">⚠</span> 仅当你信任脚本来源时使用；杀软可能对"下载并执行"链路报警。</p>
-
-    <!-- 方式三：免下载，粘贴即用 -->
-    <p style="margin-top:40px"><strong>方式三 · 免下载，粘贴即用</strong><span class="note" style="margin-left:10px">适合不想下载文件 · 可直接审查命令</span></p>
-    <p>复制下面的命令，粘贴进 <strong>管理员 cmd</strong> 即可全盘扫描预览（安全：只列出，不删除）。确认无误后可自行加删除逻辑。</p>
-    <div class="code">
-      <button class="copy" aria-label="复制安全预览命令" data-text="set &quot;RNLIST=%TEMP%\reserved_name_files.txt&quot; &amp;&amp; type nul &gt; &quot;%RNLIST%&quot; &amp;&amp; (for %D in (C D E F G H I J K L M N O P Q R S T U V W X Y Z) do @if exist %D:\ dir /s /b /a &quot;%D:\&quot; 2^nul)|findstr /r /i /c:&quot;\\nul$&quot; /c:&quot;\\con$&quot; /c:&quot;\\prn$&quot; /c:&quot;\\aux$&quot; &gt; &quot;%RNLIST%&quot; &amp; type &quot;%RNLIST%&quot;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="1"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>
-        <span class="lbl">复制</span>
-      </button>
-      <code>set "RNLIST=%TEMP%\reserved_name_files.txt" &amp;&amp; type nul &gt; "%RNLIST%" &amp;&amp; (for %D in (C D E F G H I J K L M N O P Q R S T U V W X Y Z) do @if exist %D:\ dir /s /b /a "%D:\" 2^>nul)|findstr /r /i /c:"\\nul$" /c:"\\con$" /c:"\\prn$" /c:"\\aux$" &gt; "%RNLIST%" &amp; type "%RNLIST%"</code>
-    </div>
-
-    <p style="margin-top:34px"><strong>方式四 · PowerShell 版，中文界面</strong><span class="note" style="margin-left:10px">中文交互 · 自动提权</span></p>
-    <p>如果你更习惯 PowerShell，或需要中文交互界面：</p>
-    <div class="code">
-      <button class="copy" aria-label="复制 PowerShell 运行命令" data-text="powershell -NoProfile -ExecutionPolicy Bypass -File .\delete-nul.ps1">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="1"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>
-        <span class="lbl">复制</span>
-      </button>
-      <code>powershell -NoProfile -ExecutionPolicy Bypass -File .\delete-nul.ps1</code>
-    </div>
-    <p class="note">也可以右键 <span class="mono">delete-nul.ps1</span> → 「使用 PowerShell 运行」，会自动触发 UAC 提权。</p>
   </section>
 
-  <!-- ============ 六 问诊 ============ -->
-  <section class="chap col faq" id="c6" aria-labelledby="h-c6">
-    <header class="chap-head">
-      <span class="no">陆</span>
-      <h2 id="h-c6">问诊——常见问题</h2>
-      <span class="en">FAQ</span>
-    </header>
-    <details open><summary>闪退，或被杀软删除？</summary><p>早期版本用 Base64＋PowerShell 编码触发过启发式误报；现行 bat 为纯 CMD 实现，无 PowerShell、无编码混淆。仍被拦截的话，把所在文件夹加入白名单即可。</p></details>
-    <details><summary>提示 FAILED？</summary><p>文件被占用或权限不足。关闭占用它的程序，或以管理员身份重跑。</p></details>
-    <details><summary>删掉的文件能恢复吗？</summary><p>不能——删除不经过回收站。务必核对列表后再按 <span class="mono">Y</span>。</p></details>
-    <details><summary>bat 的界面为什么是英文？</summary><p>为了兼容任意系统代码页、并避开杀软与解析问题，bat 保持纯 ASCII。想要中文界面，请用 ps1 或 txt 版本。</p></details>
+  <section class="block dissolve-layer" id="why">
+    <div class="wrap">
+      <div class="eyebrow reveal" data-i18n="why.eyebrow">// WHY</div>
+      <h2 class="title reveal" data-i18n="why.title">为什么普通方法删不掉？</h2>
+      <p class="lead reveal" data-i18n="why.lead">问题根源在于 Windows 系统的路径解析阶段，而非文件系统损坏。深入理解底层差异，安全清理更放心。</p>
+      <div data-why-scroll>
+        <div class="why-scroll-inner">
+          <div class="split">
+            <div class="pane">
+              <h3 data-i18n="why.bad_title">✕ Win32 子系统劫持（资源管理器 / del / rm / 常见工具）</h3>
+              <ul>
+                <li data-i18n="why.bad_li1"><strong>历史包袱</strong>：DOS 1.0 时代为了将 <code>NUL</code>、<code>CON</code>、<code>PRN</code> 用作流重定向，将保留名硬编码进系统。</li>
+                <li data-i18n="why.bad_li2"><strong>路径解析劫持</strong>：Win32 API（<code>kernel32.dll</code> / <code>CreateFileW</code>）在解析路径时，一律将其重定向至 <code>\Device\Null</code> 等字符设备。</li>
+                <li data-i18n="why.bad_li3"><strong>死锁假象</strong>：普通删除命令以为自己在删设备，根本无法触及 NTFS 磁盘底层那个字面名叫 NUL 的物理文件。</li>
+              </ul>
+            </div>
+            <div class="pane good">
+              <h3 data-i18n="why.good_title">✓ delete-nul（直达 NT 原生对象管理器）</h3>
+              <ul>
+                <li data-i18n="why.good_li1"><strong>NT 原生路径直通</strong>：给路径注入 <code>\\?\</code>（Unicode NT 扩展前缀），告知操作系统直接跳过 Win32 规范化过滤。</li>
+                <li data-i18n="why.good_li2"><strong>精准文件枚举</strong>：通过底层原生 API 枚举真实物理磁盘项，精准定位受困文件。</li>
+                <li data-i18n="why.good_li3"><strong>物理定点清除与复核</strong>：直达 NT 对象管理器执行精准物理抹除，并再次递归复核确认残留数为 0。</li>
+              </ul>
+            </div>
+          </div>
+          <div class="why-path">
+            <h4 data-i18n="why.path_h4">同一串字符，两种解析</h4>
+            <div class="why-path-row"><span class="why-tag">WIN32</span><code>del NUL</code><span data-i18n="why.path_win32_desc">命中 DOS 设备对象，磁盘上的文件纹丝不动</span></div>
+            <div class="why-path-row"><span class="why-tag">NT</span><code>del \\?\C:\work\NUL</code><span data-i18n="why.path_nt_desc">跳过规范化，按字面路径精确命中</span></div>
+          </div>
+          <p class="why-note" data-i18n="why.note">规范流程：底层枚举 → 精确匹配裸保留名 → 锁定物理路径 → 注入 <code>\\?\</code> 前缀精准清除 → 自动复核残留。先只读预检，经确认才删除。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block dissolve-layer" id="faq">
+    <div class="wrap">
+      <div class="eyebrow reveal" data-i18n="faq.eyebrow">// FAQ</div>
+      <h2 class="title reveal" data-i18n="faq.title">常见问题解答</h2>
+      <p class="lead reveal" data-i18n="faq.lead">针对真实开发与日常系统维护中的高频疑问，提供清晰权威的解答。</p>
+      <div>
+        <details class="reveal"><summary data-i18n="faq.q1">Git 克隆/检出报错 "unable to create file ...: Invalid argument" 怎么办？</summary><p data-i18n="faq.a1">这是因为跨平台拉取了由 Linux / macOS 开发者提交的包含 <code>nul</code>、<code>aux</code> 等文件的仓库。Windows 资源管理器与普通 Git 无法创建或删除它们。只需用 delete-nul 扫描当前仓库路径，先只读预检，再确认清除该异常文件，随后 <code>git status</code> 即可恢复正常。</p></details>
+        <details class="reveal"><summary data-i18n="faq.q2">为什么不用第三方“强力粉碎机”或重启进入 WinPE？</summary><p data-i18n="faq.a2">绝大多数第三方粉碎工具同样基于 Win32 API 查找文件，面对保留名依然会死循环或提示“找不到指定文件”；而进入 WinPE 操作门槛高、容易误操作且无法自动化。delete-nul 原生几行轻量脚本直接调用 NT 原生路径，零成本、免安装、秒级解决。</p></details>
+        <details class="reveal"><summary data-i18n="faq.q3">杀毒软件报毒或 PowerShell 策略拦截怎么处理？</summary><p data-i18n="faq.a3">本项目 100% 开源纯透明，不含任何可执行二进制文件、无混淆、无 Base64 加密。bat 只是调用系统自带 PowerShell 的薄包装。若受组织组策略拦截，可直接切换到 Hero 区域的【纯文本】Tab，使用系统纯原生 CMD 管道命令运行，无需加载 PowerShell。</p></details>
+        <details class="reveal"><summary data-i18n="faq.q4">提示 FAILED 或文件正被占用无法删除？</summary><p data-i18n="faq.a4">通常是因为资源管理器的“预览窗格”、VSCode、终端或其它后台程序正打开着该目录。只需关闭相关程序后重试；若涉及系统特权路径（如 Program Files），运行时加上 <code>-Elevate</code> 参数以管理员身份执行提权。</p></details>
+        <details class="reveal"><summary data-i18n="faq.q5">删除后能恢复吗？会进回收站吗？</summary><p data-i18n="faq.a5">不能恢复，也不会进回收站。因为 Windows 回收站本身依赖 Win32 子系统，无法接收保留名文件。因此 delete-nul 严格贯彻「先列后删」安全策略，先只读罗列所有待删文件，经人工确认（Y）后才执行物理移除。</p></details>
+        <details class="reveal"><summary data-i18n="faq.q6">会误伤 nul.txt 或正常业务文件吗？</summary><p data-i18n="faq.a6">默认绝不误伤！匹配引擎采用强正则 <code>\\nul$</code> 进行裸名全字匹配，<code>nul.txt</code>、<code>con.png</code> 等带扩展名的正常文件会被系统完全豁免保护。如需显式连同扩展名一起处理，才需手动加上 <code>-IncludeExtension</code> 参数。</p></details>
+      </div>
+    </div>
   </section>
 </main>
 
-<footer>
-  <div class="in">
-    <div>
-      <div class="fin">delete—nul · 一册讲清 Windows 保留名文件</div>
-      <div class="sub">先列出 · 再确认 · 后删除</div>
+<!-- footer: 4-column structure reused from ASCII Motion -->
+<footer class="dissolve-layer">
+  <div class="fcontainer">
+    <div class="foot-top-row">
+      <div class="status-indicator">
+        <span class="status-dot"></span>
+        <span class="status-text" data-i18n="footer.status">SYSTEM STATUS: NT 10.0+ READY · ALL SUB-SYSTEMS OPERATIONAL</span>
+      </div>
+      <a href="#top" class="back-to-top" aria-label="回到顶部" data-i18n="footer.top">回到顶部 ↑</a>
     </div>
-    <a href="https://github.com/yancongya/delete-nul">github.com/yancongya/delete-nul ↗</a>
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <div class="flogo"><span class="p">delete</span><span class="f">-nul</span></div>
+        <p data-i18n="footer.brand_desc">一个本地、开源、免安装的 Windows 保留名文件清理工具。先列出，确认后才删——精确匹配，绝不误删正常文件。</p>
+      </div>
+      <div class="foot-col">
+        <h4 data-i18n="footer.col_product">Product</h4>
+        <ul>
+          <li><a href="#features" data-i18n="footer.feat_link">功能特性</a></li>
+          <li><a href="#install" data-i18n="footer.install_link">安装方式</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h4 data-i18n="footer.col_comm">Community</h4>
+        <ul>
+          <li><a href="https://github.com/yancongya/delete-nul" target="_blank" rel="noopener noreferrer" data-i18n="footer.repo_link">GitHub 仓库</a></li>
+          <li><a href="https://github.com/yancongya/delete-nul/issues" target="_blank" rel="noopener noreferrer" data-i18n="footer.issue_link">问题反馈</a></li>
+          <li><a href="https://github.com/yancongya/delete-nul#readme" target="_blank" rel="noopener noreferrer" data-i18n="footer.docs_link">使用文档</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h4 data-i18n="footer.col_sec">Security & License</h4>
+        <ul>
+          <li><span style="color:var(--dim);font-size:12.5px" data-i18n="footer.sec1">MIT License · 自由使用</span></li>
+          <li><span style="color:var(--dim);font-size:12.5px" data-i18n="footer.sec2">100% 本地开源 · 零数据回传</span></li>
+          <li><span style="color:var(--dim);font-size:12.5px" data-i18n="footer.sec3">无外部依赖 · 免运行库</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="foot-divider">
+    <div class="foot-bottom-row">
+      <div class="foot-bottom-text" data-i18n="footer.copyright">© 2026 delete-nul. Open source software under the MIT License.</div>
+      <button class="theme-btn foot-theme-btn" id="themeBtn" aria-label="浅色主题" aria-pressed="false" title="切换亮/暗色模式">
+        <svg class="sun" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
+        <svg class="moon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 13.34A9 9 0 0 1 10.66 3.1 9 9 0 1 0 20.9 13.34Z"/></svg>
+      </button>
+    </div>
   </div>
 </footer>
+</div>
 
 <script>
 (function(){
-  function fallback(text, done){
-    var ta = document.createElement('textarea');
-    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
-    document.body.appendChild(ta); ta.focus(); ta.select();
-    try { document.execCommand('copy'); done(); } catch (e) {}
-    document.body.removeChild(ta);
+  var motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var btn=document.getElementById('menubtn'), links=document.getElementById('navlinks');
+  btn&&btn.addEventListener('click',function(){links.classList.toggle('open')});
+  links&&links.addEventListener('click',function(e){if(e.target.tagName==='A')links.classList.remove('open')});
+
+  /* theme toggle (synchronized nav + footer buttons) — dark/light, both monochrome */
+  var themeBtn = document.getElementById('themeBtn');
+  var navThemeBtn = document.getElementById('navThemeBtn');
+  function updateThemeUI(light){
+    var isLight = typeof light === 'boolean' ? light : document.documentElement.classList.contains('light');
+    [themeBtn, navThemeBtn].forEach(function(btn){
+      if(!btn) return;
+      btn.setAttribute('aria-pressed', String(isLight));
+      btn.setAttribute('aria-label', isLight ? (currentLang==='zh'?'深色主题':'Dark Theme') : (currentLang==='zh'?'浅色主题':'Light Theme'));
+      btn.setAttribute('title', isLight ? (currentLang==='zh'?'切换深色模式':'Switch to Dark Mode') : (currentLang==='zh'?'切换浅色模式':'Switch to Light Mode'));
+    });
   }
-  var buttons = document.querySelectorAll('button.copy');
-  for (var i = 0; i < buttons.length; i++){
-    (function(btn){
-      var lbl = btn.querySelector('.lbl');
-      var prev = lbl ? lbl.textContent : '复制';
-      btn.addEventListener('click', function(){
-        var text = btn.getAttribute('data-text') ||
-          (btn.parentElement.innerText || '').replace(/^复制\s*/, '');
-        var ok = function(){
-          btn.classList.add('done');
-          if (lbl) lbl.textContent = '已复制';
-          setTimeout(function(){ btn.classList.remove('done'); if (lbl) lbl.textContent = prev; }, 1400);
-        };
-        if (navigator.clipboard && navigator.clipboard.writeText){
-          navigator.clipboard.writeText(text).then(ok).catch(function(){ fallback(text, ok); });
-        } else {
-          fallback(text, ok);
+  function toggleTheme(){
+    var light = document.documentElement.classList.toggle('light');
+    try{ localStorage.setItem('dn-theme', light ? 'light' : 'dark'); }catch(e){}
+    updateThemeUI(light);
+    if(window.__wakeField) window.__wakeField();
+  }
+  themeBtn && themeBtn.addEventListener('click', toggleTheme);
+  navThemeBtn && navThemeBtn.addEventListener('click', toggleTheme);
+  updateThemeUI();
+
+  /* Bilingual (ZH/EN) Internationalization Engine */
+  var currentLang = (function(){
+    try {
+      var saved = localStorage.getItem('dn-lang');
+      if (saved === 'zh' || saved === 'en') return saved;
+      return (navigator.language && navigator.language.startsWith('zh')) ? 'zh' : 'en';
+    } catch(e) { return 'zh'; }
+  })();
+
+  var I18N = {
+    zh: {
+      'page_title': 'delete-nul — Windows 保留名文件清理工具',
+      'page_desc': '查找并删除 Windows 上普通方法删不掉的 NUL / CON / AUX / PRN / COM1-9 / LPT1-9 保留名文件。先列出，确认后才删。',
+      'loader.skip': '[点击或按任意键跳过 ↵]',
+      'nav.status': '<span class="dot"></span>NT 10.0+ READY',
+      'nav.features': '功能',
+      'nav.modes': '使用',
+      'nav.why': '原理',
+      'nav.install': '安装 / 过程',
+      'nav.faq': 'FAQ',
+      'nav.menu': '菜单',
+      'hero.slogan': '⚡遗定要删掉⚡',
+      'hero.sub': '<code>NUL / CON / AUX / PRN / COM1-9 / LPT1-9</code> —— Windows 无法删除的保留名死锁终结者。无需安装、零依赖不污染代码仓库；直达 NT 原生路径，先只读预检，确认后一键安全清除。',
+      'hero.pill1': '✦ 零依赖免安装',
+      'hero.pill2': '✦ \\\\?\\ NT 原生路径直达',
+      'hero.pill3': '✦ 先列后删绝不误删',
+      'hero.pill4': '✦ 100% 本地开源',
+      'hero.start': '立即开始 <span class="btn-arrow">→</span>',
+      'hero.why': '为什么普通方法不行？ <span class="btn-arrow">↳</span>',
+      'install.eyebrow': '// INSTALL',
+      'install.tab_cmd': '终端命令 <span class="tab-badge">推荐</span>',
+      'install.tab_agent': 'AI Agent <span class="tab-badge">智能体</span>',
+      'install.tab_raw': '下载文件 <span class="tab-badge">拖拽</span>',
+      'install.tab_text': '纯文本 <span class="tab-badge">高保密</span>',
+      'install.term_cmd': 'cmd.exe — 终端命令',
+      'install.term_agent': 'agent — AI 智能助手对话演示',
+      'install.term_raw': 'browser — 下载文件',
+      'install.term_text': 'cmd.exe — 纯文本',
+      'install.tip_btn': '<span class="tip-ico">?</span> 提示',
+      'install.tip_cmd_head': '// 终端命令 (cmd.exe) · 方式提示',
+      'install.tip_label_method': '▶ 使用方法',
+      'install.tip_cmd_method': '复制下方单行命令在 Windows CMD 或 PowerShell 中回车运行；启动后用 ↑ ↓ 选择模式，回车确认。',
+      'install.tip_label_feat': '★ 核心特点',
+      'install.tip_cmd_feat': '一键拉取至系统临时目录 %TEMP%，不污染工作区；提供全局全盘扫描、逐级选盘、超时防卡死等完整功能。',
+      'install.tip_replay_cmd': '↻ 重新演示此操作',
+      'install.tip_agent_head': '// AI Agent 提示词 · 方式提示',
+      'install.tip_agent_method': '点击下方【复制提示词】，直接粘贴发送给 Cursor、Claude Code、Antigravity、Copilot 等 AI 助手对话框。',
+      'install.tip_agent_feat': '对话式交互执行：自动查阅仓库原理、临时目录零污染下载、强制只读预检并向你汇报，经你确认后才精准清除。',
+      'install.tip_replay_agent': '↻ 重新演示此对话',
+      'install.tip_raw_head': '// 下载文件 (本地脚本) · 方式提示',
+      'install.tip_raw_method': '下载 delete-nul.ps1 和 delete-nul.bat 至同一文件夹；双击 bat 运行，或直接把异常文件夹拖到 bat 图标上。',
+      'install.tip_raw_feat': '本地持久保存；支持强大的鼠标拖拽交互（连资源管理器选不中的 NUL 文件都能直接拖入图标清除）。',
+      'install.tip_replay_raw': '↻ 重新演示此操作',
+      'install.tip_text_head': '// 纯文本 (免落地批处理) · 方式提示',
+      'install.tip_text_method': '先复制【第 1 部分】贴进 CMD 回车（只检索生成清单）；核对生成的清单确认无误后，再复制【第 2 部分】贴进 CMD 执行删除。',
+      'install.tip_text_feat': '零文件落地、免 PowerShell 依赖！100% 采用 Windows 原生 CMD 管道命令，专为金融/政企内网高保密机设计。',
+      'install.tip_replay_text': '↻ 重新演示此操作',
+      'install.agent_preset_label': '快捷场景:',
+      'install.agent_preset_1': '[当前工作区扫描]',
+      'install.agent_preset_1_prompt': '请从 GitHub 获取并安装 delete-nul 工具，先只读扫描当前工作区保留名文件，汇报后再删',
+      'install.agent_preset_2': '[指定路径 D:\\temp]',
+      'install.agent_preset_2_prompt': '请下载安装 delete-nul 工具并扫描 D:\\temp 目录中的 NUL、CON 等异常文件',
+      'install.agent_preset_3': '[全盘只读预检]',
+      'install.agent_preset_3_prompt': '请下载并运行 delete-nul 工具进行全盘只读扫描 -DryRun，统计所有保留名文件',
+      'install.agent_input_val': '请从 GitHub 获取并安装 delete-nul 工具，安全扫描并清理当前工作区保留名文件',
+      'install.agent_input_ph': '输入提示词发给 Agent...',
+      'install.agent_send_btn': '↵ 发送',
+      'install.agent_copy_btn': '复制完整提示词',
+      'install.copy': '复制',
+      'install.download_ps1': '下载 ps1',
+      'install.download_bat': '下载 bat',
+      'install.restore_hint': '点击任意位置或按 Esc 恢复页面',
+      'toast_copied': '已经成功复制到剪贴板，可直接粘贴使用！',
+      'toast_selected': '已选中文本，请使用 Ctrl+C 复制',
+      'features.eyebrow': '// FEATURES',
+      'features.title': '只做一件事，做对',
+      'features.lead': '针对 Windows 历史包袱与保留名死锁，提供不伤正常业务文件的终极解决方案。',
+      'features.card1_title': '精确匹配本体',
+      'features.card1_desc': '只匹配裸保留名本体；像 <code>nul.txt</code>、<code>con.png</code> 这类正常业务文件绝不误伤。',
+      'features.card2_title': '先列后删预检',
+      'features.card2_desc': '先完整罗列扫描结果，经人工授权确认（Y）才执行物理清除，绝不静默删除。',
+      'features.card3_title': '\\\\?\\ NT 原生路径',
+      'features.card3_desc': '为路径注入 NT 命名空间直达前缀，绕过 Win32 子系统把保留名劫持为 DOS 设备的底层陷阱。',
+      'features.card4_title': '多维交互入口',
+      'features.card4_desc': '全局排查、磁盘层级深入浏览、剪贴板粘贴路径，或直接拖拽文件夹至 bat 图标——全场景适配。',
+      'features.card5_title': '企业级自动化',
+      'features.card5_desc': '支持标准 JSON 结构化输出、严谨退出码、详细审计日志与单盘扫描超时熔断，轻松接入运维管线。',
+      'features.card6_title': '最小权限克制',
+      'features.card6_desc': '默认普通用户权限即可运行，安全清理当前用户空间；仅在触及系统特权目录时才请求 UAC 提权。',
+      'modes.eyebrow': '// USAGE',
+      'modes.title': '三种模式，按习惯选',
+      'modes.lead': '双击 delete-nul.bat 启动交互式 TUI 菜单，或直接在命令行传入参数运行。',
+      'modes.tab0': '全局扫描',
+      'modes.tab1': '定向处理',
+      'modes.tab2': '粘贴 / 拖拽',
+      'modes.tag': '适用场景',
+      'modes.mode0_meta': '整机清理 · 跨盘全面排查 · 外部移动硬盘/U盘检测',
+      'modes.mode0_title': '全局扫描（全盘自动排查）',
+      'modes.mode0_desc': '自动枚举并扫描系统所有固定磁盘，智能跳过网络驱动器与虚拟光驱。对大容量机械盘或大型代码库可搭配 <code>-Fast</code> 快速索引与 <code>-ScanTimeout</code> 超时防护。',
+      'modes.mode1_meta': '特定开发目录 · Git 仓库检出死锁 · 构建产物目录',
+      'modes.mode1_title': '定向处理（精准路径排查）',
+      'modes.mode1_desc': '方向键选定目标磁盘、进入文件夹浏览器逐层深入排查；或直接给路径参数。仅在目标子树内递归检测，瞬间完成毫秒级定位。',
+      'modes.mode2_meta': '桌面拖拽 · 剪贴板快速粘贴 · 极简 GUI 直觉交互',
+      'modes.mode2_title': '粘贴 / 拖拽（直觉式清理）',
+      'modes.mode2_desc': '在资源管理器中按住 Shift+右键复制受损文件夹路径并粘贴；或直接把包含异常文件的文件夹拖到 <code>delete-nul.bat</code> 图标上——连资源管理器选不中的 NUL 文件本身也能被精准识别。',
+      'modes.mode2_code': '[拖拽直达] 直接将损坏文件夹拖入 delete-nul.bat 图标即可触发清理',
+      'modes.copy_cmd': '复制命令',
+      'modes.copy_param': '复制参数',
+      'why.eyebrow': '// WHY',
+      'why.title': '为什么普通方法删不掉？',
+      'why.lead': '问题根源在于 Windows 系统的路径解析阶段，而非文件系统损坏。深入理解底层差异，安全清理更放心。',
+      'why.bad_title': '✕ Win32 子系统劫持（资源管理器 / del / rm / 常见工具）',
+      'why.bad_li1': '<strong>历史包袱</strong>：DOS 1.0 时代为了将 <code>NUL</code>、<code>CON</code>、<code>PRN</code> 用作流重定向，将保留名硬编码进系统。',
+      'why.bad_li2': '<strong>路径解析劫持</strong>：Win32 API（<code>kernel32.dll</code> / <code>CreateFileW</code>）在解析路径时，一律将其重定向至 <code>\\Device\\Null</code> 等字符设备。',
+      'why.bad_li3': '<strong>死锁假象</strong>：普通删除命令以为自己在删设备，根本无法触及 NTFS 磁盘底层那个字面名叫 NUL 的物理文件。',
+      'why.good_title': '✓ delete-nul（直达 NT 原生对象管理器）',
+      'why.good_li1': '<strong>NT 原生路径直通</strong>：给路径注入 <code>\\\\?\\</code>（Unicode NT 扩展前缀），告知操作系统直接跳过 Win32 规范化过滤。',
+      'why.good_li2': '<strong>精准文件枚举</strong>：通过底层原生 API 枚举真实物理磁盘项，精准定位受困文件。',
+      'why.good_li3': '<strong>物理定点清除与复核</strong>：直达 NT 对象管理器执行精准物理抹除，并再次递归复核确认残留数为 0。',
+      'why.path_h4': '同一串字符，两种解析',
+      'why.path_win32_desc': '命中 DOS 设备对象，磁盘上的文件纹丝不动',
+      'why.path_nt_desc': '跳过规范化，按字面路径精确命中',
+      'why.note': '规范流程：底层枚举 → 精确匹配裸保留名 → 锁定物理路径 → 注入 <code>\\\\?\\</code> 前缀精准清除 → 自动复核残留。先只读预检，经确认才删除。',
+      'faq.eyebrow': '// FAQ',
+      'faq.title': '常见问题解答',
+      'faq.lead': '针对真实开发与日常系统维护中的高频疑问，提供清晰权威的解答。',
+      'faq.q1': 'Git 克隆/检出报错 "unable to create file ...: Invalid argument" 怎么办？',
+      'faq.a1': '这是因为跨平台拉取了由 Linux / macOS 开发者提交的包含 <code>nul</code>、<code>aux</code> 等文件的仓库。Windows 资源管理器与普通 Git 无法创建或删除它们。只需用 delete-nul 扫描当前仓库路径，先只读预检，再确认清除该异常文件，随后 <code>git status</code> 即可恢复正常。',
+      'faq.q2': '为什么不用第三方“强力粉碎机”或重启进入 WinPE？',
+      'faq.a2': '绝大多数第三方粉碎工具同样基于 Win32 API 查找文件，面对保留名依然会死循环或提示“找不到指定文件”；而进入 WinPE 操作门槛高、容易误操作且无法自动化。delete-nul 原生几行轻量脚本直接调用 NT 原生路径，零成本、免安装、秒级解决。',
+      'faq.q3': '杀毒软件报毒或 PowerShell 策略拦截怎么处理？',
+      'faq.a3': '本项目 100% 开源纯透明，不含任何可执行二进制文件、无混淆、无 Base64 加密。bat 只是调用系统自带 PowerShell 的薄包装。若受组织组策略拦截，可直接切换到 Hero 区域的【纯文本】Tab，使用系统纯原生 CMD 管道命令运行，无需加载 PowerShell。',
+      'faq.q4': '提示 FAILED 或文件正被占用无法删除？',
+      'faq.a4': '通常是因为资源管理器的“预览窗格”、VSCode、终端或其它后台程序正打开着该目录。只需关闭相关程序后重试；若涉及系统特权路径（如 Program Files），运行时加上 <code>-Elevate</code> 参数以管理员身份执行提权。',
+      'faq.q5': '删除后能恢复吗？会进回收站吗？',
+      'faq.a5': '不能恢复，也不会进回收站。因为 Windows 回收站本身依赖 Win32 子系统，无法接收保留名文件。因此 delete-nul 严格贯彻「先列后删」安全策略，先只读罗列所有待删文件，经人工确认（Y）后才执行物理移除。',
+      'faq.q6': '会误伤 nul.txt 或正常业务文件吗？',
+      'faq.a6': '默认绝不误伤！匹配引擎采用强正则 <code>\\\\nul$</code> 进行裸名全字匹配，<code>nul.txt</code>、<code>con.png</code> 等带扩展名的正常文件会被系统完全豁免保护。如需显式连同扩展名一起处理，才需手动加上 <code>-IncludeExtension</code> 参数。',
+      'footer.status': 'SYSTEM STATUS: NT 10.0+ READY · ALL SUB-SYSTEMS OPERATIONAL',
+      'footer.top': '回到顶部 ↑',
+      'footer.brand_desc': '一个本地、开源、免安装的 Windows 保留名文件清理工具。先列出，确认后才删——精确匹配，绝不误删正常文件。',
+      'footer.col_product': 'Product',
+      'footer.feat_link': '功能特性',
+      'footer.install_link': '安装方式',
+      'footer.col_comm': 'Community',
+      'footer.repo_link': 'GitHub 仓库',
+      'footer.issue_link': '问题反馈',
+      'footer.docs_link': '使用文档',
+      'footer.col_sec': 'Security & License',
+      'footer.sec1': 'MIT License · 自由使用',
+      'footer.sec2': '100% 本地开源 · 零数据回传',
+      'footer.sec3': '无外部依赖 · 免运行库',
+      'footer.copyright': '© 2026 delete-nul. Open source software under the MIT License.'
+    },
+    en: {
+      'page_title': 'delete-nul — Windows Reserved Name File Cleaner',
+      'page_desc': 'Find and purge undeletable NUL / CON / AUX / PRN / COM1-9 / LPT1-9 reserved name files on Windows. Inspect first, purge after confirmation.',
+      'loader.skip': '[Click or press any key to skip ↵]',
+      'nav.status': '<span class="dot"></span>NT 10.0+ READY',
+      'nav.features': 'Features',
+      'nav.modes': 'Usage',
+      'nav.why': 'Architecture',
+      'nav.install': 'Install / Demo',
+      'nav.faq': 'FAQ',
+      'nav.menu': 'Menu',
+      'hero.slogan': '⚡FORCE PURGE NUL⚡',
+      'hero.sub': '<code>NUL / CON / AUX / PRN / COM1-9 / LPT1-9</code> — Terminate undeletable Windows reserved file deadlocks. Zero dependencies, air-gapped; direct NT native namespace routing with mandatory read-only dry-run before safe purge.',
+      'hero.pill1': '✦ Zero Dependencies',
+      'hero.pill2': '✦ \\\\?\\ NT Native Routing',
+      'hero.pill3': '✦ Dry-Run Before Purge',
+      'hero.pill4': '✦ 100% Local & Open Source',
+      'hero.start': 'Get Started <span class="btn-arrow">→</span>',
+      'hero.why': 'Why standard tools fail? <span class="btn-arrow">↳</span>',
+      'install.eyebrow': '// INSTALL',
+      'install.tab_cmd': 'Terminal Command <span class="tab-badge">Recommended</span>',
+      'install.tab_agent': 'AI Agent <span class="tab-badge">Agentic</span>',
+      'install.tab_raw': 'Download Script <span class="tab-badge">Drag & Drop</span>',
+      'install.tab_text': 'Raw Batch <span class="tab-badge">Air-Gapped</span>',
+      'install.term_cmd': 'cmd.exe — Terminal Command',
+      'install.term_agent': 'agent — AI Agent Conversational Demo',
+      'install.term_raw': 'browser — Download Files',
+      'install.term_text': 'cmd.exe — Raw Batch',
+      'install.tip_btn': '<span class="tip-ico">?</span> Tips',
+      'install.tip_cmd_head': '// Terminal Command (cmd.exe) · Guide',
+      'install.tip_label_method': '▶ Usage',
+      'install.tip_cmd_method': 'Copy the one-line command below into Windows CMD or PowerShell and press Enter; use ↑ ↓ to navigate and Enter to select.',
+      'install.tip_label_feat': '★ Highlights',
+      'install.tip_cmd_feat': 'One-click pull into %TEMP% without workspace pollution; includes global sweep, disk browsing, and timeout protection.',
+      'install.tip_replay_cmd': '↻ Replay Simulation',
+      'install.tip_agent_head': '// AI Agent Prompt · Guide',
+      'install.tip_agent_method': 'Click [Copy Full Prompt] below and paste it into Cursor, Claude Code, Antigravity, Copilot, or any coding agent.',
+      'install.tip_agent_feat': 'Conversational agent execution: verifies repo architecture, downloads to %TEMP%, dry-run reports first, and purges after your confirmation.',
+      'install.tip_replay_agent': '↻ Replay Conversation',
+      'install.tip_raw_head': '// Download Script (Local Batch) · Guide',
+      'install.tip_raw_method': 'Download delete-nul.ps1 and delete-nul.bat into the same folder; double click bat or drag damaged folders directly onto the bat icon.',
+      'install.tip_raw_feat': 'Locally stored scripts with drag-and-drop support: even NUL files that cannot be selected in File Explorer can be purged via drop.',
+      'install.tip_replay_raw': '↻ Replay Simulation',
+      'install.tip_text_head': '// Raw Batch (Zero-Disk CMD) · Guide',
+      'install.tip_text_method': 'Paste Part 1 into CMD to generate an audit list; inspect findings, then paste Part 2 into CMD to execute safe purge.',
+      'install.tip_text_feat': 'Zero disk footprint, zero PowerShell dependency! Pure native CMD pipeline designed for high-security enterprise environments.',
+      'install.tip_replay_text': '↻ Replay Simulation',
+      'install.agent_preset_label': 'Quick Presets:',
+      'install.agent_preset_1': '[Current Workspace]',
+      'install.agent_preset_1_prompt': 'Please fetch and install delete-nul from GitHub, perform a dry-run scan on the current workspace, report findings, and purge upon my confirmation.',
+      'install.agent_preset_2': '[Target Path D:\\temp]',
+      'install.agent_preset_2_prompt': 'Please download and install delete-nul and scan D:\\temp for reserved name files like NUL and CON.',
+      'install.agent_preset_3': '[Full Disk DryRun]',
+      'install.agent_preset_3_prompt': 'Please download and run delete-nul with -DryRun to audit all fixed disks and report reserved name files.',
+      'install.agent_input_val': 'Please fetch and install delete-nul from GitHub, safely inspect and purge reserved name files in the current workspace',
+      'install.agent_input_ph': 'Type prompt for Agent...',
+      'install.agent_send_btn': '↵ Send',
+      'install.agent_copy_btn': 'Copy Full Prompt',
+      'install.copy': 'Copy',
+      'install.download_ps1': 'Download ps1',
+      'install.download_bat': 'Download bat',
+      'install.restore_hint': 'Click anywhere or press Esc to restore page',
+      'toast_copied': 'Copied to clipboard successfully! Ready to paste.',
+      'toast_selected': 'Text selected. Press Ctrl+C to copy.',
+      'features.eyebrow': '// FEATURES',
+      'features.title': 'Do One Thing, Do It Right',
+      'features.lead': 'The definitive remedy for Windows legacy reserved name deadlocks without harming regular files.',
+      'features.card1_title': 'Exact Bare Matching',
+      'features.card1_desc': 'Only targets bare reserved names. Normal files like <code>nul.txt</code> and <code>con.png</code> are untouched.',
+      'features.card2_title': 'Readonly Dry-Run First',
+      'features.card2_desc': 'Audits and displays all matches first; physical unlinking only proceeds after explicit user confirmation.',
+      'features.card3_title': '\\\\?\\ NT Native Routing',
+      'features.card3_desc': 'Injects the Unicode NT namespace prefix, bypassing Win32 subsystem DOS device traps.',
+      'features.card4_title': 'Versatile Access Modes',
+      'features.card4_desc': 'Global sweep, interactive directory navigator, clipboard paste, or drag-and-drop onto the bat icon.',
+      'features.card5_title': 'Enterprise Automation',
+      'features.card5_desc': 'Structured JSON output, strict exit codes, audit logs, and scan timeouts for CI/CD pipelines.',
+      'features.card6_title': 'Least Privilege Restraint',
+      'features.card6_desc': 'Runs with standard user privileges by default; requests UAC elevation only when accessing privileged system trees.',
+      'modes.eyebrow': '// USAGE',
+      'modes.title': 'Three Modes, Your Choice',
+      'modes.lead': 'Launch interactive TUI menu with delete-nul.bat or pass command-line arguments directly.',
+      'modes.tab0': 'Global Sweep',
+      'modes.tab1': 'Targeted Audit',
+      'modes.tab2': 'Paste & Drag',
+      'modes.tag': 'Scenario',
+      'modes.mode0_meta': 'Full system audit · Cross-drive sweep · External USB drives',
+      'modes.mode0_title': 'Global Sweep (All Fixed Drives)',
+      'modes.mode0_desc': 'Automatically enumerates and scans all fixed system drives, skipping network mounts. Pairs with <code>-Fast</code> and <code>-ScanTimeout</code> for massive disks.',
+      'modes.mode1_meta': 'Target project · Git checkout lockup · Build output dirs',
+      'modes.mode1_title': 'Targeted Audit (Specific Directory)',
+      'modes.mode1_desc': 'Navigate target drives with arrow keys or pass direct path arguments for sub-second subtree scanning.',
+      'modes.mode2_meta': 'Desktop drag-and-drop · Clipboard paste · Frictionless GUI workflow',
+      'modes.mode2_title': 'Paste & Drag (Intuitive GUI Drop)',
+      'modes.mode2_desc': 'Copy damaged directory path via Shift+Right Click or drag the directory directly onto the bat icon.',
+      'modes.mode2_code': '[Drag & Drop] Drop damaged directory directly onto delete-nul.bat icon to purge',
+      'modes.copy_cmd': 'Copy Command',
+      'modes.copy_param': 'Copy Params',
+      'why.eyebrow': '// WHY',
+      'why.title': 'Why Standard Tools Fail?',
+      'why.lead': 'The root cause lies in Win32 path normalization, not file corruption. Understanding NT architecture gives confidence.',
+      'why.bad_title': '✕ Win32 Subsystem Hijacking (Explorer / del / rm / Common Tools)',
+      'why.bad_li1': '<strong>Legacy Burden</strong>: Hardcoded reserved device names since DOS 1.0 for stream redirection.',
+      'why.bad_li2': '<strong>Path Normalization</strong>: Win32 APIs (<code>kernel32.dll</code> / <code>CreateFileW</code>) always redirect reserved names to character devices like <code>\\Device\\Null</code>.',
+      'why.bad_li3': '<strong>Deadlock Illusion</strong>: Standard del thinks it\'s touching a device and cannot reach the physical file on NTFS.',
+      'why.good_title': '✓ delete-nul (Direct NT Object Manager Routing)',
+      'why.good_li1': '<strong>NT Native Bypass</strong>: Injects <code>\\\\?\\</code> prefix to signal Windows NT to bypass Win32 normalization checks.',
+      'why.good_li2': '<strong>Precise Disk Enumeration</strong>: Enumerates raw physical file entries via low-level APIs to locate trapped files.',
+      'why.good_li3': '<strong>Physical Purge & Verification</strong>: Commands NT Object Manager directly for clean physical unlink, then re-verifies 0 remaining files.',
+      'why.path_h4': 'Same string, two distinct resolutions',
+      'why.path_win32_desc': 'Hits DOS device object; physical file on disk remains untouched',
+      'why.path_nt_desc': 'Bypasses normalization; targets exact physical literal path',
+      'why.note': 'Protocol: Raw enumeration → Bare reserved name match → Lock physical path → Inject <code>\\\\?\\</code> for purge → Post-audit verification.',
+      'faq.eyebrow': '// FAQ',
+      'faq.title': 'Frequently Asked Questions',
+      'faq.lead': 'Clear answers to common questions in developer workflows and system maintenance.',
+      'faq.q1': 'Git clone/checkout fails with "unable to create file ...: Invalid argument"?',
+      'faq.a1': 'This happens when cloning repositories created on Linux/macOS containing files named <code>nul</code>, <code>aux</code>, etc. Windows Explorer and standard Git cannot create or delete them. Scan the repository path with delete-nul, perform a dry-run review, and confirm purge to restore <code>git status</code>.',
+      'faq.q2': 'Why not use 3rd-party shredders or reboot into WinPE?',
+      'faq.a2': 'Most shredders still rely on Win32 APIs and encounter the exact same device traps. WinPE requires rebooting and cannot be automated. delete-nul routes directly to NT native paths with zero install and instant execution.',
+      'faq.q3': 'What if antivirus flags the script or PowerShell policy blocks execution?',
+      'faq.a3': 'This project is 100% open source, transparent, with zero compiled binaries and zero obfuscation. If PowerShell is blocked by enterprise group policy, switch to the [Raw Batch] tab to run pure native CMD commands.',
+      'faq.q4': 'Prompts FAILED or file locked by another process?',
+      'faq.a4': 'Usually caused by Windows Explorer Preview Pane, VSCode, or terminals holding directory handles. Close locking processes and retry. If system directories are involved, append <code>-Elevate</code> to trigger UAC elevation.',
+      'faq.q5': 'Can purged files be restored? Do they go to Recycle Bin?',
+      'faq.a5': 'They cannot be recovered and do NOT go to the Recycle Bin, as the Recycle Bin itself relies on Win32 subsystem APIs. delete-nul strictly enforces dry-run inspection so you verify everything before confirmation.',
+      'faq.q6': 'Will it accidentally delete nul.txt or regular business files?',
+      'faq.a6': 'Never by default! The engine performs exact full-string matching against bare names. Files with extensions like <code>nul.txt</code> and <code>con.png</code> are completely immune unless <code>-IncludeExtension</code> is explicitly supplied.',
+      'footer.status': 'SYSTEM STATUS: NT 10.0+ READY · ALL SUB-SYSTEMS OPERATIONAL',
+      'footer.top': 'Back to Top ↑',
+      'footer.brand_desc': 'A local, open-source, zero-dependency Windows reserved name file cleaner. Inspect first, purge after confirmation.',
+      'footer.col_product': 'Product',
+      'footer.feat_link': 'Features',
+      'footer.install_link': 'Installation',
+      'footer.col_comm': 'Community',
+      'footer.repo_link': 'GitHub Repo',
+      'footer.issue_link': 'Issues',
+      'footer.docs_link': 'Documentation',
+      'footer.col_sec': 'Security & License',
+      'footer.sec1': 'MIT License · Free & Permissive',
+      'footer.sec2': '100% Local & Open Source · Zero Telemetry',
+      'footer.sec3': 'Zero Dependencies · No Runtime Required',
+      'footer.copyright': '© 2026 delete-nul. Open source software under the MIT License.'
+    }
+  };
+
+  function setLanguage(lang){
+    currentLang = lang;
+    try { localStorage.setItem('dn-lang', lang); } catch(e){}
+    document.documentElement.lang = (lang === 'zh' ? 'zh-CN' : 'en');
+    
+    // Update language switch button text
+    var langCode = document.getElementById('langCode');
+    if(langCode) langCode.textContent = (lang === 'zh' ? 'EN' : 'ZH');
+    var langBtn = document.getElementById('langBtn');
+    if(langBtn){
+      langBtn.setAttribute('title', lang === 'zh' ? '切换语言 (Switch to English)' : '切换语言 (切换为中文)');
+      langBtn.setAttribute('aria-label', lang === 'zh' ? 'Switch to English' : '切换为中文');
+    }
+
+    // Update document title and meta
+    if(I18N[lang] && I18N[lang]['page_title']) document.title = I18N[lang]['page_title'];
+    var metaDesc = document.querySelector('meta[name="description"]');
+    if(metaDesc && I18N[lang] && I18N[lang]['page_desc']) metaDesc.setAttribute('content', I18N[lang]['page_desc']);
+
+    // Update all data-i18n elements
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      var key = el.getAttribute('data-i18n');
+      if(I18N[lang] && I18N[lang][key] !== undefined){
+        el.innerHTML = I18N[lang][key];
+      }
+    });
+
+    // Update data-text on slogan glitch
+    var glitch = document.querySelector('.slogan-glitch');
+    if(glitch && I18N[lang] && I18N[lang]['hero.slogan']){
+      glitch.setAttribute('data-text', I18N[lang]['hero.slogan']);
+    }
+
+    // Update input placeholders
+    document.querySelectorAll('[data-i18n-ph]').forEach(function(el){
+      var key = el.getAttribute('data-i18n-ph');
+      if(I18N[lang] && I18N[lang][key]){
+        el.setAttribute('placeholder', I18N[lang][key]);
+      }
+    });
+
+    // Update agent input value and preset pills data-prompt
+    var agentInput = document.querySelector('.agent-prompt-input');
+    if(agentInput && I18N[lang] && I18N[lang]['install.agent_input_val']){
+      var otherLang = lang === 'zh' ? 'en' : 'zh';
+      if(agentInput.value === I18N[otherLang]['install.agent_input_val'] || !agentInput.value){
+        agentInput.value = I18N[lang]['install.agent_input_val'];
+      }
+    }
+    document.querySelectorAll('.preset-pill').forEach(function(pill){
+      var pk = pill.getAttribute('data-prompt-key');
+      if(pk && I18N[lang] && I18N[lang][pk]){
+        pill.setAttribute('data-prompt', I18N[lang][pk]);
+      }
+    });
+
+    updateThemeUI();
+
+    // Refresh active terminal demo if initialized
+    if(window.__runProcess){
+      var activeTab = document.querySelector('.install-tabs button[aria-selected="true"]');
+      if(activeTab && activeTab.dataset.tab){
+        window.__runProcess(activeTab.dataset.tab);
+      }
+    }
+  }
+
+  var langBtn = document.getElementById('langBtn');
+  if(langBtn){
+    langBtn.addEventListener('click', function(){
+      setLanguage(currentLang === 'zh' ? 'en' : 'zh');
+    });
+  }
+  setLanguage(currentLang);
+
+  var copyTimers=new WeakMap();
+  function showToast(msgKeyOrText){
+    var t = document.getElementById('copyToast');
+    if(!t) return;
+    var txt = document.getElementById('toastText');
+    var msg = (I18N[currentLang] && I18N[currentLang][msgKeyOrText]) ? I18N[currentLang][msgKeyOrText] : msgKeyOrText;
+    if(txt && msg) txt.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._timer);
+    t._timer = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+  }
+
+  document.addEventListener('click',async function(e){
+    var b=e.target.closest('#copybtn,.copybtn'); if(!b)return;
+    var code=b.parentElement.querySelector('code'); if(!code && !b.getAttribute('data-copy'))return;
+    var text=b.getAttribute('data-copy')||(code?code.textContent:'');
+    var orig=b.getAttribute('data-orig')||b.textContent;
+    if(!b.getAttribute('data-orig'))b.setAttribute('data-orig',orig);
+    clearTimeout(copyTimers.get(b));
+    try{
+      await navigator.clipboard.writeText(text);
+      b.textContent = currentLang === 'zh' ? '已复制' : 'Copied';
+      showToast('toast_copied');
+    }
+    catch(err){
+      if(code){
+        var r=document.createRange(); r.selectNodeContents(code);
+        var s=window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      }
+      b.textContent = currentLang === 'zh' ? '已选中' : 'Selected';
+      showToast('toast_selected');
+    }
+    copyTimers.set(b,setTimeout(function(){b.textContent=orig},1600));
+  });
+
+  /* High-Tech NT Kernel Diagnostic Loader (Immersive Boot Sequence) */
+  (function(){
+    var loader = document.getElementById('loader');
+    if(!loader) return;
+    if(motion.matches){ loader.classList.add('done'); return; }
+
+    var logContainer = document.getElementById('loaderLogs');
+    var barEl = document.getElementById('loaderBar');
+    var pctEl = document.getElementById('loaderPct');
+    var statusEl = document.getElementById('loaderStatus');
+    var addrEl = document.getElementById('loaderAddr');
+    var skipBtn = document.getElementById('loaderSkip');
+
+    var logs = [
+      { tag: 'STAGE 01: PROBING DOS DEVICE TRAP IN WIN32 SUBSYSTEM...', state: '[DETECTED: 22]' },
+      { tag: 'STAGE 02: BYPASSING REGEX CHECK VIA \\\\?\\ UNICODE NT PATHS...', state: '[INITIALIZED]' },
+      { tag: 'STAGE 03: ARMING NON-DESTRUCTIVE DRYRUN INSPECTOR...', state: '[READY]' },
+      { tag: 'STAGE 04: MOUNTING MEMORY REPOSITORY BUFFER...', state: '[SYNCED]' },
+      { tag: 'STAGE 05: SYSTEM APERTURE EXPANDED. RELEASING SHELL...', state: '[COMPLETED]' }
+    ];
+
+    var progress = 0;
+    var logIndex = 0;
+    var duration = 1600; // 1.6s smooth cinematic pace
+    var start = performance.now();
+    var hexBases = [0x7ffe8040, 0x7ffe9100, 0x7ffea200, 0x7ffeb500, 0x7ffec900, 0x7ffeffff];
+
+    function finish(){
+      if(loader.classList.contains('done')) return;
+      loader.classList.add('done');
+      if(window.__runProcess) window.__runProcess('cmd');
+    }
+
+    loader.addEventListener('click', finish);
+    if(skipBtn) skipBtn.addEventListener('click', finish);
+    document.addEventListener('keydown', function onKey(e){
+      if(!loader.classList.contains('done')){
+        finish();
+      }
+    }, {once: true});
+
+    var interval = setInterval(function(){
+      var elapsed = performance.now() - start;
+      progress = Math.min(100, Math.round((elapsed / duration) * 100));
+
+      var targetLog = Math.min(logs.length - 1, Math.floor((progress / 100) * logs.length));
+      while(logIndex <= targetLog && logIndex < logs.length){
+        var item = logs[logIndex];
+        var row = document.createElement('div');
+        row.className = 'loader-log-line';
+        row.innerHTML = '<span class="tag">&gt; ' + item.tag + '</span><span class="state">' + item.state + '</span>';
+        if(logContainer) logContainer.appendChild(row);
+        logIndex++;
+      }
+
+      var totalSegments = 24;
+      var filled = Math.round((progress / 100) * totalSegments);
+      var barStr = '[';
+      for(var i = 0; i < totalSegments; i++){
+        barStr += i < filled ? '█' : (i === filled ? '▒' : '░');
+      }
+      barStr += ']';
+      if(barEl) barEl.textContent = barStr;
+      if(pctEl) pctEl.textContent = progress + '%';
+      if(addrEl) addrEl.textContent = '0x' + (hexBases[Math.min(hexBases.length-1, Math.floor(progress / 20))] || 0x7ffeffff).toString(16).toUpperCase();
+
+      if(progress < 40 && statusEl) statusEl.textContent = 'PROBING WIN32 OBJECTS';
+      else if(progress < 80 && statusEl) statusEl.textContent = 'INJECTING NT NATIVE RESOLVER';
+      else if(statusEl) statusEl.textContent = 'ALL SUBSYSTEMS READY';
+
+      if(progress >= 100){
+        clearInterval(interval);
+        setTimeout(finish, 180);
+      }
+    }, 45);
+  })();
+
+  /* Global pointer-reactive ASCII field — full viewport, behind all content. */
+  (function(){
+    var cv=document.getElementById('field'); if(!cv)return;
+    var ctx=cv.getContext('2d');
+    var marks=Array.from(document.querySelectorAll('.wordmark svg')).map(function(svg){
+      return {svg:svg,spot:svg.querySelector('.mark-spot'),gradient:svg.querySelector('radialGradient')};
+    });
+    var W=0,H=0,dpr=1,cell=18,pts=[],pointer=null,waves=[],frame=0,touch=null,running=true;
+    function fit(){
+      W=innerWidth;H=innerHeight;dpr=Math.min(devicePixelRatio||1,2);
+      cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+      pts=[];
+      for(var y=8;y<H;y+=cell)for(var x=8;x<W;x+=cell)pts.push({x:x,y:y});
+      wake();
+    }
+    function shine(e){
+      if(document.body.classList.contains('page-gone')){
+        marks.forEach(function(m){m.spot.classList.remove('active')});return;
+      }
+      marks.forEach(function(mark){
+        var r=mark.svg.getBoundingClientRect();
+        var hit=e&&r.width>0&&e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;
+        mark.spot.classList.toggle('active',Boolean(hit));
+        if(hit){
+          var v=mark.svg.viewBox.baseVal;
+          mark.gradient.setAttribute('cx',(e.clientX-r.left)*v.width/r.width-4);
+          mark.gradient.setAttribute('cy',((e.clientY-r.top)*v.height/r.height-2)/1.4);
         }
       });
-    })(buttons[i]);
-  }
-})();
-
-/* ---- wall of names: scroll-driven scene, row-based ---- */
-(function(){
-  var stage = document.getElementById('wallStage');
-  if(!stage) return;
-  var rows = stage.querySelectorAll('.wrow');
-  var gridwrap = stage.querySelector('.gridwrap');
-  var line = stage.querySelector('.scanline');
-  var status = stage.querySelector('.wall-status');
-  var R = rows.length;
-  if(!R || !gridwrap) return;
-  var TOTAL = 0;
-  var rowCells = [];
-  for(var i = 0; i < R; i++){
-    rowCells.push(rows[i].querySelectorAll('.cell'));
-    TOTAL += rowCells[i].length;
-  }
-
-  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-    stage.classList.add('reduced');
-    return;
-  }
-  stage.classList.add('armed');
-
-  var FILL_END = 0.28, DEL_END = 0.88, GONE_AT = 0.95, SCAN_DUR = 1300;
-  var filledRows = 0, scanStarted = false, scanDone = false, scanT0 = 0;
-  var collapsing = false, collapsed = false, userScrolled = false;
-  var READY_MSG = '发现 ' + TOTAL + ' 个 · 向下滚动，逐行清理';
-
-  function fillUpToRow(idx){
-    for(var k = filledRows; k <= idx; k++){
-      var cs = rowCells[k];
-      for(var j = 0; j < cs.length; j++) cs[j].classList.add('on');
     }
-    if(idx + 1 > filledRows) filledRows = idx + 1;
-  }
-  function finishScan(){
-    if(scanDone) return;
-    scanDone = true;
-    fillUpToRow(R - 1);
-    stage.classList.remove('scanning');
-    stage.classList.add('scanned');
-    if(line) line.style.opacity = '0';
-  }
-  function startScan(){
-    if(scanStarted || scanDone) return;
-    scanStarted = true;
-    stage.classList.add('scanning');
-    if(status) status.textContent = '正在扫描……';
-    scanT0 = performance.now();
-    requestAnimationFrame(scanTick);
-  }
-  function scanTick(now){
-    var t = Math.min((now - scanT0) / SCAN_DUR, 1);
-    var h = gridwrap.offsetHeight;
-    if(line) line.style.transform = 'translateY(' + (t * h) + 'px)';
-    var count = 0;
-    for(var i = 0; i < R; i++){
-      if(rows[i].offsetTop + rows[i].offsetHeight * 0.6 <= t * h + 2) count = i + 1;
-      else break;
+    function move(e){
+      if(motion.matches||e.pointerType==='touch')return;
+      pointer={x:e.clientX,y:e.clientY};shine(e);wake();
     }
-    if(count > filledRows) fillUpToRow(count - 1);
-    if(t < 1){ requestAnimationFrame(scanTick); }
-    else{
-      finishScan();
-      if(status) status.textContent = READY_MSG;
-      update();
+    function leave(){pointer=null;shine(null);}
+    function press(e){
+      if(motion.matches||!e.isPrimary||e.button!==0||e.target.closest('a,button,input,textarea,.cmd,.install'))return;
+      if(e.pointerType==='touch'){touch={x:e.clientX,y:e.clientY,id:e.pointerId};return;}
+      ripple(e.clientX,e.clientY);
     }
-  }
-  function progress(){
-    var rect = stage.getBoundingClientRect();
-    var total = rect.height - window.innerHeight;
-    if(total <= 0) return rect.top < 0 ? 1 : 0;
-    return Math.min(Math.max(-rect.top / total, 0), 1);
-  }
-  function collapseStage(){
-    if(collapsing || collapsed) return;
-    collapsing = true;
-    stage.classList.add('fold');
-    if(status) status.textContent = '已清理 ' + R + ' / ' + R + ' 行 · 清理完毕';
-    var docEl = document.documentElement;
-    var prevBehavior = docEl.style.scrollBehavior;
-    docEl.style.scrollBehavior = 'auto';
-    var startH = stage.offsetHeight;
-    var startY = window.scrollY;
-    var targetY = stage.getBoundingClientRect().top + window.scrollY;
-    var t0 = performance.now(), DUR = 850;
-    function step(now){
-      var t = Math.min((now - t0) / DUR, 1);
-      var e = 1 - Math.pow(1 - t, 3);
-      stage.style.height = (startH * (1 - e)) + 'px';
-      window.scrollTo(0, startY + (targetY - startY) * e);
-      if(t < 1){ requestAnimationFrame(step); }
-      else{
-        collapsing = false;
-        collapsed = true;
-        stage.style.height = '0px';
-        stage.classList.add('gone');
-        docEl.style.scrollBehavior = prevBehavior;
+    function release(e){
+      if(!touch||touch.id!==e.pointerId)return;
+      if(!motion.matches&&Math.hypot(e.clientX-touch.x,e.clientY-touch.y)<12)ripple(e.clientX,e.clientY);
+      touch=null;
+    }
+    function ripple(x,y){
+      if(waves.length>=4)waves.shift();
+      waves.push({x:x,y:y,start:performance.now()});wake();
+    }
+    addEventListener('pointermove',move,{passive:true});
+    document.addEventListener('pointerleave',leave);
+    addEventListener('pointerdown',press,{passive:true});
+    addEventListener('pointerup',release,{passive:true});
+    addEventListener('pointercancel',function(){touch=null;leave()});
+    addEventListener('resize',fit);
+    document.addEventListener('visibilitychange',function(){running=!document.hidden;if(running)wake()});
+    function draw(now){
+      frame=0;ctx.clearRect(0,0,W,H);
+      var t=motion.matches?0:now/1000;
+      waves=waves.filter(function(w){return now-w.start<760});
+      ctx.font='12px monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+      var isLight=document.documentElement.classList.contains('light');
+      var rgb=isLight?'12,12,14':'255,255,255';
+      for(var i=0;i<pts.length;i++){
+        var p=pts[i],dx=pointer?p.x-pointer.x:0,dy=pointer?p.y-pointer.y:0;
+        var near=pointer?Math.max(0,1-Math.hypot(dx,dy)/132):0;
+        var x=p.x+dx*near*.24,y=p.y+dy*near*.24,energy=near;
+        for(var j=0;j<waves.length;j++){
+          var w=waves[j],age=Math.max(0,now-w.start)/760,rx=p.x-w.x,ry=p.y-w.y,d=Math.hypot(rx,ry);
+          var power=Math.max(0,1-Math.abs(d-age*375)/42)*(1-age);
+          energy=Math.max(energy,power);x+=rx/Math.max(1,d)*power*21;y+=ry/Math.max(1,d)*power*21;
+        }
+        var drift=.5+.5*Math.sin(p.x*.02+p.y*.03+t*1.5);
+        var alpha=isLight?(.16+drift*.14+energy*.80):(.10+drift*.12+energy*.78);
+        ctx.fillStyle='rgba('+rgb+','+Math.min(1,alpha)+')';
+        ctx.fillText(energy>.62?'#':energy>.22?'+':drift>.75?':':'·',x,y);
+      }
+      if(running&&!motion.matches)frame=requestAnimationFrame(draw);
+    }
+    function wake(){if(!frame&&running)frame=requestAnimationFrame(draw);}
+    window.__wakeField=wake;
+    motion.addEventListener('change',function(){leave();waves=[];touch=null;wake()});
+    fit();
+  })();
+
+  /* Hero install switcher — three ways in, one copy surface. */
+  (function(){
+    var root=document.getElementById('install');if(!root)return;
+    var tabs=Array.from(root.querySelectorAll('.install-tabs button'));
+    var panels=Array.from(root.querySelectorAll('.install-panel'));
+    tabs.forEach(function(tab){
+      tab.addEventListener('click',function(){
+        tabs.forEach(function(t){t.setAttribute('aria-selected',String(t===tab))});
+        panels.forEach(function(p){p.hidden=p.dataset.panel!==tab.dataset.tab});
+        if(window.__runProcess)window.__runProcess(tab.dataset.tab);
+      });
+    });
+  })();
+
+  /* 立即开始 → 电影级高密粒子消散与量子化解构 */
+  (function(){
+    var btn = document.getElementById('startBtn'),
+        cv = document.getElementById('dissolve'),
+        hint = document.getElementById('restoreHint');
+    if(!btn || !cv) return;
+    var ctx = cv.getContext('2d'),
+        parts = [],
+        waves = [],
+        raf = 0,
+        active = false,
+        dpr = 1,
+        timers = [];
+
+    function fit(){
+      dpr = Math.min(devicePixelRatio || 1, 2);
+      cv.width = Math.round(innerWidth * dpr);
+      cv.height = Math.round(innerHeight * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    var GLYPHS = ['NUL', '0x00', '0', '1', '::', '▫', '▪', '▲', '✦', '■', '+', '*', '/', '_', '§', '░', '▒'];
+
+    function spawnButtonShockwave(cx, cy){
+      var isLight = document.documentElement.classList.contains('light');
+      // 1. Two expanding energetic shockwave rings
+      waves.push({ x: cx, y: cy, r: 6, maxR: Math.max(innerWidth, innerHeight) * 0.9, speed: 18, a: 0.85, width: 2 });
+      waves.push({ x: cx, y: cy, r: 2, maxR: Math.max(innerWidth, innerHeight) * 0.7, speed: 12, a: 0.65, width: 1.5 });
+
+      // 2. 400 radial burst particles
+      for(var i = 0; i < 400; i++){
+        var ang = Math.random() * Math.PI * 2;
+        var spd = Math.random() * 8.5 + 2.0;
+        var size = Math.random() * 2.6 + 0.8;
+        var isGlyph = Math.random() < 0.18;
+        var tone = isLight ? Math.round(15 + Math.random() * 30) : Math.round(220 + Math.random() * 35);
+        parts.push({
+          type: isGlyph ? 1 : 0,
+          x: cx + (Math.random() - 0.5) * 20,
+          y: cy + (Math.random() - 0.5) * 12,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd - 0.8,
+          size: size,
+          ch: GLYPHS[Math.floor(Math.random() * GLYPHS.length)],
+          tone: tone,
+          tw: Math.random() * 6.28,
+          twSpd: 0.08 + Math.random() * 0.15,
+          life: 0.008 + Math.random() * 0.012,
+          drag: 0.978,
+          glow: Math.random() < 0.35,
+          a: 1
+        });
       }
     }
-    requestAnimationFrame(step);
-  }
-  function update(){
-    if(collapsed || collapsing) return;
-    var p = progress();
-    if(!scanStarted && stage.getBoundingClientRect().top <= window.innerHeight * 0.5) startScan();
-    if(p >= FILL_END && !scanDone){
-      scanStarted = true;
-      finishScan();
-      if(status) status.textContent = READY_MSG;
-    }
-    var delRows = 0;
-    if(p > FILL_END && scanDone){
-      var q = (p - FILL_END) / (DEL_END - FILL_END);
-      q = Math.min(Math.max(q, 0), 1);
-      delRows = Math.round(q * R);
-    }
-    if(scanDone){
-      for(var i = 0; i < R; i++){
-        if(i < delRows) rows[i].classList.add('del');
-        else rows[i].classList.remove('del');
+
+    function spawnLayerParticles(el){
+      var rect = el.getBoundingClientRect();
+      if(rect.bottom < -100 || rect.top > innerHeight + 100) return;
+      var isLight = document.documentElement.classList.contains('light');
+
+      // Much denser particle count: 350 ~ 750 per section!
+      var area = rect.width * Math.min(rect.height, innerHeight);
+      var count = Math.min(750, Math.max(350, Math.floor(area / 950)));
+
+      for(var i = 0; i < count; i++){
+        var px = rect.left + Math.random() * rect.width;
+        var py = rect.top + Math.random() * Math.min(rect.height, innerHeight);
+        var ang = -Math.PI / 2 + (Math.random() - 0.5) * 1.6;
+        var spd = Math.random() * 3.8 + 0.6;
+        var isGlyph = Math.random() < 0.22;
+        var tone = isLight ? Math.round(10 + Math.random() * 40) : Math.round(200 + Math.random() * 55);
+        var size = Math.random() * 2.4 + 0.8;
+
+        parts.push({
+          type: isGlyph ? 1 : 0,
+          x: px,
+          y: py,
+          vx: Math.cos(ang) * spd + (Math.random() - 0.5) * 1.2,
+          vy: Math.sin(ang) * spd - 0.8,
+          size: size,
+          ch: GLYPHS[Math.floor(Math.random() * GLYPHS.length)],
+          tone: tone,
+          tw: Math.random() * 6.28,
+          twSpd: 0.06 + Math.random() * 0.12,
+          life: 0.007 + Math.random() * 0.010, // lingers 2.0s ~ 3.5s
+          drag: 0.985,
+          glow: Math.random() < 0.25,
+          a: 1
+        });
       }
-      if(status){
-        if(delRows <= 0) status.textContent = READY_MSG;
-        else if(delRows < R) status.textContent = '已清理 ' + delRows + ' / ' + R + ' 行';
+    }
+
+    function frame(){
+      raf = 0;
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      var isLight = document.documentElement.classList.contains('light');
+
+      // 1. Draw Expanding Shockwave Rings
+      for(var w = 0; w < waves.length; w++){
+        var wv = waves[w];
+        wv.r += wv.speed;
+        wv.a -= 0.018;
+        if(wv.r >= wv.maxR || wv.a <= 0){
+          waves.splice(w, 1);
+          w--;
+          continue;
+        }
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(wv.x, wv.y, wv.r, 0, Math.PI * 2);
+        ctx.lineWidth = wv.width;
+        ctx.strokeStyle = isLight 
+          ? 'rgba(0,0,0,' + Math.max(0, wv.a * 0.4) + ')'
+          : 'rgba(255,255,255,' + Math.max(0, wv.a * 0.65) + ')';
+        ctx.stroke();
+        ctx.restore();
       }
-      if(userScrolled && p >= GONE_AT && delRows >= R &&
-         stage.getBoundingClientRect().bottom > window.innerHeight * 0.5){
-        collapseStage();
+
+      // 2. Draw Particles
+      ctx.font = '10px ui-monospace, Consolas, monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      for(var i = 0; i < parts.length; i++){
+        var p = parts[i];
+        p.tw += p.twSpd;
+        p.vy -= 0.025; // gentle upward buoyancy
+        p.vx *= p.drag;
+        p.vy *= p.drag;
+        p.x += p.vx + Math.sin(p.tw) * 0.35;
+        p.y += p.vy;
+        p.a -= p.life;
+
+        if(p.a <= 0 || p.y < -50 || p.x < -50 || p.x > innerWidth + 50){
+          parts.splice(i, 1);
+          i--;
+          continue;
+        }
+
+        var flick = 0.72 + 0.28 * Math.sin(p.tw * 2.4);
+        var currentAlpha = Math.max(0, p.a) * flick;
+
+        if(p.type === 1){
+          // Code glyph
+          ctx.fillStyle = 'rgba(' + p.tone + ',' + p.tone + ',' + p.tone + ',' + currentAlpha + ')';
+          ctx.fillText(p.ch, p.x, p.y);
+        } else {
+          // Luminous micro-spark
+          ctx.fillStyle = 'rgba(' + p.tone + ',' + p.tone + ',' + p.tone + ',' + currentAlpha + ')';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      if(active && (parts.length || waves.length || timers.length)){
+        raf = requestAnimationFrame(frame);
       }
     }
-  }
-  var ticking = false;
-  function onScroll(){
-    userScrolled = true;
-    if(ticking) return;
-    ticking = true;
-    requestAnimationFrame(function(){ ticking = false; update(); });
-  }
-  window.addEventListener('scroll', onScroll, {passive: true});
-  window.addEventListener('resize', onScroll);
-  update();
+
+    function start(){
+      if(active) return;
+      active = true;
+      timers = [];
+
+      if(motion.matches){
+        document.body.classList.add('page-gone');
+        hint.hidden = false;
+        return;
+      }
+
+      fit();
+      parts = [];
+      waves = [];
+      document.body.classList.add('page-dissolving');
+      raf = requestAnimationFrame(frame);
+
+      var btnRect = btn.getBoundingClientRect();
+      var cx = btnRect.left + btnRect.width / 2;
+      var cy = btnRect.top + btnRect.height / 2;
+
+      // Phase 1: Immediate explosion at button location
+      spawnButtonShockwave(cx, cy);
+
+      // Phase 2: Staggered elegant atomization without collapsing height
+      var allLayers = Array.from(document.querySelectorAll('.dissolve-layer'));
+      
+      // Calculate distance of each layer's center from the button
+      var layersWithDist = allLayers.map(function(el){
+        var r = el.getBoundingClientRect();
+        var elY = r.top + r.height / 2;
+        var dist = Math.abs(elY - cy);
+        return { el: el, dist: dist };
+      });
+
+      // Sort by proximity to button for organic outward propagation
+      layersWithDist.sort(function(a, b){ return a.dist - b.dist; });
+
+      var staggerStep = 130;
+      layersWithDist.forEach(function(item, idx){
+        var delay = 80 + idx * staggerStep;
+        var t = setTimeout(function(){
+          if(!active) return;
+          var el = item.el;
+          spawnLayerParticles(el);
+          el.classList.add('is-dissolving');
+        }, delay);
+        timers.push(t);
+      });
+
+      // Phase 3: Settle into pure starfield void & show hint
+      var totalTime = 80 + layersWithDist.length * staggerStep + 850;
+      var endTimer = setTimeout(function(){
+        if(active){
+          document.body.classList.add('page-gone');
+          hint.hidden = false;
+          timers = [];
+        }
+      }, totalTime);
+      timers.push(endTimer);
+    }
+
+    function restore(){
+      if(!active) return;
+      active = false;
+      timers.forEach(clearTimeout);
+      timers = [];
+      cancelAnimationFrame(raf);
+      parts = [];
+      waves = [];
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+
+      // Restore all DOM elements smoothly
+      document.querySelectorAll('.dissolve-layer').forEach(function(el){
+        el.classList.remove('is-dissolving');
+        el.style.cssText = '';
+      });
+      var hero = document.querySelector('.hero');
+      if(hero) hero.style.cssText = '';
+
+      document.body.classList.remove('page-dissolving', 'page-gone');
+      hint.hidden = true;
+    }
+
+    btn.addEventListener('click', start);
+    hint.addEventListener('click', restore);
+    addEventListener('keydown', function(e){ if(e.key === 'Escape') restore(); });
+    addEventListener('click', function(e){
+      if(active && document.body.classList.contains('page-gone') && !e.target.closest('#restoreHint')){
+        restore();
+      }
+    });
+    addEventListener('resize', function(){
+      if(active) fit();
+    });
+  })();
+
+  /* Per-method execution process — hyper-realistic interactive simulation */
+  (function(){
+    var currentCtrl = null;
+
+    function sleep(ms, signal){
+      if(motion.matches) return Promise.resolve();
+      return new Promise(function(resolve, reject){
+        var t = setTimeout(resolve, ms);
+        if(signal) signal.addEventListener('abort', function(){ clearTimeout(t); reject(new Error('aborted')); });
+      });
+    }
+
+    function makeLine(box, cls){
+      var d = document.createElement('div');
+      d.className = 'demo-line' + (cls ? ' ' + cls : '');
+      box.appendChild(d);
+      return d;
+    }
+
+    async function typeText(box, promptText, commandText, cls, signal, speed){
+      var line = makeLine(box, cls);
+      if(promptText){
+        var p = document.createElement('span');
+        p.className = 'dim';
+        p.textContent = promptText;
+        line.appendChild(p);
+      }
+      var textNode = document.createTextNode('');
+      line.appendChild(textNode);
+      if(motion.matches){
+        textNode.nodeValue = commandText;
+        return line;
+      }
+      var cur = document.createElement('span');
+      cur.className = 'term-cursor';
+      line.appendChild(cur);
+
+      var spd = speed || 18;
+      for(var i = 0; i < commandText.length; i++){
+        if(signal && signal.aborted) throw new Error('aborted');
+        textNode.nodeValue += commandText[i];
+        var j = (commandText[i] === ' ' || commandText[i] === '-') ? spd * 1.6 : spd * (0.85 + Math.random() * 0.35);
+        await sleep(j, signal);
+      }
+      await sleep(150, signal);
+      cur.remove();
+      return line;
+    }
+
+    async function runSpinner(box, prefix, label, doneLabel, duration, signal){
+      var line = makeLine(box, 'dim');
+      if(motion.matches){
+        line.className = 'demo-line ok';
+        line.textContent = (prefix ? prefix + ' ' : '') + '✔ ' + doneLabel;
+        return;
+      }
+      var frames = ['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏'];
+      var idx = 0;
+      var start = performance.now();
+      var dur = duration || 600;
+      while(performance.now() - start < dur){
+        if(signal && signal.aborted) throw new Error('aborted');
+        line.textContent = (prefix ? prefix + ' ' : '') + frames[idx++ % frames.length] + ' ' + label;
+        await sleep(48, signal);
+      }
+      line.className = 'demo-line ok';
+      line.textContent = (prefix ? prefix + ' ' : '') + '✔ ' + doneLabel;
+    }
+
+    async function runProgress(box, label, totalKb, duration, signal){
+      var line = makeLine(box, 'dim');
+      if(motion.matches){
+        line.className = 'demo-line ok';
+        line.textContent = '  ' + label + ' [====================] 100% (' + totalKb + ' KB) [OK]';
+        return;
+      }
+      var start = performance.now();
+      var dur = duration || 600;
+      while(true){
+        if(signal && signal.aborted) throw new Error('aborted');
+        var now = performance.now();
+        var pct = Math.min(1, (now - start) / dur);
+        var curKb = (totalKb * pct).toFixed(1);
+        var bars = Math.round(pct * 20);
+        var barStr = '[' + '='.repeat(bars) + (bars < 20 ? '>' + '.'.repeat(19 - bars) : '') + ']';
+        line.textContent = '  ' + label + ' ' + barStr + ' ' + Math.round(pct * 100) + '% (' + curKb + ' KB)';
+        if(pct >= 1) break;
+        await sleep(40, signal);
+      }
+      line.className = 'demo-line ok';
+      line.textContent = '  ' + label + ' [====================] 100% (' + totalKb + ' KB) [OK]';
+    }
+
+    function showFinalCursor(box){
+      var line = makeLine(box, '');
+      var s = document.createElement('span');
+      s.className = 'dim';
+      s.textContent = '$ ';
+      line.appendChild(s);
+      var cur = document.createElement('span');
+      cur.className = 'term-cursor';
+      line.appendChild(cur);
+    }
+
+    var workflows = {
+      cmd: async function(box, signal){
+        var isEn = currentLang === 'en';
+        await typeText(box, 'C:\\> ', 'curl -fsSL "https://.../delete-nul.ps1" -o "%TEMP%\\delete-nul.ps1"', 'hl', signal, 18);
+        await runProgress(box, isEn ? 'Downloading delete-nul.ps1' : '下载 delete-nul.ps1', 28.4, 520, signal);
+        await sleep(100, signal);
+
+        await typeText(box, 'C:\\> ', 'curl -fsSL "https://.../delete-nul.bat" -o "%TEMP%\\delete-nul.bat"', 'hl', signal, 18);
+        await runProgress(box, isEn ? 'Downloading delete-nul.bat' : '下载 delete-nul.bat', 4.2, 360, signal);
+        await sleep(120, signal);
+
+        await typeText(box, 'C:\\> ', 'call "%TEMP%\\delete-nul.bat"', 'hl', signal, 20);
+        await sleep(140, signal);
+
+        var m1 = makeLine(box, 'ok');
+        m1.textContent = '  ==================================================';
+        var m2 = makeLine(box, 'ok');
+        m2.textContent = isEn ? '   delete-nul · Select scan mode / 选择扫描模式' : '   delete-nul · 选择扫描模式 / Select scan mode';
+        var m3 = makeLine(box, 'ok');
+        m3.textContent = '  ==================================================';
+        var m4 = makeLine(box, 'dim');
+        m4.textContent = isEn ? '   Use ↑ ↓ to select, Enter to confirm (G/S/C/D/Q):' : '   用 ↑ ↓ 选择，回车确认（G/S/C/D/Q）:';
+        var m5 = makeLine(box, 'hl');
+        m5.textContent = isEn ? '   > [G] Global sweep     Scan all fixed drives' : '   > [G] 全局扫描   扫描所有本地固定磁盘';
+        var m6 = makeLine(box, 'dim');
+        m6.textContent = isEn ? '     [S] Targeted audit   Pick drive → Browse folders' : '     [S] 定向处理   选磁盘 → 文件夹逐层浏览';
+        var m7 = makeLine(box, 'dim');
+        m7.textContent = isEn ? '     [C] Scan current directory' : '     [C] 扫描当前目录';
+        await sleep(120, signal);
+        showFinalCursor(box);
+      },
+
+      agent: async function(box, signal, customPrompt){
+        box.replaceChildren();
+        var isEn = currentLang === 'en';
+
+        var promptInput = document.querySelector('.agent-prompt-input');
+        var defaultPrompt = isEn
+          ? 'Please download and install delete-nul from GitHub, inspect the current workspace, report findings, and purge after confirmation.'
+          : '请从 GitHub 下载安装 delete-nul 工具，安全扫描并清理当前工作区保留名文件（先拉取到 %TEMP%，只读扫描汇报，我确认后再删）。';
+        var promptMsg = customPrompt || (promptInput && promptInput.value.trim()) || defaultPrompt;
+
+        // 1. User sends prompt
+        var u1 = document.createElement('div');
+        u1.className = 'chat-turn';
+        u1.innerHTML = '<div class="chat-badge user">👤 USER</div><div class="chat-bubble user"><span class="msg-text"></span><span class="term-cursor"></span></div>';
+        box.appendChild(u1);
+        var u1Text = u1.querySelector('.msg-text');
+        var u1Cur = u1.querySelector('.term-cursor');
+        
+        for(var i=0; i<promptMsg.length; i++){
+          if(signal && signal.aborted) throw new Error('aborted');
+          u1Text.textContent += promptMsg[i];
+          await sleep(14 + Math.random() * 10, signal);
+          box.scrollTop = box.scrollHeight;
+        }
+        await sleep(220, signal);
+        if(u1Cur) u1Cur.remove();
+
+        // 2. Agent answers and executes download/installation and scan
+        var a1 = document.createElement('div');
+        a1.className = 'chat-turn';
+        var a1Text = isEn
+          ? 'Received instruction! Executing delete-nul download, install and dry-run inspection workflow:'
+          : '收到指令！立即按照提示词执行 delete-nul 工具下载安装与安全预检流程：';
+        a1.innerHTML = '<div class="chat-badge agent">🤖 AGENT</div><div class="chat-bubble agent"><div class="msg-text">' + a1Text + '</div><div class="agent-body"></div></div>';
+        box.appendChild(a1);
+        var a1Body = a1.querySelector('.agent-body');
+        box.scrollTop = box.scrollHeight;
+        await sleep(240, signal);
+
+        // Tool 1: 查阅仓库规范
+        var s1Label = isEn ? 'GET github.com/yancongya/delete-nul (README.md)...' : 'GET github.com/yancongya/delete-nul (README.md)...';
+        var s1Done = isEn ? 'Confirmed protocol: MUST use \\\\?\\ NT native path to bypass Win32 namespace trap' : '确认规范: 需使用 \\\\?\\ NT 原生路径绕过 Win32 命名空间拦截';
+        await runSpinner(a1Body, isEn ? '● [Check Repo]' : '● [查阅仓库]', s1Label, s1Done, 520, signal);
+        box.scrollTop = box.scrollHeight;
+        await sleep(120, signal);
+
+        // Tool 2: 下载安装工具至临时目录 %TEMP%
+        var t2 = makeLine(a1Body, '');
+        t2.innerHTML = (isEn ? '● [Download Tool] ' : '● [下载安装工具] ') + '<code>curl -fsSL .../delete-nul.ps1 -o "%TEMP%\\delete-nul.ps1"</code>';
+        await runProgress(a1Body, isEn ? 'Downloading to %TEMP%' : '下载安装至临时目录', 28.4, 500, signal);
+        box.scrollTop = box.scrollHeight;
+        await sleep(120, signal);
+
+        // Tool 3: 只读扫描预检
+        var t3 = makeLine(a1Body, '');
+        t3.innerHTML = (isEn ? '● [Run Dry-Run] ' : '● [执行只读扫描] ') + '<code>powershell -File "%TEMP%\\delete-nul.ps1" -Path . -DryRun</code>';
+        await sleep(160, signal);
+        var r1 = makeLine(a1Body, 'dim');
+        r1.textContent = isEn
+          ? '  Workspace scan: elapsed 0.2s · Found 2 Windows reserved name files (regular files untouched):'
+          : '  扫描工作区: 耗时 0.2s · 发现 2 个 Windows 保留名文件（正常文件未受影响）:';
+        var r2 = makeLine(a1Body, 'warn');
+        r2.innerHTML = '  ! <code>.\\dist\\NUL</code>   (DOS Device Name)';
+        var r3 = makeLine(a1Body, 'warn');
+        r3.innerHTML = '  ! <code>.\\cache\\CON</code>  (DOS Device Name)';
+        box.scrollTop = box.scrollHeight;
+        await sleep(220, signal);
+
+        // Agent asks user confirmation
+        var ask = makeLine(a1Body, 'hl');
+        ask.textContent = isEn
+          ? '  ? Found 2 reserved files above. Confirm purge via \\\\?\\ native path?'
+          : '  ? 发现上述 2 个保留名文件。请确认是否使用 \\\\?\\ 原生路径执行物理清除？';
+        box.scrollTop = box.scrollHeight;
+        await sleep(450, signal);
+
+        // 3. User responds confirmation
+        var u2 = document.createElement('div');
+        u2.className = 'chat-turn';
+        u2.innerHTML = '<div class="chat-badge user">👤 USER</div><div class="chat-bubble user"><span class="msg-text"></span><span class="term-cursor"></span></div>';
+        box.appendChild(u2);
+        var u2Text = u2.querySelector('.msg-text');
+        var u2Cur = u2.querySelector('.term-cursor');
+        box.scrollTop = box.scrollHeight;
+        var replyMsg = isEn ? 'Confirmed, please purge.' : '确认清除，请执行。';
+        for(var j=0; j<replyMsg.length; j++){
+          if(signal && signal.aborted) throw new Error('aborted');
+          u2Text.textContent += replyMsg[j];
+          await sleep(20 + Math.random() * 15, signal);
+          box.scrollTop = box.scrollHeight;
+        }
+        await sleep(220, signal);
+        if(u2Cur) u2Cur.remove();
+
+        // 4. Agent executes physical deletion and reports completion
+        var a2 = document.createElement('div');
+        a2.className = 'chat-turn';
+        var a2Msg = isEn
+          ? 'Purging reserved files via \\\\?\\ NT native path:'
+          : '正在通过 \\\\?\\ NT 原生路径精准清除异常文件：';
+        a2.innerHTML = '<div class="chat-badge agent">🤖 AGENT</div><div class="chat-bubble agent"><div class="msg-text">' + a2Msg + '</div><div class="agent-body"></div></div>';
+        box.appendChild(a2);
+        var a2Body = a2.querySelector('.agent-body');
+        box.scrollTop = box.scrollHeight;
+        await sleep(180, signal);
+
+        var t4 = makeLine(a2Body, '');
+        t4.innerHTML = (isEn ? '● [Execute Purge] ' : '● [执行清除] ') + '<code>powershell -File "%TEMP%\\delete-nul.ps1" -Path . -Yes</code>';
+        await sleep(150, signal);
+        var d1 = makeLine(a2Body, 'ok');
+        d1.textContent = isEn ? '  ✓ Physically removed \\\\?\\F:\\workspace\\dist\\NUL' : '  ✓ 已物理移除 \\\\?\\F:\\workspace\\dist\\NUL';
+        var d2 = makeLine(a2Body, 'ok');
+        d2.textContent = isEn ? '  ✓ Physically removed \\\\?\\F:\\workspace\\cache\\CON' : '  ✓ 已物理移除 \\\\?\\F:\\workspace\\cache\\CON';
+        var d3 = makeLine(a2Body, 'ok');
+        d3.textContent = isEn ? '✔ Purge completed! Remaining reserved files: 0. Clean workspace restored.' : '✔ 清理完成！经复核工作区残留数为 0，环境已恢复干净。';
+        box.scrollTop = box.scrollHeight;
+        await sleep(120, signal);
+
+        showFinalCursor(box);
+        box.scrollTop = box.scrollHeight;
+      },
+
+      raw: async function(box, signal){
+        var isEn = currentLang === 'en';
+        var l1 = makeLine(box, 'hl');
+        l1.textContent = '> GET raw.githubusercontent.com/yancongya/delete-nul/main';
+        await runSpinner(box, ' ', isEn ? 'Establishing TLS 1.3 secure channel...' : '正在建立 TLS 1.3 安全通道...', isEn ? 'Connected (HTTP/2 200 OK)' : '已连接 (HTTP/2 200 OK)', 480, signal);
+        await sleep(100, signal);
+
+        await runProgress(box, isEn ? 'Downloading delete-nul.ps1' : '下载保存 delete-nul.ps1', 28.4, 520, signal);
+        await runProgress(box, isEn ? 'Downloading delete-nul.bat' : '下载保存 delete-nul.bat', 4.2, 350, signal);
+        await sleep(120, signal);
+
+        var s1 = makeLine(box, 'ok');
+        s1.textContent = isEn ? '✓ Files saved to local directory (Downloads\\delete-nul)' : '✓ 文件已保存至本地同一目录 (Downloads\\delete-nul)';
+        var s2 = makeLine(box, 'dim');
+        s2.textContent = isEn
+          ? 'ℹ Usage: Double click delete-nul.bat or drag damaged folders directly onto bat icon!'
+          : 'ℹ 使用方式: 双击 delete-nul.bat 运行，或直接把异常文件夹拖拽到 bat 图标上！';
+        await sleep(120, signal);
+        showFinalCursor(box);
+      },
+
+      text: async function(box, signal){
+        var isEn = currentLang === 'en';
+        var p1 = makeLine(box, 'hl');
+        p1.textContent = isEn ? 'C:\\work> [Pasted native CMD batch snippet (Zero disk footprint)]' : 'C:\\work> [已粘贴原生 CMD 批处理代码片段 (免文件落地)]';
+        await sleep(160, signal);
+
+        var p2 = makeLine(box, 'dim');
+        p2.textContent = 'C:\\work> dir /s /b /a 2>nul | findstr /r /i /c:"\\\\nul$" ... >> "%RNLIST%"';
+        await runSpinner(box, ' ', isEn ? 'Deep querying via Windows native dir pipeline...' : '正在通过 Windows 原生 dir 管道深度检索...', isEn ? 'Scan completed (0.4s)' : '扫描完成 (耗时 0.4s)', 550, signal);
+        await sleep(120, signal);
+
+        var r1 = makeLine(box, 'ok');
+        r1.textContent = isEn ? 'Found 3 Windows reserved name files:' : '发现 3 个 Windows 保留名文件:';
+        var r2 = makeLine(box, 'dim');
+        r2.textContent = '  [1] C:\\work\\NUL';
+        var r3 = makeLine(box, 'dim');
+        r3.textContent = '  [2] C:\\work\\old\\CON';
+        var r4 = makeLine(box, 'dim');
+        r4.textContent = '  [3] C:\\work\\tmp\\AUX';
+        var r5 = makeLine(box, 'ok');
+        r5.textContent = isEn
+          ? 'Text mode only generates an audit list; no disk write occurred.'
+          : '纯文本模式仅输出检索清单，磁盘未作任何写操作。';
+        await sleep(120, signal);
+        showFinalCursor(box);
+      }
+    };
+
+    function play(method, arg){
+      var box = document.querySelector('.term-body[data-lines="' + method + '"]');
+      if(!box) return;
+      if(currentCtrl) currentCtrl.abort();
+      currentCtrl = new AbortController();
+      var signal = currentCtrl.signal;
+      box.replaceChildren();
+
+      var runner = workflows[method];
+      if(runner){
+        runner(box, signal, arg).catch(function(err){
+          if(err && err.message !== 'aborted') console.error(err);
+        });
+      }
+    }
+
+    var agentSend = document.querySelector('.agent-send-btn');
+    var agentInput = document.querySelector('.agent-prompt-input');
+    if(agentSend && agentInput){
+      agentSend.addEventListener('click', function(){
+        play('agent', agentInput.value.trim());
+      });
+      agentInput.addEventListener('keydown', function(e){
+        if(e.key === 'Enter'){
+          e.preventDefault();
+          play('agent', agentInput.value.trim());
+        }
+      });
+    }
+
+    document.querySelectorAll('.preset-pill').forEach(function(pill){
+      pill.addEventListener('click', function(){
+        var pr = pill.getAttribute('data-prompt');
+        var inp = document.querySelector('.agent-prompt-input');
+        if(inp && pr){
+          inp.value = pr;
+          play('agent', pr);
+        }
+      });
+    });
+
+    document.querySelectorAll('.tip-replay-action, .process-replay').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        play(btn.dataset.replay);
+      });
+    });
+    document.querySelectorAll('.term-tip-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var p = btn.closest('.install-panel');
+        if(p && p.dataset.panel) play(p.dataset.panel);
+      });
+    });
+    window.__runProcess = play;
+    if(motion.matches) play('cmd');
+    else setTimeout(function(){ play('cmd'); }, 1800); // starts naturally with boot sequence
+    motion.addEventListener('change', function(){ play('cmd'); });
+
+    /* Navigation scrollspy & back-to-top */
+    (function(){
+      var secIds = ['features','modes','why','install','faq'];
+      var sections = secIds.map(function(id){ return document.getElementById(id); }).filter(Boolean);
+      var links = document.querySelectorAll('.nav-links a');
+      if(sections.length && links.length && 'IntersectionObserver' in window){
+        var spy = new IntersectionObserver(function(entries){
+          entries.forEach(function(entry){
+            if(entry.isIntersecting){
+              var activeId = entry.target.id;
+              links.forEach(function(link){
+                var match = link.getAttribute('href') === '#' + activeId;
+                link.classList.toggle('active', match);
+              });
+            }
+          });
+        }, {rootMargin: '-20% 0px -65% 0px'});
+        sections.forEach(function(s){ spy.observe(s); });
+      }
+
+      var topBtn = document.querySelector('.back-to-top');
+      if(topBtn){
+        topBtn.addEventListener('click', function(e){
+          e.preventDefault();
+          window.scrollTo({top: 0, behavior: 'smooth'});
+        });
+      }
+    })();
+  })();
+
+  /* scroll reveal (with safety fallback: never leave content hidden) */
+  (function(){
+    var els=document.querySelectorAll('.reveal');
+    if(motion.matches){els.forEach(function(e){e.classList.add('in')});return;}
+    var io=new IntersectionObserver(function(en){en.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}});},{threshold:.12});
+    els.forEach(function(e){io.observe(e)});
+    // Fallback: if IntersectionObserver never fires (e.g. background tab / full-page
+    // capture), reveal everything so no section stays invisible.
+    setTimeout(function(){els.forEach(function(e){e.classList.add('in')})},2500);
+  })();
 })();
 </script>
 </body>
