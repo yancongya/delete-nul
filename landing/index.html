@@ -223,20 +223,96 @@ html.light .theme-btn .moon{display:inline-block}
 .term-dots{display:flex;gap:5px}
 .term-dots i{width:8px;height:8px;border-radius:2px;background:var(--faint);opacity:.6}
 .term-title{flex:1;letter-spacing:.04em;color:var(--dim);font-weight:600}
-.process-replay{background:none;border:1px solid var(--line);border-radius:3px;color:var(--dim);font:10px var(--mono);cursor:pointer;padding:2px 8px;transition:all .15s}
-.process-replay:hover{color:#fff;border-color:#fff}
-.term-body{padding:14px;min-height:245px;font:11.5px/1.75 var(--mono);color:var(--ink);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+/* 提示按钮及 Hover 浮层 */
+.term-tip-wrap{position:relative;margin-left:auto}
+.term-tip-btn{
+  background:var(--panel);border:1px solid var(--line);border-radius:3px;
+  color:var(--dim);font:11px var(--mono);cursor:pointer;padding:3px 9px;
+  display:inline-flex;align-items:center;gap:5px;transition:all .18s;letter-spacing:.02em
+}
+.term-tip-btn .tip-ico{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:13px;height:13px;border-radius:50%;background:#ffffff20;
+  color:#fff;font-size:9.5px;font-weight:700
+}
+.term-tip-btn:hover{color:#fff;border-color:#fff;background:var(--panel2)}
+
+/* Popover card on hover */
+.term-tip-pop{
+  position:absolute;top:calc(100% + 8px);right:0;width:max(300px, 44vw);max-width:390px;
+  z-index:90;background:#0d0d10;border:1px solid var(--line-bright);
+  border-radius:4px;padding:14px;box-shadow:0 14px 40px rgba(0,0,0,0.8);
+  font:11px/1.65 var(--mono);color:#e2e2e6;
+  opacity:0;visibility:hidden;transform:translateY(-4px);
+  transition:all .2s cubic-bezier(.16,1,.3,1);pointer-events:none
+}
+.term-tip-wrap:hover .term-tip-pop,
+.term-tip-wrap:focus-within .term-tip-pop{
+  opacity:1;visibility:visible;transform:none;pointer-events:auto
+}
+.tip-pop-head{font-weight:700;color:#fff;letter-spacing:.5px;font-size:11px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px dashed var(--line)}
+.tip-pop-section{margin-bottom:9px}
+.tip-pop-label{color:#fff;font-weight:700;font-size:10.5px;margin-bottom:3px}
+.tip-pop-text{color:var(--dim);font-size:11px;line-height:1.6}
+.tip-pop-replay{margin-top:10px;padding-top:8px;border-top:1px dashed var(--line);display:flex;justify-content:flex-end}
+.tip-replay-action{
+  background:none;border:1px solid var(--line);border-radius:3px;
+  color:var(--dim);font:10px var(--mono);padding:3px 8px;cursor:pointer;transition:.15s
+}
+.tip-replay-action:hover{color:#fff;border-color:#fff;background:#ffffff10}
+
+html.light .term-tip-pop{background:#ffffff;border:1px solid #d0d0d5;box-shadow:0 14px 40px rgba(0,0,0,0.18);color:#1a1a1f}
+html.light .tip-pop-head{color:#000;border-bottom-color:#e0e0e4}
+html.light .tip-pop-label{color:#000}
+html.light .tip-pop-text{color:#55555c}
+html.light .tip-replay-action{color:#222;border-color:#ccc}
+html.light .tip-replay-action:hover{color:#000;border-color:#000;background:#0000000a}
+html.light .term-tip-btn .tip-ico{background:#00000015;color:#000}
+
+.term-body{padding:14px;min-height:300px;max-height:340px;overflow-y:auto;font:11.5px/1.75 var(--mono);color:#f0f0f3;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;scroll-behavior:smooth}
+.term-body::-webkit-scrollbar{width:5px}
+.term-body::-webkit-scrollbar-track{background:#050507}
+.term-body::-webkit-scrollbar-thumb{background:#ffffff22;border-radius:2px}
+.term-body::-webkit-scrollbar-thumb:hover{background:#ffffff44}
 .term-body .demo-line{white-space:pre-wrap;overflow-wrap:anywhere;min-height:1.75em}
 .term-body .ok{color:#fff;font-weight:600}
-.term-body .dim{color:var(--faint)}
+.term-body .dim{color:#90909c}
 .term-body .hl{color:#fff;font-weight:600}
 .term-body .warn{color:#ddd;font-weight:500}
 .term-body code{font-family:var(--mono);color:#fff;background:rgba(255,255,255,0.08);padding:1px 5px;border-radius:2px;border:1px solid rgba(255,255,255,0.12)}
 .term-cursor{display:inline-block;width:7px;height:13px;background:#fff;vertical-align:-2px;animation:blink .8s steps(1) infinite}
+
+/* Conversational chat elements */
+.chat-turn{margin-bottom:12px}
+.chat-badge{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:700;letter-spacing:.8px;padding:1px 6px;border-radius:2px;margin-bottom:5px;text-transform:uppercase}
+.chat-badge.user{background:#ffffff20;color:#fff;border:1px solid #ffffff40}
+.chat-badge.agent{background:#ffffff0d;color:#bbb;border:1px solid var(--line)}
+.chat-bubble{padding:9px 12px;border-radius:3px;font-size:11.5px;line-height:1.65}
+.chat-bubble.user{background:rgba(255,255,255,0.07);border-left:3px solid #fff;color:#fff}
+.chat-bubble.agent{background:rgba(255,255,255,0.04);border-left:3px solid #888;color:#e6e6ea}
+.chat-bubble .msg-text{margin-bottom:6px}
+.chat-bubble .agent-body{margin-top:6px}
 .term-foot{display:flex;align-items:center;gap:10px;padding:9px 12px;border-top:1px solid var(--line);background:var(--panel2)}
 .term-foot code{flex:1;min-width:0;font:11px/1.5 var(--mono);color:var(--dim);white-space:pre-wrap;overflow-wrap:anywhere}
 .install button.copybtn,.term-foot a{flex:none;font-family:var(--mono);font-size:11px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:3px;padding:6px 12px;cursor:pointer;transition:.15s;text-decoration:none}
 .term-foot a:hover,.install button.copybtn:hover{border-color:#fff;color:#fff}
+
+/* Agent interactive prompt input bar */
+.agent-foot{padding:8px 12px}
+.agent-input-row{display:flex;align-items:center;gap:8px;width:100%}
+.agent-input-wrap{display:flex;align-items:center;gap:6px;flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:2px 8px;transition:border-color .18s}
+.agent-input-wrap:focus-within{border-color:#fff}
+.agent-input-icon{color:var(--faint);font:11px var(--mono)}
+.agent-prompt-input{flex:1;min-width:0;background:none;border:none;outline:none;font:11px var(--mono);color:var(--ink);padding:4px 0}
+.agent-send-btn{
+  flex:none;font-family:var(--mono);font-size:11px;background:#fff;color:#000;
+  border:1px solid #fff;border-radius:3px;padding:6px 12px;cursor:pointer;
+  transition:all .15s;font-weight:700
+}
+.agent-send-btn:hover{background:#e0e0e0;transform:translateY(-1px)}
+html.light .agent-input-wrap:focus-within{border-color:#000}
+html.light .agent-send-btn{background:#000;color:#fff;border-color:#000}
+html.light .agent-send-btn:hover{background:#222}
 /* 立即开始 → 从上往下逐个消失、补位、消散 */
 #dissolve{position:fixed;inset:0;z-index:120;pointer-events:none}
 .dissolve-layer{will-change:height,margin,padding,transform,opacity,filter}
@@ -627,22 +703,103 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
           </div>
         </div>
         <div class="install-panel" data-panel="cmd" role="tabpanel">
-          <div class="term-head"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">cmd.exe — 终端命令</span><button class="process-replay" type="button" data-replay="cmd">↻ 重播</button></div>
+          <div class="term-head">
+            <span class="term-dots"><i></i><i></i><i></i></span>
+            <span class="term-title">cmd.exe — 终端命令</span>
+            <div class="term-tip-wrap">
+              <button class="term-tip-btn" type="button" aria-haspopup="dialog" aria-label="方式说明与特点"><span class="tip-ico">?</span> 提示</button>
+              <div class="term-tip-pop" role="tooltip">
+                <div class="tip-pop-head">// 终端命令 (cmd.exe) · 方式提示</div>
+                <div class="tip-pop-section">
+                  <div class="tip-pop-label">▶ 使用方法</div>
+                  <div class="tip-pop-text">复制下方单行命令在 Windows CMD 或 PowerShell 中回车运行；启动后用 ↑ ↓ 选择模式，回车确认。</div>
+                </div>
+                <div class="tip-pop-section">
+                  <div class="tip-pop-label">★ 核心特点</div>
+                  <div class="tip-pop-text">一键拉取至系统临时目录 %TEMP%，不污染工作区；提供全局全盘扫描、逐级选盘、超时防卡死等完整功能。</div>
+                </div>
+                <div class="tip-pop-replay"><button class="tip-replay-action" type="button" data-replay="cmd">↻ 重新演示此操作</button></div>
+              </div>
+            </div>
+          </div>
           <div class="term-body" data-lines="cmd"></div>
           <div class="term-foot"><code>curl -fsSL ".../delete-nul.ps1" -o "%TEMP%\delete-nul.ps1" &amp;&amp; ... &amp;&amp; call "%TEMP%\delete-nul.bat"</code><button class="copybtn" type="button" data-copy="curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1&quot; -o &quot;%TEMP%\delete-nul.ps1&quot; &amp;&amp; curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat&quot; -o &quot;%TEMP%\delete-nul.bat&quot; &amp;&amp; call &quot;%TEMP%\delete-nul.bat&quot;">复制</button></div>
         </div>
         <div class="install-panel" data-panel="agent" role="tabpanel" hidden>
-          <div class="term-head"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">agent — AI 智能助手完整提示词</span><button class="process-replay" type="button" data-replay="agent">↻ 重播</button></div>
+          <div class="term-head">
+            <span class="term-dots"><i></i><i></i><i></i></span>
+            <span class="term-title">agent — AI 智能助手对话演示</span>
+            <div class="term-tip-wrap">
+              <button class="term-tip-btn" type="button" aria-haspopup="dialog" aria-label="方式说明与特点"><span class="tip-ico">?</span> 提示</button>
+              <div class="term-tip-pop" role="tooltip">
+                <div class="tip-pop-head">// AI Agent 提示词 · 方式提示</div>
+                <div class="tip-pop-section">
+                  <div class="tip-pop-label">▶ 使用方法</div>
+                  <div class="tip-pop-text">点击下方【复制提示词】，直接粘贴发送给 Cursor、Claude Code、Antigravity、Copilot 等 AI 助手对话框。</div>
+                </div>
+                <div class="tip-pop-section">
+                  <div class="tip-pop-label">★ 核心特点</div>
+                  <div class="tip-pop-text">对话式交互执行：自动查阅仓库原理、临时目录零污染下载、强制只读预检并向你汇报，经你确认后才精准清除。</div>
+                </div>
+                <div class="tip-pop-replay"><button class="tip-replay-action" type="button" data-replay="agent">↻ 重新演示此对话</button></div>
+              </div>
+            </div>
+          </div>
           <div class="term-body" data-lines="agent"></div>
-          <div class="term-foot"><code>查看仓库 yancongya/delete-nul → 下载 ps1 至 %TEMP% → 执行 -DryRun 预览 → 用户确认后 \\?\ 安全删除</code><button class="copybtn" type="button" data-copy="请帮我安全清理当前工作区（或指定路径）中无法正常删除的 Windows 保留名文件（NUL / CON / AUX / PRN / COM1-9 / LPT1-9 等）：&#10;&#10;1. 查看仓库与原理：&#10;   - 仓库地址：https://github.com/yancongya/delete-nul&#10;   - 或查阅文档：curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/README.md&quot;&#10;   - 核心原理：Win32 命名空间将保留名劫持为 DOS 字符设备，普通 del 无法删除；必须通过 \\?\ 前缀直达 NT 原生路径，且必须严格遵循「先列后删」安全规范。&#10;&#10;2. 下载工具至临时目录（零依赖、免安装、不污染代码仓库）：&#10;   curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1&quot; -o &quot;%TEMP%\delete-nul.ps1&quot;&#10;&#10;3. 执行只读预检扫描（-DryRun）：&#10;   powershell -ExecutionPolicy Bypass -File &quot;%TEMP%\delete-nul.ps1&quot; -Path . -DryRun&#10;   - 仅扫描并输出匹配的保留名文件列表，不进行任何删除操作。&#10;   - 向我汇报扫描结果并等待我的确认。&#10;&#10;4. 获得确认后执行安全清理与复核：&#10;   powershell -ExecutionPolicy Bypass -File &quot;%TEMP%\delete-nul.ps1&quot; -Path . -Yes&#10;   - 使用 \\?\ 前缀精准移除异常文件，并复核确认残留数为 0。">复制提示词</button></div>
+          <div class="term-foot agent-foot">
+            <div class="agent-input-row">
+              <div class="agent-input-wrap">
+                <span class="agent-input-icon">❯</span>
+                <input type="text" class="agent-prompt-input" value="请从 GitHub 获取并安装 delete-nul 工具，安全扫描并清理当前工作区保留名文件" placeholder="输入提示词发给 Agent..." aria-label="提示词输入框">
+              </div>
+              <button class="agent-send-btn" type="button" title="点击发送提示词并启动下载安装交互">↵ 发送</button>
+              <button class="copybtn" type="button" data-copy="请帮我安全清理当前工作区（或指定路径）中无法正常删除的 Windows 保留名文件（NUL / CON / AUX / PRN / COM1-9 / LPT1-9 等）：&#10;&#10;1. 查看仓库与原理：&#10;   - 仓库地址：https://github.com/yancongya/delete-nul&#10;   - 或查阅文档：curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/README.md&quot;&#10;   - 核心原理：Win32 命名空间将保留名劫持为 DOS 字符设备，普通 del 无法删除；必须通过 \\?\ 前缀直达 NT 原生路径，且必须严格遵循「先列后删」安全规范。&#10;&#10;2. 下载工具至临时目录（零依赖、免安装、不污染代码仓库）：&#10;   curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1&quot; -o &quot;%TEMP%\delete-nul.ps1&quot;&#10;&#10;3. 执行只读预检扫描（-DryRun）：&#10;   powershell -ExecutionPolicy Bypass -File &quot;%TEMP%\delete-nul.ps1&quot; -Path . -DryRun&#10;   - 仅扫描并输出匹配的保留名文件列表，不进行任何删除操作。&#10;   - 向我汇报扫描结果并等待我的确认。&#10;&#10;4. 获得确认后执行安全清理与复核：&#10;   powershell -ExecutionPolicy Bypass -File &quot;%TEMP%\delete-nul.ps1&quot; -Path . -Yes&#10;   - 使用 \\?\ 前缀精准移除异常文件，并复核确认残留数为 0。">复制完整提示词</button>
+            </div>
+          </div>
         </div>
         <div class="install-panel" data-panel="raw" role="tabpanel" hidden>
-          <div class="term-head"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">browser — 下载文件</span><button class="process-replay" type="button" data-replay="raw">↻ 重播</button></div>
+          <div class="term-head">
+            <span class="term-dots"><i></i><i></i><i></i></span>
+            <span class="term-title">browser — 下载文件</span>
+            <div class="term-tip-wrap">
+              <button class="term-tip-btn" type="button" aria-haspopup="dialog" aria-label="方式说明与特点"><span class="tip-ico">?</span> 提示</button>
+              <div class="term-tip-pop" role="tooltip">
+                <div class="tip-pop-head">// 下载文件 (本地脚本) · 方式提示</div>
+                <div class="tip-pop-section">
+                  <div class="tip-pop-label">▶ 使用方法</div>
+                  <div class="tip-pop-text">下载 delete-nul.ps1 和 delete-nul.bat 至同一文件夹；双击 bat 运行，或直接把异常文件夹拖到 bat 图标上。</div>
+                </div>
+                <div class="tip-pop-section">
+                  <div class="tip-pop-label">★ 核心特点</div>
+                  <div class="tip-pop-text">本地持久保存；支持强大的鼠标拖拽交互（连资源管理器选不中的 NUL 文件都能直接拖入图标清除）。</div>
+                </div>
+                <div class="tip-pop-replay"><button class="tip-replay-action" type="button" data-replay="raw">↻ 重新演示此操作</button></div>
+              </div>
+            </div>
+          </div>
           <div class="term-body" data-lines="raw"></div>
           <div class="term-foot"><code>raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1 + delete-nul.bat</code><a href="https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1" target="_blank" rel="noopener" download>下载 ps1</a><a href="https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat" target="_blank" rel="noopener" download>下载 bat</a></div>
         </div>
         <div class="install-panel" data-panel="text" role="tabpanel" hidden>
-          <div class="term-head"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">cmd.exe — 纯文本</span><button class="process-replay" type="button" data-replay="text">↻ 重播</button></div>
+          <div class="term-head">
+            <span class="term-dots"><i></i><i></i><i></i></span>
+            <span class="term-title">cmd.exe — 纯文本</span>
+            <div class="term-tip-wrap">
+              <button class="term-tip-btn" type="button" aria-haspopup="dialog" aria-label="方式说明与特点"><span class="tip-ico">?</span> 提示</button>
+              <div class="term-tip-pop" role="tooltip">
+                <div class="tip-pop-head">// 纯文本 (免落地批处理) · 方式提示</div>
+                <div class="tip-pop-section">
+                  <div class="tip-pop-label">▶ 使用方法</div>
+                  <div class="tip-pop-text">先复制【第 1 部分】贴进 CMD 回车（只检索生成清单）；核对生成的清单确认无误后，再复制【第 2 部分】贴进 CMD 执行删除。</div>
+                </div>
+                <div class="tip-pop-section">
+                  <div class="tip-pop-label">★ 核心特点</div>
+                  <div class="tip-pop-text">零文件落地、免 PowerShell 依赖！100% 采用 Windows 原生 CMD 管道命令，专为金融/政企内网高保密机设计。</div>
+                </div>
+                <div class="tip-pop-replay"><button class="tip-replay-action" type="button" data-replay="text">↻ 重新演示此操作</button></div>
+              </div>
+            </div>
+          </div>
           <div class="term-body" data-lines="text"></div>
           <div class="term-foot"><code>set "RNLIST=..." &amp; dir /s /b /a | findstr /r /i /c:"\\nul$" ... &gt;&gt; "%RNLIST%" &amp; type "%RNLIST%"</code><button class="copybtn" type="button" data-copy="set &quot;RNLIST=%TEMP%\reserved_name_files.txt&quot;
 type nul &gt; &quot;%RNLIST%&quot;
@@ -1202,52 +1359,110 @@ type &quot;%RNLIST%&quot;">复制</button></div>
         showFinalCursor(box);
       },
 
-      agent: async function(box, signal){
-        await typeText(box, '> Prompt: ', '安全扫描工作区并清理 Windows 保留名异常文件 (NUL/CON...)', 'hl', signal, 16);
-        await sleep(140, signal);
+      agent: async function(box, signal, customPrompt){
+        box.replaceChildren();
 
-        await runSpinner(box, '  [1/4]', 'Agent 查阅开源仓库与规范 (github.com/yancongya/delete-nul)...', '已解析 README: 识别 Win32 命名空间劫持，需通过 \\\\?\\ NT 原生路径精准清理', 580, signal);
-        await sleep(100, signal);
+        var promptInput = document.querySelector('.agent-prompt-input');
+        var promptMsg = customPrompt || (promptInput && promptInput.value.trim()) || '请从 GitHub 下载安装 delete-nul 工具，安全扫描并清理当前工作区保留名文件（先拉取到 %TEMP%，只读扫描汇报，我确认后再删）。';
 
-        var l2 = makeLine(box, '');
-        l2.innerHTML = '  [2/4] <span class="hl">Tool Call</span>: <code>curl -fsSL .../delete-nul.ps1 -o "%TEMP%\\delete-nul.ps1"</code>';
-        await runProgress(box, '拉取工具至临时目录', 28.4, 520, signal);
-        await sleep(100, signal);
-
-        var l3 = makeLine(box, '');
-        l3.innerHTML = '  [3/4] <span class="hl">Tool Call</span>: <code>powershell -File "%TEMP%\\delete-nul.ps1" -Path . -DryRun</code>';
-        await sleep(180, signal);
-        var r1 = makeLine(box, 'dim');
-        r1.textContent = '        正在只读扫描 . (耗时 0.2s) · 发现 2 个 Windows 保留名文件:';
-        var r2 = makeLine(box, 'warn');
-        r2.innerHTML = '        ! <code>.\\dist\\NUL</code>   (DOS Device Name)';
-        var r3 = makeLine(box, 'warn');
-        r3.innerHTML = '        ! <code>.\\cache\\CON</code>  (DOS Device Name)';
-        await sleep(200, signal);
-
-        var conf = makeLine(box, 'hl');
-        conf.textContent = '        ? 发现 2 个保留名文件，绝不误伤正常文件。是否确认物理清除？ (Y/n) ';
-        if(!motion.matches){
-          var cur = document.createElement('span');
-          cur.className = 'term-cursor';
-          conf.appendChild(cur);
-          await sleep(480, signal);
-          cur.remove();
+        // 1. User sends prompt
+        var u1 = document.createElement('div');
+        u1.className = 'chat-turn';
+        u1.innerHTML = '<div class="chat-badge user">👤 USER</div><div class="chat-bubble user"><span class="msg-text"></span><span class="term-cursor"></span></div>';
+        box.appendChild(u1);
+        var u1Text = u1.querySelector('.msg-text');
+        var u1Cur = u1.querySelector('.term-cursor');
+        
+        for(var i=0; i<promptMsg.length; i++){
+          if(signal && signal.aborted) throw new Error('aborted');
+          u1Text.textContent += promptMsg[i];
+          await sleep(14 + Math.random() * 10, signal);
+          box.scrollTop = box.scrollHeight;
         }
-        conf.textContent = '        ? 发现 2 个保留名文件，绝不误伤正常文件。是否确认物理清除？ (Y/n) Y';
-        await sleep(150, signal);
+        await sleep(220, signal);
+        if(u1Cur) u1Cur.remove();
 
-        var l4 = makeLine(box, '');
-        l4.innerHTML = '  [4/4] <span class="hl">Tool Call</span>: <code>powershell -File "%TEMP%\\delete-nul.ps1" -Path . -Yes</code>';
-        await sleep(160, signal);
-        var d1 = makeLine(box, 'ok');
-        d1.textContent = '        ✓ 已通过 \\\\?\\ 原生路径物理移除 .\\dist\\NUL';
-        var d2 = makeLine(box, 'ok');
-        d2.textContent = '        ✓ 已通过 \\\\?\\ 原生路径物理移除 .\\cache\\CON';
-        var d3 = makeLine(box, 'ok');
-        d3.textContent = '        ✔ 复核完成: 0 个残留文件，工作区已恢复正常。';
+        // 2. Agent answers and executes download/installation and scan
+        var a1 = document.createElement('div');
+        a1.className = 'chat-turn';
+        a1.innerHTML = '<div class="chat-badge agent">🤖 AGENT</div><div class="chat-bubble agent"><div class="msg-text">收到指令！立即按照提示词执行 delete-nul 工具下载安装与安全预检流程：</div><div class="agent-body"></div></div>';
+        box.appendChild(a1);
+        var a1Body = a1.querySelector('.agent-body');
+        box.scrollTop = box.scrollHeight;
+        await sleep(240, signal);
+
+        // Tool 1: 查阅仓库规范
+        await runSpinner(a1Body, '● [查阅仓库]', 'GET github.com/yancongya/delete-nul (README.md)...', '确认规范: 需使用 \\\\?\\ NT 原生路径绕过 Win32 命名空间拦截', 520, signal);
+        box.scrollTop = box.scrollHeight;
         await sleep(120, signal);
+
+        // Tool 2: 下载安装工具至临时目录 %TEMP%
+        var t2 = makeLine(a1Body, '');
+        t2.innerHTML = '● [下载安装工具] <code>curl -fsSL .../delete-nul.ps1 -o "%TEMP%\\delete-nul.ps1"</code>';
+        await runProgress(a1Body, '下载安装至临时目录', 28.4, 500, signal);
+        box.scrollTop = box.scrollHeight;
+        await sleep(120, signal);
+
+        // Tool 3: 只读扫描预检
+        var t3 = makeLine(a1Body, '');
+        t3.innerHTML = '● [执行只读扫描] <code>powershell -File "%TEMP%\\delete-nul.ps1" -Path . -DryRun</code>';
+        await sleep(160, signal);
+        var r1 = makeLine(a1Body, 'dim');
+        r1.textContent = '  扫描工作区: 耗时 0.2s · 发现 2 个 Windows 保留名文件（正常文件未受影响）:';
+        var r2 = makeLine(a1Body, 'warn');
+        r2.innerHTML = '  ! <code>.\\dist\\NUL</code>   (DOS Device Name)';
+        var r3 = makeLine(a1Body, 'warn');
+        r3.innerHTML = '  ! <code>.\\cache\\CON</code>  (DOS Device Name)';
+        box.scrollTop = box.scrollHeight;
+        await sleep(220, signal);
+
+        // Agent asks user confirmation
+        var ask = makeLine(a1Body, 'hl');
+        ask.textContent = '  ? 发现上述 2 个保留名文件。请确认是否使用 \\\\?\\ 原生路径执行物理清除？';
+        box.scrollTop = box.scrollHeight;
+        await sleep(450, signal);
+
+        // 3. User responds confirmation
+        var u2 = document.createElement('div');
+        u2.className = 'chat-turn';
+        u2.innerHTML = '<div class="chat-badge user">👤 USER</div><div class="chat-bubble user"><span class="msg-text"></span><span class="term-cursor"></span></div>';
+        box.appendChild(u2);
+        var u2Text = u2.querySelector('.msg-text');
+        var u2Cur = u2.querySelector('.term-cursor');
+        box.scrollTop = box.scrollHeight;
+        var replyMsg = '确认清除，请执行。';
+        for(var j=0; j<replyMsg.length; j++){
+          if(signal && signal.aborted) throw new Error('aborted');
+          u2Text.textContent += replyMsg[j];
+          await sleep(20 + Math.random() * 15, signal);
+          box.scrollTop = box.scrollHeight;
+        }
+        await sleep(220, signal);
+        if(u2Cur) u2Cur.remove();
+
+        // 4. Agent executes physical deletion and reports completion
+        var a2 = document.createElement('div');
+        a2.className = 'chat-turn';
+        a2.innerHTML = '<div class="chat-badge agent">🤖 AGENT</div><div class="chat-bubble agent"><div class="msg-text">正在通过 \\\\?\\ NT 原生路径精准清除异常文件：</div><div class="agent-body"></div></div>';
+        box.appendChild(a2);
+        var a2Body = a2.querySelector('.agent-body');
+        box.scrollTop = box.scrollHeight;
+        await sleep(180, signal);
+
+        var t4 = makeLine(a2Body, '');
+        t4.innerHTML = '● [执行清除] <code>powershell -File "%TEMP%\\delete-nul.ps1" -Path . -Yes</code>';
+        await sleep(150, signal);
+        var d1 = makeLine(a2Body, 'ok');
+        d1.textContent = '  ✓ 已物理移除 \\\\?\\F:\\workspace\\dist\\NUL';
+        var d2 = makeLine(a2Body, 'ok');
+        d2.textContent = '  ✓ 已物理移除 \\\\?\\F:\\workspace\\cache\\CON';
+        var d3 = makeLine(a2Body, 'ok');
+        d3.textContent = '✔ 清理完成！经复核工作区残留数为 0，环境已恢复干净。';
+        box.scrollTop = box.scrollHeight;
+        await sleep(120, signal);
+
         showFinalCursor(box);
+        box.scrollTop = box.scrollHeight;
       },
 
       raw: async function(box, signal){
@@ -1293,7 +1508,7 @@ type &quot;%RNLIST%&quot;">复制</button></div>
       }
     };
 
-    function play(method){
+    function play(method, arg){
       var box = document.querySelector('.term-body[data-lines="' + method + '"]');
       if(!box) return;
       if(currentCtrl) currentCtrl.abort();
@@ -1303,14 +1518,37 @@ type &quot;%RNLIST%&quot;">复制</button></div>
 
       var runner = workflows[method];
       if(runner){
-        runner(box, signal).catch(function(err){
+        runner(box, signal, arg).catch(function(err){
           if(err && err.message !== 'aborted') console.error(err);
         });
       }
     }
 
-    document.querySelectorAll('.process-replay').forEach(function(btn){
-      btn.addEventListener('click', function(){ play(btn.dataset.replay); });
+    var agentSend = document.querySelector('.agent-send-btn');
+    var agentInput = document.querySelector('.agent-prompt-input');
+    if(agentSend && agentInput){
+      agentSend.addEventListener('click', function(){
+        play('agent', agentInput.value.trim());
+      });
+      agentInput.addEventListener('keydown', function(e){
+        if(e.key === 'Enter'){
+          e.preventDefault();
+          play('agent', agentInput.value.trim());
+        }
+      });
+    }
+
+    document.querySelectorAll('.tip-replay-action, .process-replay').forEach(function(btn){
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        play(btn.dataset.replay);
+      });
+    });
+    document.querySelectorAll('.term-tip-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var p = btn.closest('.install-panel');
+        if(p && p.dataset.panel) play(p.dataset.panel);
+      });
     });
     window.__runProcess = play;
     if(motion.matches) play('cmd');
