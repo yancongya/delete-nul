@@ -52,9 +52,11 @@ html.light .nav-links a:hover,
 html.light .theme-btn:hover,
 html.light .lang-btn:hover{color:var(--ink)}
 html.light .lang-btn,
-html.light .nav-theme-btn{background:var(--panel);border-color:var(--line-bright);color:var(--ink)}
+html.light .nav-theme-btn,
+html.light .foot-theme-btn{background:var(--panel);border-color:var(--line-bright);color:var(--ink)}
 html.light .lang-btn:hover,
-html.light .nav-theme-btn:hover{background:var(--panel2);border-color:var(--ink)}
+html.light .nav-theme-btn:hover,
+html.light .foot-theme-btn:hover{background:var(--panel2);border-color:var(--ink)}
 html.light .nav-cta{border-color:var(--line-bright);background:var(--panel);color:var(--ink)}
 html.light .nav-cta:hover{background:#000;color:#fff;border-color:#000}
 
@@ -376,18 +378,20 @@ header.top{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--b
 .nav-links{display:flex;gap:26px;font-size:12.5px;color:var(--dim);font-family:var(--mono)}
 .nav-links a{transition:color .15s}
 .nav-links a:hover{color:#fff}
-.nav-actions{display:flex;align-items:center;gap:8px}
+.nav-actions{display:flex;align-items:center;gap:8px;flex:none}
 .lang-btn{
   font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.05em;
   padding:4px 9px;border:1px solid var(--line-bright);border-radius:3px;
   background:var(--panel);color:var(--dim);cursor:pointer;transition:all .18s;
   display:inline-flex;align-items:center;justify-content:center;
+  flex:none;
 }
 .lang-btn:hover{color:var(--ink);border-color:var(--ink);background:var(--panel2)}
 .nav-theme-btn{
-  position:static;padding:5px 6px;border-radius:3px;border:1px solid var(--line-bright);
+  position:relative!important;padding:5px 6px;border-radius:3px;border:1px solid var(--line-bright);
   display:inline-flex;align-items:center;justify-content:center;
   background:var(--panel);color:var(--dim);cursor:pointer;transition:all .18s;
+  flex:none;
 }
 .nav-theme-btn:hover{color:var(--ink);border-color:var(--ink);background:var(--panel2)}
 .nav-theme-btn svg{width:16px;height:16px}
@@ -870,11 +874,24 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
 .foot-social a{color:var(--dim);transition:color .15s}
 .foot-social a:hover{color:#fff}
 .foot-social svg{width:18px;height:18px}
-.foot-divider{border-top:1px solid var(--line);position:relative}
-.foot-bottom{max-width:1200px;margin:0 auto;padding:24px 24px;text-align:center;color:var(--faint);font-size:12px;font-family:var(--mono)}
-.theme-btn{position:absolute;right:24px;bottom:20px;padding:8px;border-radius:8px;color:var(--dim);background:none;border:none;cursor:pointer;transition:.2s}
-.theme-btn:hover{background:var(--panel);color:var(--ink)}
-.theme-btn svg{width:18px;height:18px}
+.foot-divider{border-top:1px solid var(--line)}
+.foot-bottom-row{
+  max-width:1200px;margin:0 auto;padding:20px 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  font-size:12px;font-family:var(--mono);color:var(--faint);flex-wrap:wrap;
+}
+.theme-btn{
+  background:none;border:none;cursor:pointer;transition:.18s;color:var(--dim);
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.theme-btn:hover{color:var(--ink)}
+.theme-btn svg{width:16px;height:16px;display:block}
+.foot-theme-btn{
+  padding:6px 9px;border-radius:3px;border:1px solid var(--line);
+  background:var(--panel);color:var(--dim);cursor:pointer;transition:all .18s;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.foot-theme-btn:hover{background:var(--panel2);border-color:var(--ink);color:var(--ink)}
 
 .reveal{opacity:0;transform:translateY(20px);transition:opacity .6s var(--ease-out-expo),transform .6s var(--ease-out-expo)}
 .reveal.in{opacity:1;transform:none}
@@ -911,7 +928,7 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
   .install-tabs button{flex:1;padding:12px 4px;font-size:10.5px}
   .install-row{flex-direction:column}
   .install-row .copybtn{align-self:flex-end}
-  .foot-bottom{padding-inline:48px}
+  .foot-bottom-row{flex-direction:column;text-align:center;gap:12px;padding:16px 20px}
   section.block{padding:72px 0}
 }
 @media(prefers-reduced-motion:reduce){
@@ -1303,11 +1320,13 @@ type &quot;%RNLIST%&quot;">复制</button></div>
     </div>
   </div>
   <div class="foot-divider">
-    <div class="foot-bottom" data-i18n="footer.copyright">© 2026 delete-nul. Open source software under the MIT License.</div>
-    <button class="theme-btn" id="themeBtn" aria-label="浅色主题" aria-pressed="false">
-      <svg class="sun" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
-      <svg class="moon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 13.34A9 9 0 0 1 10.66 3.1 9 9 0 1 0 20.9 13.34Z"/></svg>
-    </button>
+    <div class="foot-bottom-row">
+      <div class="foot-bottom-text" data-i18n="footer.copyright">© 2026 delete-nul. Open source software under the MIT License.</div>
+      <button class="theme-btn foot-theme-btn" id="themeBtn" aria-label="浅色主题" aria-pressed="false" title="切换亮/暗色模式">
+        <svg class="sun" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
+        <svg class="moon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 13.34A9 9 0 0 1 10.66 3.1 9 9 0 1 0 20.9 13.34Z"/></svg>
+      </button>
+    </div>
   </div>
 </footer>
 </div>
