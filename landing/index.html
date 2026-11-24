@@ -24,40 +24,151 @@ a{color:inherit;text-decoration:none}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 ::selection{background:#fff;color:#000}
 
-/* light theme (monochrome) */
-html.light{--bg:#f5f5f7;--panel:#ffffff;--panel2:#ececee;--line:#00000014;--ink:#0c0c0e;--dim:#55555f;--faint:#8a8a94;--card-shadow:0 1px 3px #0001,0 6px 20px #0001;--card-shadow-hover:0 2px 6px #0001,0 12px 36px #0000000f}
+/* light theme (monochrome high-contrast) */
+html.light{
+  --bg:#f5f5f7;--panel:#ffffff;--panel2:#ececee;--line:#00000014;
+  --ink:#0c0c0e;--dim:#484852;--faint:#6e6e78;
+  --card-shadow:0 1px 3px #0001,0 6px 20px #0001;
+  --card-shadow-hover:0 2px 6px #0001,0 12px 36px #0000000f;
+  --term-dot:rgba(0,0,0,.35);--term-scan:rgba(0,0,0,.018);--term-glow:rgba(0,0,0,.025);
+}
 html.light body{background:var(--bg)}
+html.light ::selection{background:#000;color:#fff}
 html.light #field{filter:none;opacity:.88}
-html.light .btn.primary{background:#0c0c0e;color:#fff}
-html.light .cmd,html.light header.top{background:#fff}
-html.light .foot-social{background:transparent}
 html.light [data-hero-field] canvas{filter:invert(1)}
-html.light .foot-brand .flogo .p{color:#000}
-html.light .foot-brand .flogo .f{color:#666}
-html.light{--faint:#636363}
-html.light .nav-links.open,html.light .cmd button{background:var(--panel2)}
-html.light .pane.good{background:var(--panel);border-color:var(--line)}
-html.light .card code,html.light .pane code,html.light .hero p.sub code,
-html.light .load-spin,html.light .load-bar,html.light .load-pct b{color:var(--ink)}
-html.light .hero p.sub code{background:var(--panel2)}
+
+/* Header & Navigation */
+html.light header.top{background:rgba(255,255,255,0.88)}
+html.light .nav-links.open{background:var(--panel2)}
+html.light .brand .cur,
+html.light .nav-links a:hover,
+html.light .theme-btn:hover{color:var(--ink)}
+html.light .nav-cta{border-color:var(--line-bright);background:var(--panel);color:var(--ink)}
+html.light .nav-cta:hover{background:#000;color:#fff;border-color:#000}
+
+/* Hero Section */
 html.light .hero h1 .accent{color:inherit;border-color:#999}
-html.light .btn.primary:hover{background:#333;color:#fff}
-html.light .brand .cur,html.light .nav-links a:hover,html.light .foot-col a:hover,
-html.light .foot-social a:hover,html.light .theme-btn:hover,html.light .card .ico,
-html.light .step::before{color:var(--ink)}
-html.light .btn.ghost:hover{border-color:#000;color:#000}
+html.light .hero p.sub code{background:var(--panel2);color:var(--ink)}
+html.light .btn.primary{background:#000;color:#fff;border-color:#000;box-shadow:0 0 14px rgba(0,0,0,0.15)}
+html.light .btn.primary:hover{background:#222;color:#fff}
+html.light .btn.ghost{background:var(--panel);color:var(--ink);border-color:var(--line-bright)}
+html.light .btn.ghost:hover{border-color:var(--ink);background:var(--panel2);color:var(--ink)}
+html.light .cmd{background:#fff}
+html.light .cmd code{color:var(--ink)}
+html.light .cmd code::before{color:var(--dim)}
+html.light .cmd button{background:var(--panel2);color:var(--ink);border-color:var(--line)}
+html.light .cmd button:hover{border-color:var(--ink);background:rgba(0,0,0,0.05);color:var(--ink)}
+
+/* Slogan Glitch */
 html.light .slogan-glitch{text-shadow:0 0 1px rgba(0,0,0,0.3)}
 html.light .slogan-glitch::before{text-shadow:-1px 0 rgba(0,0,0,0.5)}
 html.light .slogan-glitch::after{text-shadow:1px 0 rgba(100,100,100,0.5)}
 html.light .slogan-glitch:hover,html.light .slogan-glitch:active{text-shadow:2px 0 #000, -2px 0 #888, 0 0 6px rgba(0,0,0,0.25)}
 html.light .slogan-glitch:hover::before,html.light .slogan-glitch:active::before{text-shadow:-2px 0 #000}
 html.light .slogan-glitch:hover::after,html.light .slogan-glitch:active::after{text-shadow:2px 0 #666}
-html.light .btn.primary{background:#000;color:#fff;border-color:#000;box-shadow:0 0 14px rgba(0,0,0,0.15)}
-html.light .btn.primary:hover{background:#222;color:#fff}
+
+/* Global Eyebrows */
+html.light .eyebrow,
+html.light .install-head .eyebrow{color:var(--dim)}
+
+/* Hero Install Container & Tabs */
+html.light .install{background:var(--panel);border-color:var(--line-bright)}
+html.light .install-head{background:var(--panel2)}
+html.light .install-tabs button{color:var(--dim)}
+html.light .install-tabs button:hover{color:var(--ink);background:rgba(0,0,0,0.04)}
 html.light .install-tabs button[aria-selected=true]{color:#fff;background:#000}
+html.light .term-head{border-left-color:var(--ink);background:var(--panel2)}
+html.light .term-title{color:var(--dim)}
+html.light .term-tip-btn{background:var(--panel);border-color:var(--line);color:var(--dim)}
+html.light .term-tip-btn:hover{color:var(--ink);border-color:var(--ink);background:var(--panel2)}
+html.light .term-foot{background:var(--panel2)}
+html.light .term-foot code{color:var(--ink)}
+html.light .term-foot a,
+html.light .install button.copybtn{background:var(--panel);color:var(--ink);border-color:var(--line)}
+html.light .term-foot a:hover,
+html.light .install button.copybtn:hover{border-color:var(--ink);color:var(--ink);background:rgba(0,0,0,0.05)}
+html.light .agent-input-wrap{background:var(--panel);border-color:var(--line)}
+html.light .agent-input-wrap:focus-within{border-color:var(--ink)}
+html.light .agent-prompt-input{color:var(--ink)}
+html.light .agent-send-btn{background:#000;color:#fff;border-color:#000}
+html.light .agent-send-btn:hover{background:#222;color:#fff}
+
+/* Features Cards */
+html.light #features .card,
+html.light .card{background:var(--panel);border-color:var(--line)}
+html.light #features .card:hover,
+html.light .card:hover{border-color:rgba(0,0,0,0.3)}
+html.light #features .card h3,
+html.light .card h3,
+html.light .step h3{color:var(--ink)}
+html.light #features .card h3::before{color:var(--ink)}
+html.light #features .card p{color:var(--dim)}
+html.light #features .card-key{color:var(--dim)}
+html.light #features .card-key::before,
+html.light #features .card-key::after{color:var(--ink)}
+html.light #features .card:hover::after{color:var(--ink)}
+html.light .card .ico,
+html.light .step::before{color:var(--ink)}
+html.light .card code{color:var(--ink);background:var(--panel2)}
+
+/* Usage Modes */
+html.light .mode-picker{background:var(--panel2);border-color:var(--line-bright)}
+html.light .mode-picker button{color:var(--dim)}
+html.light .mode-picker button:hover{color:var(--ink);background:rgba(0,0,0,0.05)}
+html.light .mode-picker button:hover .mode-caret{color:var(--ink);opacity:.8}
 html.light .mode-picker button[aria-pressed=true]{color:#fff;background:#000}
 html.light .mode-picker button[aria-pressed=true] .mode-index{color:#fff}
 html.light .mode-picker button[aria-pressed=true] .mode-caret{color:#fff}
+html.light .mode-screen{background:var(--panel);border-color:var(--line-bright)}
+html.light .mode-panel h3{color:var(--ink)}
+html.light .mode-panel h3::before{color:var(--ink)}
+html.light .mode-panel p{color:var(--dim)}
+html.light .mode-panel pre{border-left-color:var(--ink);background:var(--panel2);color:var(--ink)}
+
+/* Why Section */
+html.light .pane{background:var(--panel);border-color:var(--line)}
+html.light .pane.good,
+html.light #why .pane.good{background:var(--panel);border-color:rgba(0,0,0,0.2)}
+html.light #why .pane.good::after{color:var(--ink)}
+html.light #why .pane li::before{color:var(--ink)}
+html.light .pane code{color:var(--ink);background:var(--panel2)}
+html.light .why-path h4,
+html.light #why .why-path h4{color:var(--ink)}
+html.light .why-path-row code{color:var(--ink)}
+html.light #why .why-path-row code::before{color:var(--faint)}
+html.light #why .why-path-row:last-of-type .why-tag::before{color:var(--ink)}
+html.light .why-note code{color:var(--ink);background:var(--panel2);border:1px solid var(--line)}
+
+/* FAQ Section */
+html.light #faq details,
+html.light details{background:var(--panel);border-color:var(--line)}
+html.light #faq details::before{color:var(--faint)}
+html.light #faq summary,
+html.light summary{color:var(--ink)}
+html.light #faq summary:hover{color:var(--ink);background:rgba(0,0,0,0.03)}
+html.light #faq details[open],
+html.light details[open]{background:var(--panel);border-color:rgba(0,0,0,0.22)}
+html.light #faq details[open] summary::after,
+html.light details[open] summary::after{color:var(--ink)}
+html.light #faq details p{border-left-color:var(--ink);background:var(--panel2);color:var(--ink)}
+
+/* Footer */
+html.light .foot-brand .flogo .p{color:var(--ink)}
+html.light .foot-brand .flogo .f{color:var(--dim)}
+html.light .foot-brand p{color:var(--dim)}
+html.light .foot-col h4{color:var(--ink)}
+html.light .foot-col a{color:var(--dim)}
+html.light .foot-col a:hover{color:var(--ink)}
+html.light .foot-social{background:transparent}
+html.light .foot-social a{color:var(--dim)}
+html.light .foot-social a:hover{color:var(--ink)}
+
+/* Loading & Restore */
+html.light .load-spin,
+html.light .load-bar,
+html.light .load-pct b{color:var(--ink)}
+html.light #restoreHint{background:var(--panel);color:var(--dim);border-color:var(--line-bright)}
+html.light #restoreHint:hover{color:var(--ink);border-color:var(--ink)}
 :focus-visible{outline:2px solid var(--ink);outline-offset:4px}
 
 /* LOADING */
