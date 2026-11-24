@@ -619,6 +619,7 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
           <span class="eyebrow">// INSTALL</span>
           <div class="install-tabs" role="tablist" aria-label="安装方式">
             <button type="button" role="tab" aria-selected="true" data-tab="cmd">终端命令</button>
+            <button type="button" role="tab" aria-selected="false" data-tab="agent">AI Agent</button>
             <button type="button" role="tab" aria-selected="false" data-tab="raw">下载文件</button>
             <button type="button" role="tab" aria-selected="false" data-tab="text">纯文本</button>
           </div>
@@ -627,6 +628,11 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
           <div class="term-head"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">cmd.exe — 终端命令</span><button class="process-replay" type="button" data-replay="cmd">↻ 重播</button></div>
           <div class="term-body" data-lines="cmd"></div>
           <div class="term-foot"><code>curl -fsSL ".../delete-nul.ps1" -o "%TEMP%\delete-nul.ps1" &amp;&amp; ... &amp;&amp; call "%TEMP%\delete-nul.bat"</code><button class="copybtn" type="button" data-copy="curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1&quot; -o &quot;%TEMP%\delete-nul.ps1&quot; &amp;&amp; curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat&quot; -o &quot;%TEMP%\delete-nul.bat&quot; &amp;&amp; call &quot;%TEMP%\delete-nul.bat&quot;">复制</button></div>
+        </div>
+        <div class="install-panel" data-panel="agent" role="tabpanel" hidden>
+          <div class="term-head"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">agent — AI 智能助手完整提示词</span><button class="process-replay" type="button" data-replay="agent">↻ 重播</button></div>
+          <div class="term-body" data-lines="agent"></div>
+          <div class="term-foot"><code>查看仓库 yancongya/delete-nul → 下载 ps1 至 %TEMP% → 执行 -DryRun 预览 → 用户确认后 \\?\ 安全删除</code><button class="copybtn" type="button" data-copy="请帮我安全清理当前工作区（或指定路径）中无法正常删除的 Windows 保留名文件（NUL / CON / AUX / PRN / COM1-9 / LPT1-9 等）：&#10;&#10;1. 查看仓库与原理：&#10;   - 仓库地址：https://github.com/yancongya/delete-nul&#10;   - 或查阅文档：curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/README.md&quot;&#10;   - 核心原理：Win32 命名空间将保留名劫持为 DOS 字符设备，普通 del 无法删除；必须通过 \\?\ 前缀直达 NT 原生路径，且必须严格遵循「先列后删」安全规范。&#10;&#10;2. 下载工具至临时目录（零依赖、免安装、不污染代码仓库）：&#10;   curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1&quot; -o &quot;%TEMP%\delete-nul.ps1&quot;&#10;&#10;3. 执行只读预检扫描（-DryRun）：&#10;   powershell -ExecutionPolicy Bypass -File &quot;%TEMP%\delete-nul.ps1&quot; -Path . -DryRun&#10;   - 仅扫描并输出匹配的保留名文件列表，不进行任何删除操作。&#10;   - 向我汇报扫描结果并等待我的确认。&#10;&#10;4. 获得确认后执行安全清理与复核：&#10;   powershell -ExecutionPolicy Bypass -File &quot;%TEMP%\delete-nul.ps1&quot; -Path . -Yes&#10;   - 使用 \\?\ 前缀精准移除异常文件，并复核确认残留数为 0。">复制提示词</button></div>
         </div>
         <div class="install-panel" data-panel="raw" role="tabpanel" hidden>
           <div class="term-head"><span class="term-dots"><i></i><i></i><i></i></span><span class="term-title">browser — 下载文件</span><button class="process-replay" type="button" data-replay="raw">↻ 重播</button></div>
@@ -799,13 +805,15 @@ type &quot;%RNLIST%&quot;">复制</button></div>
     var b=e.target.closest('#copybtn,.copybtn'); if(!b)return;
     var code=b.parentElement.querySelector('code'); if(!code)return;
     var text=b.getAttribute('data-copy')||code.textContent;
+    var orig=b.getAttribute('data-orig')||b.textContent;
+    if(!b.getAttribute('data-orig'))b.setAttribute('data-orig',orig);
     clearTimeout(copyTimers.get(b));
     try{await navigator.clipboard.writeText(text);b.textContent='已复制';}
     catch(e){
       var r=document.createRange(); r.selectNodeContents(code);
       var s=window.getSelection(); s.removeAllRanges(); s.addRange(r);b.textContent='已选中';
     }
-    copyTimers.set(b,setTimeout(function(){b.textContent='复制'},1600));
+    copyTimers.set(b,setTimeout(function(){b.textContent=orig},1600));
   });
 
   /* loading */
@@ -1067,6 +1075,15 @@ type &quot;%RNLIST%&quot;">复制</button></div>
         {t:'  [下载] delete-nul.bat    [==========>]  100%',c:'dim',d:300},
         {t:'C:\\> call "%TEMP%\\delete-nul.bat"',c:'hl',d:220},
         {t:'  扫描模式选择菜单已启动。',c:'ok',d:220},
+        {t:'$ _',c:'',d:0}
+      ],
+      agent:[
+        {t:'> PROMPT: 查阅仓库、下载工具并安全清理工作区保留名文件',c:'hl',d:260},
+        {t:'  [1/4] 查阅仓库: GET github.com/yancongya/delete-nul (分析原理与参数)',c:'dim',d:260},
+        {t:'  [2/4] 下载工具: curl -fsSL .../delete-nul.ps1 -o "%TEMP%\\delete-nul.ps1"',c:'',d:240},
+        {t:'  [3/4] 安全预检: powershell -File "%TEMP%\\delete-nul.ps1" -Path . -DryRun',c:'hl',d:280},
+        {t:'        发现 2 个保留名文件: .\\dist\\NUL, .\\cache\\CON (等待用户确认)',c:'ok',d:220},
+        {t:'  [4/4] 用户确认: 以 \\\\?\\ NT 原生路径精准清除完成 (0 残留)',c:'ok',d:260},
         {t:'$ _',c:'',d:0}
       ],
       raw:[
