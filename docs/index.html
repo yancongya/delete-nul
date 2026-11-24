@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>有一种文件，Windows 自己也删不掉 · delete-nul</title>
+<meta name="description" content="delete-nul 实战手册：查找并安全删除 Windows 保留名文件（NUL/CON/AUX/PRN/COM1-9/LPT1-9）。先列出、确认后才删除，只精确匹配保留名本体。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='3' fill='%23f7f4ee'/%3E%3Ctext x='16' y='22' font-family='Georgia,serif' font-size='17' text-anchor='middle' fill='%23c1301c'%3EN%3C/text%3E%3Cpath d='M7 25L25 7' stroke='%23c1301c' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --paper:#f7f4ee; --paper-2:#f1ede4; --ink:#1c1917; --muted:#57534e; --faint:#a39e93;
+  --rule:#e5e0d4; --rule-strong:#cfc9bb; --red:#c1301c; --red-deep:#9a2413; --red-soft:rgba(193,48,28,.07);
+  --code-bg:#211d19; --code-ink:#ece7de;
+  --serif:"Songti SC","Noto Serif CJK SC","Source Han Serif SC","Noto Serif SC","STSong","SimSun",Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#171412; --paper-2:#201c18; --ink:#ece7de; --muted:#b5aea1; --faint:#7d7669;
+    --rule:#2c2823; --rule-strong:#3d372f; --red:#e8593f; --red-deep:#f07a5f; --red-soft:rgba(232,89,63,.09);
+    --code-bg:#0f0d0b; --code-ink:#e6e0d5;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+  font-size:17px;line-height:1.75;-webkit-font-smoothing:antialiased;
+  font-variant-numeric:oldstyle-nums}
+a{color:var(--red);text-decoration:none}
+a:hover{text-decoration:underline;text-underline-offset:3px}
+.mono{font-family:var(--mono)}
+.skip{position:absolute;left:-9999px;top:0;background:var(--red);color:#fff;padding:8px 14px;z-index:99}
+.skip:focus{left:14px;top:14px}
+:focus-visible{outline:2px solid var(--red);outline-offset:3px;border-radius:2px}
+
+/* ---------- custom scrollbars ---------- */
+html{scrollbar-width:thin;scrollbar-color:var(--rule-strong) transparent}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-corner{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--rule-strong);border:3px solid var(--paper);border-radius:0}
+::-webkit-scrollbar-thumb:hover{background:var(--red)}
+::-webkit-scrollbar-thumb:active{background:var(--red-deep)}
+
+/* ---------- masthead ---------- */
+.mast{border-bottom:3px double var(--rule-strong)}
+.mast .in{max-width:980px;margin:0 auto;padding:26px 22px 20px;display:flex;align-items:baseline;gap:18px;flex-wrap:wrap}
+.brand{font-family:var(--serif);font-weight:700;font-size:22px;letter-spacing:.01em}
+.brand em{font-style:normal;color:var(--red)}
+.mast .meta{font-size:13px;color:var(--faint);letter-spacing:.12em;flex:1}
+.mast a.gh{font-family:var(--serif);font-size:14.5px}
+
+/* ---------- layout ---------- */
+.col{max-width:720px;margin:0 auto;padding:0 22px}
+.wide{max-width:980px;margin:0 auto;padding:0 22px}
+
+/* ---------- hero ---------- */
+.hero{padding:74px 22px 58px;text-align:center;max-width:900px;margin:0 auto}
+.kicker{font-family:var(--serif);font-size:14px;letter-spacing:.42em;color:var(--red);text-transform:uppercase}
+.hero h1{font-family:var(--serif);font-weight:800;font-size:clamp(26px,5.6vw,54px);
+  line-height:1.22;letter-spacing:.01em;margin:22px 0 0}
+.hero .lead{font-size:18px;color:var(--muted);max-width:36em;margin:24px auto 0;text-align:center}
+.struck{display:flex;justify-content:center;gap:clamp(18px,5vw,52px);flex-wrap:wrap;
+  margin:46px 0 8px;font-family:var(--serif);font-weight:700;
+  font-size:clamp(38px,7.5vw,78px);line-height:1.15;color:var(--ink)}
+.struck .nm{position:relative;animation:rise .6s ease both;animation-delay:var(--d,0s)}
+.struck .nm::after{content:"";position:absolute;left:-4%;right:-4%;top:54%;height:.075em;
+  background:var(--red);border-radius:3px;transform-origin:left center;
+  animation:strike .55s cubic-bezier(.65,0,.35,1) both;animation-delay:calc(var(--d,0s) + .35s)}
+@keyframes strike{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.struck-cap{font-size:13px;color:var(--faint);letter-spacing:.2em;margin-top:14px}
+.cta{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-top:40px}
+.btn{display:inline-flex;align-items:center;gap:9px;font-size:15px;font-weight:600;
+  font-family:var(--sans);padding:13px 24px;border:1px solid var(--ink);border-radius:0;
+  background:transparent;color:var(--ink);cursor:pointer;transition:.18s}
+.btn:hover{text-decoration:none}
+.btn-primary{background:var(--ink);color:var(--paper)}
+.btn-primary:hover{background:var(--red);border-color:var(--red);color:#fff}
+.btn-ghost:hover{border-color:var(--red);color:var(--red)}
+.btn svg{width:15px;height:15px}
+.btn.done{border-color:var(--red);color:var(--red);background:var(--red-soft)}
+.byline{margin-top:30px;font-size:13.5px;color:var(--faint);display:flex;justify-content:center;
+  gap:22px;flex-wrap:wrap}
+.byline span{display:inline-flex;align-items:center;gap:7px}
+.byline i{width:6px;height:6px;background:var(--red);display:inline-block;border-radius:1px}
+
+/* ---------- toc ---------- */
+.toc{border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:30px 0;margin:14px 0 0}
+.toc .cap{font-family:var(--serif);font-size:13px;letter-spacing:.35em;color:var(--faint);text-align:center;margin-bottom:18px}
+.toc ol{list-style:none;margin:0 auto;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px 0}
+.toc li{text-align:center}
+.toc a{font-family:var(--serif);font-size:16px;color:var(--ink);display:inline-flex;gap:10px;align-items:baseline}
+.toc a:hover{color:var(--red);text-decoration:none}
+.toc .n{color:var(--red);font-size:13px;letter-spacing:.1em}
+@media (max-width:640px){.toc ol{grid-template-columns:repeat(2,1fr);gap:8px 0}}
+
+/* ---------- wall of names (scroll scene) ---------- */
+.wall-stage{position:relative;height:320vh}
+.wall-pin{position:sticky;top:0;height:100vh;height:100svh;display:flex;align-items:center;justify-content:center}
+.wall-inner{width:100%;max-width:980px;padding:0 22px;max-height:700px;overflow:hidden;
+  transition:max-height .7s ease,opacity .55s ease,transform .7s ease}
+.wall-stage.fold .wall-inner{max-height:0;opacity:0;transform:translateY(-26px)}
+.wall-stage .cap{text-align:center;font-family:var(--serif);font-size:14px;letter-spacing:.35em;
+  color:var(--faint);margin:0 0 34px}
+.gridwrap{position:relative}
+.wrow{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid var(--rule);
+  max-height:110px;overflow:hidden;
+  transition:max-height .5s ease .34s,border-top-width .25s ease .6s}
+.wrow:last-of-type{border-bottom:1px solid var(--rule)}
+.wrow.short{grid-template-columns:repeat(2,1fr)}
+.wrow.del{max-height:0;border-top-width:0}
+.wall-stage .cell{padding:16px 8px;text-align:center;position:relative}
+.wall-stage .cell .t{display:inline-block;font-family:var(--serif);font-size:19px;color:var(--muted);
+  position:relative;transition:color .3s}
+.wall-stage .cell:hover .t{color:var(--ink)}
+.wall-stage .cell .t::after{content:"";position:absolute;left:-12%;right:-12%;top:53%;height:1.5px;
+  background:var(--red);opacity:.55;transform:scaleX(1);transform-origin:left center;
+  transition:transform .16s ease,opacity .2s}
+.wall-stage .cell.hot .t{color:var(--ink);font-weight:700}
+.wall-stage .cell.hot .t::after{height:2.5px;opacity:1}
+/* armed = JS scene active */
+.wall-stage.armed .cell .t{opacity:0;transform:translateY(8px);transition:opacity .4s ease,transform .4s ease,color .3s}
+.wall-stage.armed .cell.on .t{opacity:1;transform:none}
+.wall-stage.armed .cell.on .t::after{transform:scaleX(0)}
+.wall-stage.armed .cell.on.del .t{opacity:0;transform:none;color:var(--red);
+  transition:opacity .5s ease .18s,transform .3s,color .2s}
+.wall-stage.armed .cell.on.del .t::after{transform:scaleX(1);opacity:1}
+.wall-stage.armed .cell:nth-child(2) .t{transition-delay:.05s}
+.wall-stage.armed .cell:nth-child(3) .t{transition-delay:.1s}
+.wall-stage.armed .cell:nth-child(4) .t{transition-delay:.15s}
+.wall-stage.armed .cell:nth-child(5) .t{transition-delay:.2s}
+.scanline{position:absolute;left:-8px;right:-8px;top:0;height:2px;background:var(--red);
+  box-shadow:0 0 14px rgba(193,48,28,.55);opacity:0;pointer-events:none;transition:opacity .3s}
+.wall-stage.scanning .scanline{opacity:1}
+.wall-status{margin:26px 0 0;text-align:center;font-family:var(--serif);font-size:14px;
+  letter-spacing:.3em;color:var(--faint);min-height:1.8em}
+.wall-stage.gone{height:0;overflow:hidden}
+.wall-stage.gone .wall-pin{position:static;height:auto}
+.wall-stage.reduced{height:auto}
+.wall-stage.reduced .wall-pin{position:static;height:auto;padding:64px 0 70px}
+.wall-stage.reduced .scanline,.wall-stage.reduced .wall-status{display:none}
+@media (max-width:640px){
+  .wall-stage .cell{padding:11px 4px}
+  .wall-stage .cell .t{font-size:15px}
+  .wall-stage .cap{margin-bottom:22px;font-size:12.5px;letter-spacing:.25em}
+  .wall-status{margin-top:18px;font-size:12.5px;letter-spacing:.2em}
+}
+
+/* ---------- chapters ---------- */
+section.chap{padding:70px 0 66px;border-top:1px solid var(--rule)}
+.chap-head{display:flex;align-items:baseline;gap:16px;border-bottom:1px solid var(--rule-strong);
+  padding-bottom:16px;margin-bottom:30px}
+.chap-head .no{font-family:var(--serif);color:var(--red);font-size:clamp(26px,3vw,32px);font-weight:700}
+.chap-head h2{font-family:var(--serif);font-weight:800;font-size:clamp(24px,3.6vw,33px);margin:0;letter-spacing:.01em}
+.chap-head .en{margin-left:auto;font-size:12px;letter-spacing:.22em;color:var(--faint);text-transform:uppercase;white-space:nowrap}
+.chap p{color:var(--muted);margin:0 0 18px}
+.chap p strong,.chap li strong{color:var(--ink);font-weight:650}
+.dropcap::first-letter{float:left;font-family:var(--serif);font-weight:800;font-size:3.15em;
+  line-height:.92;padding:6px 12px 0 0;color:var(--ink)}
+
+/* editorial list */
+.elist{list-style:none;margin:6px 0 20px;padding:0}
+.elist li{display:flex;gap:16px;padding:17px 0;border-bottom:1px solid var(--rule);color:var(--muted)}
+.elist li:last-child{border-bottom:none}
+.elist .k{flex:none;font-family:var(--serif);color:var(--red);font-size:15px;min-width:2.2em;
+  letter-spacing:.05em;padding-top:2px}
+.elist b{display:block;font-family:var(--serif);font-size:18px;color:var(--ink);font-weight:700;margin-bottom:2px}
+
+/* pull quote / code */
+.pull{margin:30px 0;border-left:3px solid var(--red);background:var(--red-soft);padding:22px 26px 18px}
+.pull .q{font-family:var(--serif);font-size:15px;color:var(--red);letter-spacing:.25em;margin-bottom:10px}
+.code{position:relative;background:var(--code-bg);color:var(--code-ink);border-radius:2px;
+  padding:20px 56px 20px 20px;font-family:var(--mono);font-size:13.5px;line-height:1.7;overflow-x:auto;
+  scrollbar-width:thin;scrollbar-color:rgba(236,231,222,.32) transparent}
+.code::-webkit-scrollbar{width:9px;height:9px}
+.code::-webkit-scrollbar-thumb{background:rgba(236,231,222,.32);border:2px solid var(--code-bg)}
+.code::-webkit-scrollbar-thumb:hover{background:rgba(236,231,222,.6)}
+.code::-webkit-scrollbar-thumb:active{background:rgba(236,231,222,.85)}
+.code code{white-space:pre;display:block}
+.copy{position:absolute;top:10px;right:10px;display:inline-flex;align-items:center;gap:6px;
+  background:transparent;color:var(--code-ink);border:1px solid rgba(236,231,222,.35);border-radius:2px;
+  padding:6px 10px;font-size:12px;cursor:pointer;font-family:var(--mono)}
+.copy:hover{border-color:var(--code-ink)}
+.copy svg{width:13px;height:13px}
+.copy.done{color:#8ee38e;border-color:#8ee38e}
+.pull figcaption{font-size:14.5px;color:var(--muted);margin-top:12px;font-family:var(--sans);line-height:1.7}
+.note{font-size:13.5px;color:var(--faint);margin-top:10px}
+.note .warn{color:var(--red-deep)}
+
+/* steps */
+.steps{list-style:none;margin:8px 0 14px;padding:0;counter-reset:s}
+.steps li{counter-increment:s;display:flex;gap:22px;padding:24px 0;border-bottom:1px solid var(--rule)}
+.steps li:last-child{border-bottom:none}
+.steps .n{flex:none;font-family:var(--serif);font-size:34px;font-weight:800;color:var(--red);
+  width:1.4em;line-height:1.1}
+.steps .n::before{content:counter(s)}
+.steps h3{font-family:var(--serif);font-size:19px;margin:0 0 6px;font-weight:700}
+.steps p{margin:0;font-size:15.5px}
+
+/* table */
+.tablewrap{overflow-x:auto;margin:6px 0 14px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{font-family:var(--serif);font-weight:700;text-align:left;font-size:14px;letter-spacing:.06em;
+  color:var(--ink);border-top:2px solid var(--ink);border-bottom:1px solid var(--rule-strong);padding:12px 14px}
+td{padding:13px 14px;border-bottom:1px solid var(--rule);color:var(--muted);vertical-align:top}
+td a{font-family:var(--mono);font-size:13.5px}
+td .rec{color:var(--red);font-family:var(--serif);font-size:13px;margin-left:8px;white-space:nowrap}
+
+/* faq */
+.faq details{border-bottom:1px solid var(--rule);padding:4px 0}
+.faq details:first-of-type{border-top:1px solid var(--rule)}
+.faq summary{cursor:pointer;font-family:var(--serif);font-size:17.5px;font-weight:700;
+  padding:17px 0 17px 38px;position:relative;list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:"问";position:absolute;left:0;top:19px;font-size:13px;color:var(--red);
+  border:1px solid var(--red);width:22px;height:22px;display:grid;place-items:center;border-radius:50%}
+.faq p{font-size:15.5px;color:var(--muted);margin:0 0 20px 38px}
+.faq details[open] summary{color:var(--red)}
+
+/* footer */
+footer{border-top:3px double var(--rule-strong);padding:36px 0 46px;margin-top:10px}
+footer .in{max-width:980px;margin:0 auto;padding:0 22px;display:flex;justify-content:space-between;
+  gap:14px;flex-wrap:wrap;align-items:baseline}
+footer .fin{font-family:var(--serif);font-size:15px}
+footer .sub{font-size:13px;color:var(--faint)}
+footer a{font-family:var(--serif);font-size:14.5px}
+
+@media (max-width:640px){
+  body{font-size:16px}
+  .chap-head .en{display:none}
+  .code{padding-right:52px}
+}
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto}
+  .struck .nm,.struck .nm::after{animation:none}
+  .btn,.wall-stage .cell .t{transition:none}
+  .wall-stage{height:auto}
+  .wall-pin{position:static;height:auto;padding:64px 0 70px}
+  .scanline,.wall-status{display:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">跳到主内容</a>
+
+<header class="mast">
+  <div class="in">
+    <div class="brand">delete<em>—</em>nul</div>
+    <div class="meta">WINDOWS 保留名文件 · 实战手册</div>
+    <a class="gh" href="https://github.com/yancongya/delete-nul">GitHub ↗</a>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============ HERO ============ -->
+  <div class="hero col">
+    <p class="kicker">A Field Guide</p>
+    <h1>有一种文件，<br>Windows 自己也删不掉。</h1>
+    <p class="lead">NUL、CON、AUX——这些 DOS 时代的设备名，一旦变成磁盘上的真实文件，资源管理器便束手无策。delete-nul 把它们逐个找出来、列清楚，等你点头之后，再划掉。</p>
+    <div class="struck" aria-hidden="true">
+      <span class="nm" style="--d:.05s">NUL</span>
+      <span class="nm" style="--d:.2s">CON</span>
+      <span class="nm" style="--d:.35s">PRN</span>
+      <span class="nm" style="--d:.5s">AUX</span>
+    </div>
+    <p class="struck-cap">右划之 · 皆可清理</p>
+    <div class="cta">
+      <button class="btn btn-primary copy" aria-label="复制下载并运行命令" data-text="curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat&quot; -o &quot;%TEMP%\delete-nul.bat&quot; &amp;&amp; call &quot;%TEMP%\delete-nul.bat&quot;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="1"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>
+        <span class="lbl">复制一行命令运行</span>
+      </button>
+      <a class="btn btn-ghost" href="https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat" download>下载 delete-nul.bat</a>
+    </div>
+    <div class="byline">
+      <span><i></i>纯 CMD 实现，无编码混淆</span>
+      <span><i></i>删前先确认</span>
+      <span><i></i>只匹配保留名本体</span>
+    </div>
+  </div>
+
+  <!-- ============ TOC ============ -->
+  <nav class="toc col" aria-label="目录">
+    <p class="cap">目 录</p>
+    <ol>
+      <li><a href="#c1"><span class="n">壹</span>缘起</a></li>
+      <li><a href="#c2"><span class="n">贰</span>病因</a></li>
+      <li><a href="#c3"><span class="n">叁</span>疗法</a></li>
+      <li><a href="#c4"><span class="n">肆</span>药方</a></li>
+      <li><a href="#c5"><span class="n">伍</span>服用</a></li>
+      <li><a href="#c6"><span class="n">陆</span>问诊</a></li>
+    </ol>
+  </nav>
+
+  <!-- ============ WALL OF NAMES (scroll scene) ============ -->
+  <div class="wall-stage" id="wallStage">
+    <div class="wall-pin">
+      <div class="wall-inner">
+        <p class="cap">全部二十二个目标 · 皆在清理之列</p>
+        <div class="gridwrap" aria-label="可清理的保留名：NUL、CON、PRN、AUX、COM1 至 COM9、LPT1 至 LPT9">
+          <div class="wrow">
+            <div class="cell hot"><span class="t">NUL</span></div><div class="cell hot"><span class="t">CON</span></div><div class="cell hot"><span class="t">PRN</span></div><div class="cell hot"><span class="t">AUX</span></div><div class="cell"><span class="t">COM1</span></div>
+          </div>
+          <div class="wrow">
+            <div class="cell"><span class="t">COM2</span></div><div class="cell"><span class="t">COM3</span></div><div class="cell"><span class="t">COM4</span></div><div class="cell"><span class="t">COM5</span></div><div class="cell"><span class="t">COM6</span></div>
+          </div>
+          <div class="wrow">
+            <div class="cell"><span class="t">COM7</span></div><div class="cell"><span class="t">COM8</span></div><div class="cell"><span class="t">COM9</span></div><div class="cell"><span class="t">LPT1</span></div><div class="cell"><span class="t">LPT2</span></div>
+          </div>
+          <div class="wrow">
+            <div class="cell"><span class="t">LPT3</span></div><div class="cell"><span class="t">LPT4</span></div><div class="cell"><span class="t">LPT5</span></div><div class="cell"><span class="t">LPT6</span></div><div class="cell"><span class="t">LPT7</span></div>
+          </div>
+          <div class="wrow short">
+            <div class="cell"><span class="t">LPT8</span></div><div class="cell"><span class="t">LPT9</span></div>
+          </div>
+          <div class="scanline" aria-hidden="true"></div>
+        </div>
+        <p class="wall-status" aria-live="polite"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 一 缘起 ============ -->
+  <section class="chap col" id="c1" aria-labelledby="h-c1">
+    <header class="chap-head">
+      <span class="no">壹</span>
+      <h2 id="h-c1">缘起——它们从哪来</h2>
+      <span class="en">Origin</span>
+    </header>
+    <p class="dropcap">从 DOS 时代继承的设备保留名，本不该以文件形态出现在磁盘上。但总有意外让它们"字面落盘"——于是你的目录里，多出一个右键删不掉、Shift+Delete 也删不掉的东西。</p>
+    <ol class="elist">
+      <li><span class="k">其一</span><div><b>重定向命令写错位置</b>如 <span class="mono">copy a.txt NUL</span>，某些非标准 API 会把 NUL 当成真实文件名创建。</div></li>
+      <li><span class="k">其二</span><div><b>跨平台解压与同步</b>Linux 下 <span class="mono">nul</span>、<span class="mono">aux.c</span> 是合法文件名；解压、Git、网盘同步到 Windows 时被原样写入。</div></li>
+      <li><span class="k">其三</span><div><b>下载与传输工具的 bug</b>不检查保留名，收到什么就落盘什么。</div></li>
+      <li><span class="k">其四</span><div><b>恶意软件故意为之</b>利用"删不掉"的特性，把保留名文件当作对抗清理的堡垒。</div></li>
+    </ol>
+  </section>
+
+  <!-- ============ 二 病因 ============ -->
+  <section class="chap col" id="c2" aria-labelledby="h-c2">
+    <header class="chap-head">
+      <span class="no">贰</span>
+      <h2 id="h-c2">病因——为什么删不掉</h2>
+      <span class="en">Cause</span>
+    </header>
+    <p>Win32 在<strong>解析路径的阶段</strong>就把 <span class="mono">NUL</span> 识别成 DOS 设备对象，而非文件。你在资源管理器里按下删除、在命令行里敲 <span class="mono">del NUL</span>，操作的都是"NUL 设备"，从来不是那个真实文件——所以它永远安然无恙。</p>
+    <p>解法只有一个：绕开 Win32 的路径规范化，直达 NT 对象管理器。</p>
+    <figure class="pull">
+      <p class="q">答 案</p>
+      <div class="code">
+        <button class="copy" aria-label="复制删除命令" data-text="del /f /a /q &quot;\\?\C:\某个目录\NUL&quot;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="1"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>
+          <span class="lbl">复制</span>
+        </button>
+        <code>del /f /a /q "\\?\C:\某个目录\NUL"</code>
+      </div>
+      <figcaption>给路径加上 <span class="mono">\\?\</span> 前缀，跳过规范化、直达内核——此时它只是一个字面上的文件路径，可删。完整流程：<span class="mono">dir</span> 枚举不受影响 → 按名字精确匹配 → 记录完整路径 → 加前缀删除 → 复核报告。</figcaption>
+    </figure>
+  </section>
+
+  <!-- ============ 三 疗法 ============ -->
+  <section class="chap col" id="c3" aria-labelledby="h-c3">
+    <header class="chap-head">
+      <span class="no">叁</span>
+      <h2 id="h-c3">疗法——列出，确认，再删</h2>
+      <span class="en">Method</span>
+    </header>
+    <p>所有版本的共同行为：<strong>先列出全部结果，输入 <span class="mono">Y</span> 确认后才删除，逐条报告成败。</strong>绝不静默操作，绝不碰清单之外的东西。</p>
+    <ol class="steps">
+      <li><span class="n"></span><div><h3>枚举扫描</h3><p>遍历所有本地磁盘，按保留名精确匹配，把命中文件的完整路径写入清单。只匹配名字本体——<span class="mono">nul.txt</span> 这类正常文件永远不在清单上。</p></div></li>
+      <li><span class="n"></span><div><h3>列出并确认</h3><p>把找到的文件逐条打印出来，等你过目。输入 <span class="mono">Y</span> 才继续；其他任何键立即取消，不做任何修改。</p></div></li>
+      <li><span class="n"></span><div><h3>加前缀删除</h3><p>对每个路径加 <span class="mono">\\?\</span> 前缀执行删除，逐条标记 <span class="mono">[DELETED]</span> 或 <span class="mono">[FAILED]</span>（被占用 / 权限不足），最后汇总报告。</p></div></li>
+    </ol>
+    <p class="note"><span class="warn">注意：</span>删除不进回收站，务必核对列表后再按 Y。</p>
+  </section>
+
+  <!-- ============ 四 药方 ============ -->
+  <section class="chap col" id="c4" aria-labelledby="h-c4">
+    <header class="chap-head">
+      <span class="no">肆</span>
+      <h2 id="h-c4">药方——四种形态</h2>
+      <span class="en">Prescription</span>
+    </header>
+    <p>同一套逻辑，四种用法。点击文件名即可在 GitHub 查看 / 下载。</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>文件</th><th>用途</th><th>管理员</th><th>用法</th></tr></thead>
+        <tbody>
+          <tr><td><a href="https://github.com/yancongya/delete-nul/blob/main/delete-nul.bat">delete-nul.bat</a><span class="rec">荐</span></td><td>全盘扫描＋删除</td><td>建议</td><td>双击运行</td></tr>
+          <tr><td><a href="https://github.com/yancongya/delete-nul/blob/main/delete-nul.ps1">delete-nul.ps1</a></td><td>全盘扫描＋删除，中文界面</td><td>自动 UAC 提权</td><td>右键 → 使用 PowerShell 运行</td></tr>
+          <tr><td><a href="https://github.com/yancongya/delete-nul/blob/main/delete-nul-here.bat">delete-nul-here.bat</a></td><td>只清理所在文件夹</td><td>通常不需要</td><td>放进目标文件夹后双击</td></tr>
+          <tr><td><a href="https://github.com/yancongya/delete-nul/blob/main/paste-to-cmd-current-dir.txt">paste-to-cmd-current-dir.txt</a></td><td>免落地：清理当前目录</td><td>不需要</td><td>cmd 中 cd 到目录后粘贴</td></tr>
+          <tr><td><a href="https://github.com/yancongya/delete-nul/blob/main/paste-to-cmd-fullscan.txt">paste-to-cmd-fullscan.txt</a></td><td>免落地：全盘扫描</td><td>建议</td><td>管理员 cmd 中粘贴</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 五 服用 ============ -->
+  <section class="chap col" id="c5" aria-labelledby="h-c5">
+    <header class="chap-head">
+      <span class="no">伍</span>
+      <h2 id="h-c5">服用——快速开始</h2>
+      <span class="en">Usage</span>
+    </header>
+
+    <p>根据你的使用习惯，选择最适合的方式：</p>
+
+    <!-- 方式一：下载脚本文件 -->
+    <p style="margin-top:34px"><strong>方式一 · 下载脚本文件，双击运行</strong><span class="note" style="margin-left:10px">适合所有用户 · 最简单</span></p>
+    <p>从 GitHub 下载 <span class="mono">delete-nul.bat</span>，放到任意位置后<strong>双击</strong>即可。建议右键「以管理员身份运行」以覆盖更多目录。</p>
+    <div class="cta" style="justify-content:flex-start;margin-top:16px">
+      <a class="btn btn-primary" href="https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat" download>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+        下载 delete-nul.bat
+      </a>
+      <a class="btn btn-ghost" href="https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1" download>下载 delete-nul.ps1（中文界面）</a>
+    </div>
+    <p class="note" style="margin-top:10px">PowerShell 版（.ps1）会自动弹出 UAC 提权，界面为中文；bat 版为纯 ASCII 英文界面，兼容性更好。</p>
+
+    <!-- 方式二：一行命令 -->
+    <p style="margin-top:40px"><strong>方式二 · 一行命令，下载即用</strong><span class="note" style="margin-left:10px">适合有终端经验的用户</span></p>
+    <p>打开 <strong>cmd</strong>（建议管理员），粘贴以下命令，自动下载并执行：</p>
+    <div class="code">
+      <button class="copy" aria-label="复制下载并运行命令" data-text="curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat&quot; -o &quot;%TEMP%\delete-nul.bat&quot; &amp;&amp; call &quot;%TEMP%\delete-nul.bat&quot;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="1"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>
+        <span class="lbl">复制</span>
+      </button>
+      <code>curl -fsSL "https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat" -o "%TEMP%\delete-nul.bat" &amp;&amp; call "%TEMP%\delete-nul.bat"</code>
+    </div>
+    <p class="note"><span class="warn">⚠</span> 仅当你信任脚本来源时使用；杀软可能对"下载并执行"链路报警。</p>
+
+    <!-- 方式三：免下载，粘贴即用 -->
+    <p style="margin-top:40px"><strong>方式三 · 免下载，粘贴即用</strong><span class="note" style="margin-left:10px">适合不想下载文件 · 可直接审查命令</span></p>
+    <p>复制下面的命令，粘贴进 <strong>管理员 cmd</strong> 即可全盘扫描预览（安全：只列出，不删除）。确认无误后可自行加删除逻辑。</p>
+    <div class="code">
+      <button class="copy" aria-label="复制安全预览命令" data-text="set &quot;RNLIST=%TEMP%\reserved_name_files.txt&quot; &amp;&amp; type nul &gt; &quot;%RNLIST%&quot; &amp;&amp; (for %D in (C D E F G H I J K L M N O P Q R S T U V W X Y Z) do @if exist %D:\ dir /s /b /a &quot;%D:\&quot; 2^nul)|findstr /r /i /c:&quot;\\nul$&quot; /c:&quot;\\con$&quot; /c:&quot;\\prn$&quot; /c:&quot;\\aux$&quot; &gt; &quot;%RNLIST%&quot; &amp; type &quot;%RNLIST%&quot;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="1"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>
+        <span class="lbl">复制</span>
+      </button>
+      <code>set "RNLIST=%TEMP%\reserved_name_files.txt" &amp;&amp; type nul &gt; "%RNLIST%" &amp;&amp; (for %D in (C D E F G H I J K L M N O P Q R S T U V W X Y Z) do @if exist %D:\ dir /s /b /a "%D:\" 2^>nul)|findstr /r /i /c:"\\nul$" /c:"\\con$" /c:"\\prn$" /c:"\\aux$" &gt; "%RNLIST%" &amp; type "%RNLIST%"</code>
+    </div>
+
+    <p style="margin-top:34px"><strong>方式四 · PowerShell 版，中文界面</strong><span class="note" style="margin-left:10px">中文交互 · 自动提权</span></p>
+    <p>如果你更习惯 PowerShell，或需要中文交互界面：</p>
+    <div class="code">
+      <button class="copy" aria-label="复制 PowerShell 运行命令" data-text="powershell -NoProfile -ExecutionPolicy Bypass -File .\delete-nul.ps1">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="1"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>
+        <span class="lbl">复制</span>
+      </button>
+      <code>powershell -NoProfile -ExecutionPolicy Bypass -File .\delete-nul.ps1</code>
+    </div>
+    <p class="note">也可以右键 <span class="mono">delete-nul.ps1</span> → 「使用 PowerShell 运行」，会自动触发 UAC 提权。</p>
+  </section>
+
+  <!-- ============ 六 问诊 ============ -->
+  <section class="chap col faq" id="c6" aria-labelledby="h-c6">
+    <header class="chap-head">
+      <span class="no">陆</span>
+      <h2 id="h-c6">问诊——常见问题</h2>
+      <span class="en">FAQ</span>
+    </header>
+    <details open><summary>闪退，或被杀软删除？</summary><p>早期版本用 Base64＋PowerShell 编码触发过启发式误报；现行 bat 为纯 CMD 实现，无 PowerShell、无编码混淆。仍被拦截的话，把所在文件夹加入白名单即可。</p></details>
+    <details><summary>提示 FAILED？</summary><p>文件被占用或权限不足。关闭占用它的程序，或以管理员身份重跑。</p></details>
+    <details><summary>删掉的文件能恢复吗？</summary><p>不能——删除不经过回收站。务必核对列表后再按 <span class="mono">Y</span>。</p></details>
+    <details><summary>bat 的界面为什么是英文？</summary><p>为了兼容任意系统代码页、并避开杀软与解析问题，bat 保持纯 ASCII。想要中文界面，请用 ps1 或 txt 版本。</p></details>
+  </section>
+</main>
+
+<footer>
+  <div class="in">
+    <div>
+      <div class="fin">delete—nul · 一册讲清 Windows 保留名文件</div>
+      <div class="sub">先列出 · 再确认 · 后删除</div>
+    </div>
+    <a href="https://github.com/yancongya/delete-nul">github.com/yancongya/delete-nul ↗</a>
+  </div>
+</footer>
+
+<script>
+(function(){
+  function fallback(text, done){
+    var ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+  var buttons = document.querySelectorAll('button.copy');
+  for (var i = 0; i < buttons.length; i++){
+    (function(btn){
+      var lbl = btn.querySelector('.lbl');
+      var prev = lbl ? lbl.textContent : '复制';
+      btn.addEventListener('click', function(){
+        var text = btn.getAttribute('data-text') ||
+          (btn.parentElement.innerText || '').replace(/^复制\s*/, '');
+        var ok = function(){
+          btn.classList.add('done');
+          if (lbl) lbl.textContent = '已复制';
+          setTimeout(function(){ btn.classList.remove('done'); if (lbl) lbl.textContent = prev; }, 1400);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(text).then(ok).catch(function(){ fallback(text, ok); });
+        } else {
+          fallback(text, ok);
+        }
+      });
+    })(buttons[i]);
+  }
+})();
+
+/* ---- wall of names: scroll-driven scene, row-based ---- */
+(function(){
+  var stage = document.getElementById('wallStage');
+  if(!stage) return;
+  var rows = stage.querySelectorAll('.wrow');
+  var gridwrap = stage.querySelector('.gridwrap');
+  var line = stage.querySelector('.scanline');
+  var status = stage.querySelector('.wall-status');
+  var R = rows.length;
+  if(!R || !gridwrap) return;
+  var TOTAL = 0;
+  var rowCells = [];
+  for(var i = 0; i < R; i++){
+    rowCells.push(rows[i].querySelectorAll('.cell'));
+    TOTAL += rowCells[i].length;
+  }
+
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    stage.classList.add('reduced');
+    return;
+  }
+  stage.classList.add('armed');
+
+  var FILL_END = 0.28, DEL_END = 0.88, GONE_AT = 0.95, SCAN_DUR = 1300;
+  var filledRows = 0, scanStarted = false, scanDone = false, scanT0 = 0;
+  var collapsing = false, collapsed = false, userScrolled = false;
+  var READY_MSG = '发现 ' + TOTAL + ' 个 · 向下滚动，逐行清理';
+
+  function fillUpToRow(idx){
+    for(var k = filledRows; k <= idx; k++){
+      var cs = rowCells[k];
+      for(var j = 0; j < cs.length; j++) cs[j].classList.add('on');
+    }
+    if(idx + 1 > filledRows) filledRows = idx + 1;
+  }
+  function finishScan(){
+    if(scanDone) return;
+    scanDone = true;
+    fillUpToRow(R - 1);
+    stage.classList.remove('scanning');
+    stage.classList.add('scanned');
+    if(line) line.style.opacity = '0';
+  }
+  function startScan(){
+    if(scanStarted || scanDone) return;
+    scanStarted = true;
+    stage.classList.add('scanning');
+    if(status) status.textContent = '正在扫描……';
+    scanT0 = performance.now();
+    requestAnimationFrame(scanTick);
+  }
+  function scanTick(now){
+    var t = Math.min((now - scanT0) / SCAN_DUR, 1);
+    var h = gridwrap.offsetHeight;
+    if(line) line.style.transform = 'translateY(' + (t * h) + 'px)';
+    var count = 0;
+    for(var i = 0; i < R; i++){
+      if(rows[i].offsetTop + rows[i].offsetHeight * 0.6 <= t * h + 2) count = i + 1;
+      else break;
+    }
+    if(count > filledRows) fillUpToRow(count - 1);
+    if(t < 1){ requestAnimationFrame(scanTick); }
+    else{
+      finishScan();
+      if(status) status.textContent = READY_MSG;
+      update();
+    }
+  }
+  function progress(){
+    var rect = stage.getBoundingClientRect();
+    var total = rect.height - window.innerHeight;
+    if(total <= 0) return rect.top < 0 ? 1 : 0;
+    return Math.min(Math.max(-rect.top / total, 0), 1);
+  }
+  function collapseStage(){
+    if(collapsing || collapsed) return;
+    collapsing = true;
+    stage.classList.add('fold');
+    if(status) status.textContent = '已清理 ' + R + ' / ' + R + ' 行 · 清理完毕';
+    var docEl = document.documentElement;
+    var prevBehavior = docEl.style.scrollBehavior;
+    docEl.style.scrollBehavior = 'auto';
+    var startH = stage.offsetHeight;
+    var startY = window.scrollY;
+    var targetY = stage.getBoundingClientRect().top + window.scrollY;
+    var t0 = performance.now(), DUR = 850;
+    function step(now){
+      var t = Math.min((now - t0) / DUR, 1);
+      var e = 1 - Math.pow(1 - t, 3);
+      stage.style.height = (startH * (1 - e)) + 'px';
+      window.scrollTo(0, startY + (targetY - startY) * e);
+      if(t < 1){ requestAnimationFrame(step); }
+      else{
+        collapsing = false;
+        collapsed = true;
+        stage.style.height = '0px';
+        stage.classList.add('gone');
+        docEl.style.scrollBehavior = prevBehavior;
+      }
+    }
+    requestAnimationFrame(step);
+  }
+  function update(){
+    if(collapsed || collapsing) return;
+    var p = progress();
+    if(!scanStarted && stage.getBoundingClientRect().top <= window.innerHeight * 0.5) startScan();
+    if(p >= FILL_END && !scanDone){
+      scanStarted = true;
+      finishScan();
+      if(status) status.textContent = READY_MSG;
+    }
+    var delRows = 0;
+    if(p > FILL_END && scanDone){
+      var q = (p - FILL_END) / (DEL_END - FILL_END);
+      q = Math.min(Math.max(q, 0), 1);
+      delRows = Math.round(q * R);
+    }
+    if(scanDone){
+      for(var i = 0; i < R; i++){
+        if(i < delRows) rows[i].classList.add('del');
+        else rows[i].classList.remove('del');
+      }
+      if(status){
+        if(delRows <= 0) status.textContent = READY_MSG;
+        else if(delRows < R) status.textContent = '已清理 ' + delRows + ' / ' + R + ' 行';
+      }
+      if(userScrolled && p >= GONE_AT && delRows >= R &&
+         stage.getBoundingClientRect().bottom > window.innerHeight * 0.5){
+        collapseStage();
+      }
+    }
+  }
+  var ticking = false;
+  function onScroll(){
+    userScrolled = true;
+    if(ticking) return;
+    ticking = true;
+    requestAnimationFrame(function(){ ticking = false; update(); });
+  }
+  window.addEventListener('scroll', onScroll, {passive: true});
+  window.addEventListener('resize', onScroll);
+  update();
+})();
+</script>
+</body>
+</html>

@@ -1,3 +1,5 @@
+<p align="center"><img src="cover.png" alt="delete-nul" width="100%"></p>
+
 # delete-nul 工具集 | Windows Reserved-Name File Cleaner Toolkit
 
 Windows 保留名文件（NUL / CON / AUX / PRN / COM1-9 / LPT1-9）的查找与删除工具。
@@ -5,6 +7,13 @@ Find and delete Windows reserved-name files that cannot be removed by normal mea
 
 **共同行为 | Common behavior:** 先列出全部结果 → 确认（输入 Y，或用 `-Yes` 跳过）才删除 → 逐条报告成功/失败。默认只匹配保留名本体（`NUL`），不会动 `nul.txt`；如需把带扩展名的也算上，用 `-IncludeExtension`。
 List first → confirm (Y, or skip with `-Yes`) → delete with per-file report. By default only the bare name (`NUL`) is matched; `nul.txt` is left alone. Use `-IncludeExtension` to opt in.
+
+<p align="center">
+  <img src="why.png" alt="为什么会有 NUL 文件" width="24%">
+  <img src="why2.png" alt="为什么删不掉" width="24%">
+  <img src="how.png" alt="怎么处理" width="24%">
+  <img src="whitch.png" alt="工具包怎么选" width="24%">
+</p>
 
 ---
 
