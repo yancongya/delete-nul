@@ -395,6 +395,132 @@ header.top{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--b
 }
 .nav-theme-btn:hover{color:var(--ink);border-color:var(--ink);background:var(--panel2)}
 .nav-theme-btn svg{width:16px;height:16px}
+.github-btn{
+  position:relative!important;padding:5px 7px;border-radius:3px;border:1px solid var(--line-bright);
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--panel);color:var(--dim);cursor:pointer;transition:all .18s;
+  flex:none;text-decoration:none;
+}
+.github-btn:hover{color:var(--ink);border-color:var(--ink);background:var(--panel2);transform:translateY(-1px)}
+.github-btn svg{width:16px;height:16px;display:block}
+html.light .github-btn{background:var(--panel);border-color:var(--line-bright);color:var(--ink)}
+html.light .github-btn:hover{background:var(--panel2);border-color:var(--ink);color:var(--ink)}
+
+/* GitHub Repo 定格小窗 Modal */
+.modal-overlay{
+  position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.76);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  animation:fadeInModal .22s ease-out;
+}
+.modal-overlay[hidden]{display:none}
+@keyframes fadeInModal{from{opacity:0}to{opacity:1}}
+.modal-card{
+  width:min(520px,100%);background:var(--panel);border:1px solid var(--line-bright);
+  border-radius:6px;box-shadow:0 20px 60px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.08);
+  overflow:hidden;animation:slideUpModal .26s cubic-bezier(.16,1,.3,1);
+}
+@keyframes slideUpModal{from{transform:translateY(16px) scale(0.97);opacity:0}to{transform:none;opacity:1}}
+.modal-head{
+  padding:12px 16px;background:var(--panel2);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.modal-title{font:700 11px/1.2 var(--mono);color:var(--ink);letter-spacing:.04em}
+.modal-close{
+  background:none;border:0;color:var(--dim);font-size:20px;line-height:1;
+  cursor:pointer;padding:2px 8px;border-radius:3px;transition:all .15s;
+}
+.modal-close:hover{color:var(--ink);background:rgba(255,255,255,0.1)}
+.modal-body{padding:22px 20px 18px}
+.repo-badge-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.repo-badge{font:10px/1.4 var(--mono);padding:2px 7px;border-radius:3px;background:var(--panel2);color:var(--dim);border:1px solid var(--line)}
+.repo-desc{font-size:13px;line-height:1.65;color:var(--dim);margin:0 0 18px}
+.repo-box{margin-bottom:14px}
+.repo-box-label{display:block;font:11px/1.4 var(--mono);color:var(--faint);margin-bottom:6px}
+.repo-box-row{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  background:var(--panel2);border:1px solid var(--line);border-radius:4px;padding:8px 10px;
+}
+.repo-box-row code{font:11.5px/1.4 var(--mono);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.modal-foot{
+  padding:12px 20px;background:var(--panel2);border-top:1px solid var(--line);
+  display:flex;align-items:center;justify-content:flex-end;gap:10px;
+}
+.modal-foot .btn{padding:8px 16px;font-size:12px}
+html.light .modal-card{box-shadow:0 16px 48px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.08)}
+html.light .modal-close:hover{color:#000;background:rgba(0,0,0,0.06)}
+
+/* Vibe Coding 场景痛点与原理解析区 */
+#vibe-coding{position:relative}
+.vibe-grid{
+  display:grid;grid-template-columns:1.15fr 0.85fr;gap:24px;align-items:stretch;margin-top:36px;
+}
+@media(max-width:960px){
+  .vibe-grid{grid-template-columns:1fr;gap:24px}
+}
+.vibe-term-col{display:flex}
+.vibe-term{
+  width:100%;background:#09090c;border:1px solid var(--line-bright);
+  border-radius:4px;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--card-shadow);
+}
+.vibe-term-head{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px 14px;background:var(--panel2);border-bottom:1px solid var(--line);
+}
+.vibe-tabs{display:inline-flex;gap:4px}
+.vibe-tab{
+  font:700 11px/1 var(--mono);padding:5px 9px;border-radius:3px;
+  background:transparent;border:1px solid transparent;color:var(--dim);
+  cursor:pointer;transition:all .15s;
+}
+.vibe-tab:hover{color:var(--ink);background:rgba(255,255,255,0.06)}
+.vibe-tab.active{color:#fff;background:var(--panel);border-color:var(--line-bright)}
+html.light .vibe-tab.active{color:#000;background:#fff;border-color:rgba(0,0,0,0.2)}
+.vibe-term-body{
+  flex:1;padding:18px 20px;font:12px/1.65 var(--mono);background:#07070a;
+  overflow-y:auto;min-height:340px;display:flex;flex-direction:column;
+}
+html.light .vibe-term-body{background:#fbfbfd;color:#111}
+.vibe-badge-deadlock{
+  margin-top:auto;padding-top:14px;margin-top:16px;border-top:1px dashed rgba(255,80,80,0.3);
+  display:inline-flex;align-items:center;gap:8px;font:11px/1.4 var(--mono);color:#ff6666;
+}
+.vibe-badge-resolved{
+  margin-top:auto;padding-top:14px;margin-top:16px;border-top:1px dashed rgba(0,255,170,0.3);
+  display:inline-flex;align-items:center;gap:8px;font:11px/1.4 var(--mono);color:#00ffaa;
+}
+.vibe-badge-dot{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 8px currentColor;flex:none}
+.vibe-term-foot{
+  padding:10px 14px;background:var(--panel2);border-top:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.vibe-foot-meta{font:10px/1 var(--mono);color:var(--faint)}
+.vibe-toggle-btn{
+  font:700 11px/1 var(--mono);padding:5px 10px;border-radius:3px;
+  background:var(--panel);border:1px solid var(--line);color:var(--ink);cursor:pointer;transition:all .15s;
+}
+.vibe-toggle-btn:hover{border-color:var(--ink);background:var(--panel2)}
+
+/* Right Column Cards */
+.vibe-cards-col{display:grid;gap:14px;align-content:space-between}
+.vibe-card{
+  background:var(--panel);border:1px solid var(--line);border-radius:4px;
+  padding:18px 20px;display:flex;flex-direction:column;gap:8px;
+  box-shadow:var(--card-shadow);transition:all .2s;position:relative;
+}
+.vibe-card:hover{border-color:rgba(255,255,255,0.3);transform:translateY(-2px);box-shadow:var(--card-shadow-hover)}
+html.light .vibe-card:hover{border-color:rgba(0,0,0,0.25)}
+.vibe-card-head{display:flex;align-items:center;gap:10px}
+.vibe-step-badge{
+  font:700 11px/1 var(--mono);color:#fff;background:rgba(255,255,255,0.12);
+  padding:3px 7px;border-radius:3px;border:1px solid var(--line);
+}
+html.light .vibe-step-badge{color:#000;background:rgba(0,0,0,0.06);border-color:rgba(0,0,0,0.12)}
+.vibe-card h3{font:700 14px/1.35 var(--sans);color:var(--ink);margin:0}
+.vibe-card p{font-size:12.5px;line-height:1.65;color:var(--dim);margin:0}
+.vibe-card p code{font-family:var(--mono);font-size:11.5px;color:var(--ink);background:var(--panel2);padding:1px 5px;border-radius:2px;border:1px solid var(--line)}
+.vibe-card-tag{font:10px/1 var(--mono);color:var(--faint);letter-spacing:.04em;margin-top:2px}
+
 .nav-cta{font-family:var(--mono);font-size:11.5px;padding:6px 14px;border:1px solid var(--line-bright);border-radius:3px;transition:.18s;background:var(--panel)}
 .nav-cta:hover{background:#fff;color:#000;border-color:#fff}
 .menu-btn{display:none;background:none;border:1px solid var(--line);color:var(--ink);padding:6px 12px;border-radius:3px;font-family:var(--mono);font-size:12px}
@@ -1015,6 +1141,41 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
 
 <div id="copyToast"><span class="toast-ico">✓</span><span id="toastText">已成功复制到剪贴板</span></div>
 
+<div id="repoModal" class="modal-overlay" hidden>
+  <div class="modal-card">
+    <div class="modal-head">
+      <span class="modal-title">// GITHUB REPOSITORY · ARCHITECTURE &amp; REPO</span>
+      <button class="modal-close" id="repoModalClose" type="button" aria-label="关闭">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="repo-badge-row">
+        <span class="repo-badge">MIT LICENSE</span>
+        <span class="repo-badge">NT 10.0+ READY</span>
+        <span class="repo-badge">PURE BATCH &amp; PS1</span>
+      </div>
+      <p class="repo-desc" data-i18n="modal.repo_desc">专为终结 Windows 保留名死锁设计的开源安全清理工具。先只读列出，经确认后安全删除。</p>
+      <div class="repo-box">
+        <span class="repo-box-label" data-i18n="modal.repo_url_label">仓库直达地址:</span>
+        <div class="repo-box-row">
+          <code>https://github.com/yancongya/delete-nul</code>
+          <button class="copybtn" type="button" data-copy="https://github.com/yancongya/delete-nul" data-i18n="modal.copy_link">复制链接</button>
+        </div>
+      </div>
+      <div class="repo-box">
+        <span class="repo-box-label" data-i18n="modal.clone_cmd_label">Git Clone 终端指令:</span>
+        <div class="repo-box-row">
+          <code>git clone https://github.com/yancongya/delete-nul.git</code>
+          <button class="copybtn" type="button" data-copy="git clone https://github.com/yancongya/delete-nul.git" data-i18n="modal.copy_clone">复制代码</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <a class="btn primary modal-visit-btn" id="repoModalVisit" href="https://github.com/yancongya/delete-nul" target="_blank" rel="noopener" data-i18n="modal.visit_btn">在浏览器打开仓库 ↗</a>
+      <button class="btn ghost modal-dismiss-btn" id="repoModalDismiss" type="button" data-i18n="modal.close_btn">关闭小窗</button>
+    </div>
+  </div>
+</div>
+
 <canvas id="field" aria-hidden="true"></canvas>
 <canvas id="dissolve" aria-hidden="true"></canvas>
 <button id="restoreHint" type="button" hidden><span class="restore-dot"></span><span data-i18n="install.restore_hint">点击任意位置或按 Esc 恢复页面</span><span class="restore-key">ESC</span></button>
@@ -1026,9 +1187,12 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
       <span class="nav-status-badge"><span class="dot"></span>NT 10.0+ READY</span>
     </div>
     <nav class="nav-links" id="navlinks">
-      <a href="#features" data-i18n="nav.features">功能</a><a href="#modes" data-i18n="nav.modes">使用</a><a href="#why" data-i18n="nav.why">原理</a><a href="#install" data-i18n="nav.install">安装 / 过程</a><a href="#faq" data-i18n="nav.faq">FAQ</a>
+      <a href="#vibe-coding" data-i18n="nav.vibe_coding">场景痛点</a><a href="#features" data-i18n="nav.features">功能</a><a href="#modes" data-i18n="nav.modes">使用</a><a href="#why" data-i18n="nav.why">原理</a><a href="#install" data-i18n="nav.install">安装 / 过程</a><a href="#faq" data-i18n="nav.faq">FAQ</a>
     </nav>
     <div class="nav-actions">
+      <button class="github-btn" id="repoBtn" type="button" aria-label="GitHub 仓库" title="GitHub 仓库 (定格小窗 / 链接)">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg>
+      </button>
       <button class="lang-btn" id="langBtn" type="button" aria-label="切换语言" title="切换语言 / Switch Language">
         <span class="lang-code" id="langCode">EN</span>
       </button>
@@ -1224,6 +1388,110 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
 type nul &gt; &quot;%RNLIST%&quot;
 dir /s /b /a 2&gt;nul | &quot;%SystemRoot%\System32\findstr.exe&quot; /r /i /c:&quot;\\nul$&quot; /c:&quot;\\con$&quot; /c:&quot;\\prn$&quot; /c:&quot;\\aux$&quot; /c:&quot;\\com1$&quot; /c:&quot;\\com2$&quot; /c:&quot;\\com3$&quot; /c:&quot;\\com4$&quot; /c:&quot;\\com5$&quot; /c:&quot;\\com6$&quot; /c:&quot;\\com7$&quot; /c:&quot;\\com8$&quot; /c:&quot;\\com9$&quot; /c:&quot;\\lpt1$&quot; /c:&quot;\\lpt2$&quot; /c:&quot;\\lpt3$&quot; /c:&quot;\\lpt4$&quot; /c:&quot;\\lpt5$&quot; /c:&quot;\\lpt6$&quot; /c:&quot;\\lpt7$&quot; /c:&quot;\\lpt8$&quot; /c:&quot;\\lpt9$&quot; &gt;&gt; &quot;%RNLIST%&quot;
 type &quot;%RNLIST%&quot;">复制</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block dissolve-layer" id="vibe-coding">
+    <div class="wrap">
+      <div class="eyebrow reveal" data-i18n="vibe.eyebrow">// WHY IT MATTERS · VIBE CODING ACCIDENTS</div>
+      <h2 class="title reveal" data-i18n="vibe.title">Vibe Coding 时代的幽灵死锁：为什么 AI 编程总生成删不掉的 NUL？</h2>
+      <p class="lead reveal" data-i18n="vibe.lead">在用 Cursor、Claude Code、Aider 等 AI 辅助编程时，Agent 经常会执行跨平台 Shell 重定向或测试，意外在 Windows 下创建出 nul、aux 等保留名文件。系统报错“找不到指定文件”，资源管理器删不掉，整个 Git 仓库彻底死锁——本工具专为终结这一死锁而生。</p>
+      
+      <div class="vibe-grid reveal">
+        <!-- Left: Interactive Terminal Scenario Simulation -->
+        <div class="vibe-term-col">
+          <div class="vibe-term">
+            <div class="term-head vibe-term-head">
+              <span class="term-dots"><i></i><i></i><i></i></span>
+              <span class="term-title" data-i18n="vibe.term_title">terminal — Vibe Coding 场景还原与破局</span>
+              <div class="vibe-tabs" role="tablist">
+                <button type="button" class="vibe-tab active" data-vibe="deadlock" data-i18n="vibe.tab_deadlock">1. 现场: Git 死锁</button>
+                <button type="button" class="vibe-tab" data-vibe="rescue" data-i18n="vibe.tab_rescue">2. 破局: delete-nul 救砖</button>
+              </div>
+            </div>
+            <div class="term-body vibe-term-body" id="vibeTermBody">
+              <!-- Screen 1: Deadlock Incident -->
+              <div class="vibe-screen" data-screen="deadlock">
+                <div class="demo-line" style="color:var(--dim)">$ # 开发者在 VS Code 中让 AI Agent 运行测试:</div>
+                <div class="demo-line" style="color:#fff">❯ Claude Code / Cursor: "运行测试并静默重定向..."</div>
+                <div class="demo-line" style="color:var(--dim);margin-top:6px">$ # Agent 执行类 Bash 跨平台指令，误生成了物理保留名文件:</div>
+                <div class="demo-line" style="color:#00ffaa">&gt; pnpm test &gt; nul 2&gt;&amp;1</div>
+                <div class="demo-line" style="color:var(--faint);font-size:11px">[CRITICAL] Windows 物理磁盘创建了死锁文件: D:\my-repo\nul</div>
+                <div class="demo-line" style="margin-top:8px;color:var(--dim)">$ # 开发者试图在终端中常规删除:</div>
+                <div class="demo-line">&gt; rm nul</div>
+                <div class="demo-line" style="color:#ff5555">rm: cannot remove 'nul': No such file or directory</div>
+                <div class="demo-line">&gt; del nul</div>
+                <div class="demo-line" style="color:#ff5555">系统找不到指定的文件。</div>
+                <div class="demo-line" style="margin-top:8px;color:var(--dim)">$ # 导致 Git 索引崩溃与提交阻塞:</div>
+                <div class="demo-line">&gt; git status</div>
+                <div class="demo-line" style="color:#ff5555">fatal: cannot stat 'nul': Invalid argument</div>
+                <div class="vibe-badge-deadlock">
+                  <span class="vibe-badge-dot"></span>
+                  <span data-i18n="vibe.badge_deadlock">死锁状态: 资源管理器删不掉 · Git 无法 checkout/commit · 代码库瘫痪</span>
+                </div>
+              </div>
+              <!-- Screen 2: delete-nul Rescue -->
+              <div class="vibe-screen" data-screen="rescue" hidden>
+                <div class="demo-line" style="color:var(--dim)">$ # 运行 delete-nul 救砖脚本 (直达 NT 原生路径):</div>
+                <div class="demo-line" style="color:#fff">❯ delete-nul</div>
+                <div class="demo-line" style="color:var(--faint);margin-top:4px">[00:00:01] 正在通过 \??\ 原生命名空间检索保留名实体...</div>
+                <div class="demo-line" style="color:#00ffaa">[MATCH] 命中 Win32 设备保留名文件:</div>
+                <div class="demo-line" style="padding-left:16px;color:#fff">&gt;&gt; \\?\D:\my-repo\nul (Size: 0B)</div>
+                <div class="demo-line" style="color:var(--dim);margin-top:6px">[SAFETY] 启动只读预检 (-DryRun 模式) 确保无误...</div>
+                <div class="demo-line" style="color:#00ffaa">? 确认删除该异常文件? [Y/N]: Y</div>
+                <div class="demo-line" style="color:#00ffaa;margin-top:4px">✓ 成功解除 Win32 设备死锁，已物理清除: \\?\D:\my-repo\nul</div>
+                <div class="demo-line" style="color:var(--dim);margin-top:6px">$ # 再次检查 Git 状态:</div>
+                <div class="demo-line">&gt; git status</div>
+                <div class="demo-line" style="color:#00ffaa">On branch main, working tree clean. Nothing to commit.</div>
+                <div class="vibe-badge-resolved">
+                  <span class="vibe-badge-dot"></span>
+                  <span data-i18n="vibe.badge_resolved">死锁解除: 零外部依赖 · NT 内核直达 · 仓库恢复正常运行</span>
+                </div>
+              </div>
+            </div>
+            <div class="term-foot vibe-term-foot">
+              <span class="vibe-foot-meta">NT 10.0+ Extended Win32 Path Bypass</span>
+              <button class="vibe-toggle-btn" type="button" data-i18n="vibe.toggle_btn">切换场景演示 ⇄</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: 3 Core Explanation Cards -->
+        <div class="vibe-cards-col">
+          <div class="vibe-card">
+            <div class="vibe-card-head">
+              <span class="vibe-step-badge">01</span>
+              <h3 data-i18n="vibe.card1_title">为什么 Vibe Coding 容易踩中此坑？</h3>
+            </div>
+            <p data-i18n="vibe.card1_desc">
+              AI Agent 习惯直接执行类 Unix/Bash 跨平台命令（如误写为 <code>&gt; nul</code> 或 <code>npm test 2&gt;&amp;1 &gt; nul</code>），或者从 Linux 开源仓库解压出包含保留名的测试包。某些构建工具直接越级生成了物理文件，但在 Windows 体系内它们却是无法正常访问的“幽灵”。
+            </p>
+            <div class="vibe-card-tag">// AI Agent 跨平台命令习惯陷阱</div>
+          </div>
+
+          <div class="vibe-card">
+            <div class="vibe-card-head">
+              <span class="vibe-step-badge">02</span>
+              <h3 data-i18n="vibe.card2_title">为什么常规命令和资源管理器删不掉？</h3>
+            </div>
+            <p data-i18n="vibe.card2_desc">
+              从 MS-DOS 时代起，Windows 就在 Win32 子系统层将 <code>NUL</code>、<code>CON</code>、<code>AUX</code>、<code>PRN</code>、<code>COM1-9</code> 等硬编码为系统保留设备名。普通 API 访问它们时会被强制重定向到系统虚拟设备，报错“找不到指定文件”，甚至连文件本身都无法定位！
+            </p>
+            <div class="vibe-card-tag">// Win32 Subsystem Device Name Interception</div>
+          </div>
+
+          <div class="vibe-card">
+            <div class="vibe-card-head">
+              <span class="vibe-step-badge">03</span>
+              <h3 data-i18n="vibe.card3_title">delete-nul 是如何做到安全破局的？</h3>
+            </div>
+            <p data-i18n="vibe.card3_desc">
+              本工具通过向路径注入 <code>\\?\</code> (Win32 File Namespace) 原生前缀，直接通知 NT 内核对象管理器“跳过 Win32 层的保留名拦截”，直达物理扇区；配合「先列后删」安全规范，先只读预检，经确认后安全清除，绝不误伤正常文件。
+            </p>
+            <div class="vibe-card-tag">// \\?\ NT Kernel Direct Namespace Bypass</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1427,6 +1695,7 @@ type &quot;%RNLIST%&quot;">复制</button></div>
       'page_desc': '查找并删除 Windows 上普通方法删不掉的 NUL / CON / AUX / PRN / COM1-9 / LPT1-9 保留名文件。先列出，确认后才删。',
       'loader.skip': '[点击或按任意键跳过 ↵]',
       'nav.status': '<span class="dot"></span>NT 10.0+ READY',
+      'nav.vibe_coding': '场景痛点',
       'nav.features': '功能',
       'nav.modes': '使用',
       'nav.why': '原理',
@@ -1486,6 +1755,28 @@ type &quot;%RNLIST%&quot;">复制</button></div>
       'install.restore_hint': '点击任意位置或按 Esc 恢复页面',
       'toast_copied': '已经成功复制到剪贴板，可直接粘贴使用！',
       'toast_selected': '已选中文本，请使用 Ctrl+C 复制',
+      'modal.repo_desc': '专为终结 Windows 保留名死锁设计的开源安全清理工具。先只读列出，经确认后安全删除。',
+      'modal.repo_url_label': '仓库直达地址:',
+      'modal.clone_cmd_label': 'Git Clone 终端指令:',
+      'modal.copy_link': '复制链接',
+      'modal.copy_clone': '复制代码',
+      'modal.visit_btn': '在浏览器打开仓库 ↗',
+      'modal.close_btn': '关闭小窗',
+      'vibe.eyebrow': '// WHY IT MATTERS · VIBE CODING ACCIDENTS',
+      'vibe.title': 'Vibe Coding 时代的幽灵死锁：为什么 AI 编程总生成删不掉的 NUL？',
+      'vibe.lead': '在用 Cursor、Claude Code、Aider 等 AI 辅助编程时，Agent 经常会执行跨平台 Shell 重定向或测试，意外在 Windows 下创建出 nul、aux 等保留名文件。系统报错“找不到指定文件”，资源管理器删不掉，整个 Git 仓库彻底死锁——本工具专为终结这一死锁而生。',
+      'vibe.term_title': 'terminal — Vibe Coding 场景还原与破局',
+      'vibe.tab_deadlock': '1. 现场: Git 死锁',
+      'vibe.tab_rescue': '2. 破局: delete-nul 救砖',
+      'vibe.badge_deadlock': '死锁状态: 资源管理器删不掉 · Git 无法 checkout/commit · 代码库瘫痪',
+      'vibe.badge_resolved': '死锁解除: 零外部依赖 · NT 内核直达 · 仓库恢复正常运行',
+      'vibe.toggle_btn': '切换场景演示 ⇄',
+      'vibe.card1_title': '为什么 Vibe Coding 容易踩中此坑？',
+      'vibe.card1_desc': 'AI Agent 习惯直接执行类 Unix/Bash 跨平台命令（如误写为 <code>&gt; nul</code> 或 <code>npm test 2&gt;&amp;1 &gt; nul</code>），或者从 Linux 开源仓库解压出包含保留名的测试包。某些构建工具直接越级生成了物理文件，但在 Windows 体系内它们却是无法正常访问的“幽灵”。',
+      'vibe.card2_title': '为什么常规命令和资源管理器删不掉？',
+      'vibe.card2_desc': '从 MS-DOS 时代起，Windows 就在 Win32 子系统层将 <code>NUL</code>、<code>CON</code>、<code>AUX</code>、<code>PRN</code>、<code>COM1-9</code> 等硬编码为系统保留设备名。普通 API 访问它们时会被强制重定向到系统虚拟设备，报错“找不到指定文件”，甚至连文件本身都无法定位！',
+      'vibe.card3_title': 'delete-nul 是如何做到安全破局的？',
+      'vibe.card3_desc': '本工具通过向路径注入 <code>\\\\?\\</code> (Win32 File Namespace) 原生前缀，直接通知 NT 内核对象管理器“跳过 Win32 层的保留名拦截”，直达物理扇区；配合「先列后删」安全规范，先只读预检，经确认后安全清除，绝不误伤正常文件。',
       'features.eyebrow': '// FEATURES',
       'features.title': '只做一件事，做对',
       'features.lead': '针对 Windows 历史包袱与保留名死锁，提供不伤正常业务文件的终极解决方案。',
@@ -1571,6 +1862,7 @@ type &quot;%RNLIST%&quot;">复制</button></div>
       'page_desc': 'Find and purge undeletable NUL / CON / AUX / PRN / COM1-9 / LPT1-9 reserved name files on Windows. Inspect first, purge after confirmation.',
       'loader.skip': '[Click or press any key to skip ↵]',
       'nav.status': '<span class="dot"></span>NT 10.0+ READY',
+      'nav.vibe_coding': 'Scenarios',
       'nav.features': 'Features',
       'nav.modes': 'Usage',
       'nav.why': 'Architecture',
@@ -1630,6 +1922,28 @@ type &quot;%RNLIST%&quot;">复制</button></div>
       'install.restore_hint': 'Click anywhere or press Esc to restore page',
       'toast_copied': 'Copied to clipboard successfully! Ready to paste.',
       'toast_selected': 'Text selected. Press Ctrl+C to copy.',
+      'modal.repo_desc': 'Open-source safety tool designed to terminate Windows reserved name file deadlocks. Inspect first, purge after explicit confirmation.',
+      'modal.repo_url_label': 'Direct Repository URL:',
+      'modal.clone_cmd_label': 'Git Clone Terminal Command:',
+      'modal.copy_link': 'Copy Link',
+      'modal.copy_clone': 'Copy Command',
+      'modal.visit_btn': 'Open in Browser ↗',
+      'modal.close_btn': 'Close Modal',
+      'vibe.eyebrow': '// WHY IT MATTERS · VIBE CODING ACCIDENTS',
+      'vibe.title': 'Ghost Deadlocks in the Vibe Coding Era: Why AI Always Creates Undeletable NULs?',
+      'vibe.lead': 'During AI-assisted programming with Cursor, Claude Code, or Aider, agents frequently run cross-platform shell redirections or test suites, inadvertently creating reserved name files like nul or aux on Windows. Systems report "File not found", File Explorer cannot delete them, and Git repositories lock up completely — this tool was created to break this deadlock.',
+      'vibe.term_title': 'terminal — Vibe Coding Deadlock vs. Rescue',
+      'vibe.tab_deadlock': '1. Incident: Git Deadlock',
+      'vibe.tab_rescue': '2. Rescue: delete-nul in Action',
+      'vibe.badge_deadlock': 'Deadlock State: Explorer cannot delete · Git checkout/commit blocked · Repository crippled',
+      'vibe.badge_resolved': 'Deadlock Resolved: Zero dependencies · NT Kernel Direct · Clean repository restored',
+      'vibe.toggle_btn': 'Toggle Scenario ⇄',
+      'vibe.card1_title': 'Why Does Vibe Coding Fall into this Trap?',
+      'vibe.card1_desc': 'AI Agents often run Unix/Bash-style redirection commands (e.g., <code>&gt; nul</code> or <code>npm test 2&gt;&amp;1 &gt; nul</code>) or extract Linux test fixtures containing reserved names. Build tools write raw physical files that turn into unaddressable "ghosts" within Windows.',
+      'vibe.card2_title': 'Why Standard Commands and File Explorer Fail?',
+      'vibe.card2_desc': 'Since MS-DOS, Windows Win32 subsystem has hardcoded <code>NUL</code>, <code>CON</code>, <code>AUX</code>, etc., as reserved device names. Regular file APIs automatically redirect to system virtual devices, prompting "File Not Found" without ever touching the disk file!',
+      'vibe.card3_title': 'How Does delete-nul Safely Break the Deadlock?',
+      'vibe.card3_desc': 'By injecting the <code>\\\\?\\</code> prefix (Win32 File Namespace), it signals the NT Object Manager to bypass Win32 device filters and unlink physical sectors directly, strictly adhering to dry-run pre-flight inspection before deletion.',
       'features.eyebrow': '// FEATURES',
       'features.title': 'Do One Thing, Do It Right',
       'features.lead': 'The definitive remedy for Windows legacy reserved name deadlocks without harming regular files.',
@@ -1821,6 +2135,71 @@ type &quot;%RNLIST%&quot;">复制</button></div>
     }
     copyTimers.set(b,setTimeout(function(){b.textContent=orig},1600));
   });
+
+  /* GitHub Repo 定格小窗 Modal 控制器 */
+  (function(){
+    var repoBtn = document.getElementById('repoBtn');
+    var repoModal = document.getElementById('repoModal');
+    var closeBtn = document.getElementById('repoModalClose');
+    var dismissBtn = document.getElementById('repoModalDismiss');
+    if(!repoModal) return;
+
+    function openModal(){
+      repoModal.hidden = false;
+      document.body.style.overflow = 'hidden';
+    }
+    function closeModal(){
+      repoModal.hidden = true;
+      document.body.style.overflow = '';
+    }
+
+    if(repoBtn) repoBtn.addEventListener('click', openModal);
+    if(closeBtn) closeBtn.addEventListener('click', closeModal);
+    if(dismissBtn) dismissBtn.addEventListener('click', closeModal);
+
+    repoModal.addEventListener('click', function(e){
+      if(e.target === repoModal) closeModal();
+    });
+
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' && !repoModal.hidden){
+        closeModal();
+      }
+    });
+  })();
+
+  /* Vibe Coding 场景交互模拟器（死锁现场 ⇄ delete-nul 救砖） */
+  (function(){
+    var section = document.getElementById('vibe-coding');
+    if(!section) return;
+    var tabs = section.querySelectorAll('.vibe-tab');
+    var screens = section.querySelectorAll('.vibe-screen');
+    var toggleBtn = section.querySelector('.vibe-toggle-btn');
+
+    function switchScreen(screenName){
+      tabs.forEach(function(t){
+        t.classList.toggle('active', t.getAttribute('data-vibe') === screenName);
+      });
+      screens.forEach(function(s){
+        s.hidden = (s.getAttribute('data-screen') !== screenName);
+      });
+    }
+
+    tabs.forEach(function(tab){
+      tab.addEventListener('click', function(){
+        var target = tab.getAttribute('data-vibe');
+        if(target) switchScreen(target);
+      });
+    });
+
+    if(toggleBtn){
+      toggleBtn.addEventListener('click', function(){
+        var activeTab = section.querySelector('.vibe-tab.active');
+        var cur = activeTab ? activeTab.getAttribute('data-vibe') : 'deadlock';
+        switchScreen(cur === 'deadlock' ? 'rescue' : 'deadlock');
+      });
+    }
+  })();
 
   /* High-Tech NT Kernel Diagnostic Loader (Immersive Boot Sequence) */
   (function(){
@@ -2634,7 +3013,7 @@ type &quot;%RNLIST%&quot;">复制</button></div>
 
     /* Navigation scrollspy & back-to-top */
     (function(){
-      var secIds = ['features','modes','why','install','faq'];
+      var secIds = ['vibe-coding','features','modes','why','install','faq'];
       var sections = secIds.map(function(id){ return document.getElementById(id); }).filter(Boolean);
       var links = document.querySelectorAll('.nav-links a');
       if(sections.length && links.length && 'IntersectionObserver' in window){
