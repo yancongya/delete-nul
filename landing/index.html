@@ -10,7 +10,7 @@
 :root{
   --bg:#070708; --panel:#0d0d10; --panel2:#131317; --line:#ffffff1a; --line-bright:#ffffff33;
   --ink:#f5f5f7; --dim:#9494a0; --faint:#626270;
-  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --mono:ui-monospace,"Cascadia Code",SFMono-Regular,Menlo,Consolas,"Microsoft YaHei Mono","Microsoft YaHei",monospace;
   --sans:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
   --ease-out-expo:cubic-bezier(.16,1,.3,1);
   --card-shadow:0 0 0 1px var(--line), 0 4px 20px #00000060;
@@ -225,11 +225,13 @@ html.light .theme-btn .moon{display:inline-block}
 .term-title{flex:1;letter-spacing:.04em;color:var(--dim);font-weight:600}
 .process-replay{background:none;border:1px solid var(--line);border-radius:3px;color:var(--dim);font:10px var(--mono);cursor:pointer;padding:2px 8px;transition:all .15s}
 .process-replay:hover{color:#fff;border-color:#fff}
-.term-body{padding:14px;min-height:220px;font:11.5px/1.75 var(--mono);color:var(--ink)}
+.term-body{padding:14px;min-height:245px;font:11.5px/1.75 var(--mono);color:var(--ink);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 .term-body .demo-line{white-space:pre-wrap;overflow-wrap:anywhere;min-height:1.75em}
-.term-body .ok{color:#fff;font-weight:700}
+.term-body .ok{color:#fff;font-weight:600}
 .term-body .dim{color:var(--faint)}
-.term-body .hl{color:#fff;font-weight:700}
+.term-body .hl{color:#fff;font-weight:600}
+.term-body .warn{color:#ddd;font-weight:500}
+.term-body code{font-family:var(--mono);color:#fff;background:rgba(255,255,255,0.08);padding:1px 5px;border-radius:2px;border:1px solid rgba(255,255,255,0.12)}
 .term-cursor{display:inline-block;width:7px;height:13px;background:#fff;vertical-align:-2px;animation:blink .8s steps(1) infinite}
 .term-foot{display:flex;align-items:center;gap:10px;padding:9px 12px;border-top:1px solid var(--line);background:var(--panel2)}
 .term-foot code{flex:1;min-width:0;font:11px/1.5 var(--mono);color:var(--dim);white-space:pre-wrap;overflow-wrap:anywhere}
@@ -1065,78 +1067,255 @@ type &quot;%RNLIST%&quot;">复制</button></div>
     addEventListener('click',function(e){if(active&&document.body.classList.contains('page-gone')&&!e.target.closest('#restoreHint'))restore()});
   })();
 
-  /* Per-method execution process — the former demo, folded into each tab. */
+  /* Per-method execution process — hyper-realistic interactive simulation */
   (function(){
-    var scripts={
-      cmd:[
-        {t:'C:\\> curl -fsSL .../delete-nul.ps1 -o "%TEMP%\\delete-nul.ps1"',c:'hl',d:260},
-        {t:'  [下载] delete-nul.ps1    [======>....]  100%',c:'dim',d:300},
-        {t:'C:\\> curl -fsSL .../delete-nul.bat -o "%TEMP%\\delete-nul.bat"',c:'hl',d:260},
-        {t:'  [下载] delete-nul.bat    [==========>]  100%',c:'dim',d:300},
-        {t:'C:\\> call "%TEMP%\\delete-nul.bat"',c:'hl',d:220},
-        {t:'  扫描模式选择菜单已启动。',c:'ok',d:220},
-        {t:'$ _',c:'',d:0}
-      ],
-      agent:[
-        {t:'> PROMPT: 查阅仓库、下载工具并安全清理工作区保留名文件',c:'hl',d:260},
-        {t:'  [1/4] 查阅仓库: GET github.com/yancongya/delete-nul (分析原理与参数)',c:'dim',d:260},
-        {t:'  [2/4] 下载工具: curl -fsSL .../delete-nul.ps1 -o "%TEMP%\\delete-nul.ps1"',c:'',d:240},
-        {t:'  [3/4] 安全预检: powershell -File "%TEMP%\\delete-nul.ps1" -Path . -DryRun',c:'hl',d:280},
-        {t:'        发现 2 个保留名文件: .\\dist\\NUL, .\\cache\\CON (等待用户确认)',c:'ok',d:220},
-        {t:'  [4/4] 用户确认: 以 \\\\?\\ NT 原生路径精准清除完成 (0 残留)',c:'ok',d:260},
-        {t:'$ _',c:'',d:0}
-      ],
-      raw:[
-        {t:'> GET raw.githubusercontent.com/.../delete-nul.ps1',c:'hl',d:260},
-        {t:'  [==========>] 100%   已保存 delete-nul.ps1',c:'dim',d:300},
-        {t:'> GET raw.githubusercontent.com/.../delete-nul.bat',c:'hl',d:240},
-        {t:'  [==========>] 100%   已保存 delete-nul.bat',c:'dim',d:300},
-        {t:'  两个文件放同一目录，双击 delete-nul.bat。',c:'ok',d:220},
-        {t:'$ _',c:'',d:0}
-      ],
-      text:[
-        {t:'C:\\work> paste PART 1  (纯 CMD，只扫描)',c:'hl',d:260},
-        {t:'[1/1] 正在扫描 C:\\work ...',c:'',d:260},
-        {t:'  | SCAN... C:\\work  native scan  0 found  0.4s  [====>......]',c:'',d:320},
-        {t:'发现 3 个保留名文件：',c:'ok',d:200},
-        {t:'[1] C:\\work\\NUL',c:'',d:160},
-        {t:'[2] C:\\work\\old\\CON',c:'',d:160},
-        {t:'[3] C:\\work\\tmp\\AUX',c:'',d:160},
-        {t:'仅扫描模式，未删除任何文件。',c:'ok',d:240},
-        {t:'$ _',c:'',d:0}
-      ]
-    };
-    var timers=[],progress=null;
-    function clear(box){timers.forEach(clearTimeout);timers=[];clearInterval(progress);progress=null;box.replaceChildren();}
-    function play(method){
-      var box=document.querySelector('.term-body[data-lines="'+method+'"]');if(!box)return;
-      clear(box);
-      var lines=scripts[method];
-      function row(L,i){
-        var div=document.createElement('div');div.className='demo-line'+(L.c?' '+L.c:'');
-        var txt=document.createTextNode(L.t);div.appendChild(txt);
-        if(i===lines.length-1){var cur=document.createElement('span');cur.className='term-cursor';div.appendChild(cur);}
-        box.appendChild(div);
-        if(!motion.matches&&/\[[=>.]+\]/.test(L.t)){
-          var k=0;
-          progress=setInterval(function(){
-            k=Math.min(20,k+2);
-            txt.nodeValue=L.t.replace(/\[[=>.]+\]/,'['+'='.repeat(k)+(k<20?'>'+'.'.repeat(20-k):'')+']');
-            if(k>=20)clearInterval(progress);
-          },80);
-        }
-      }
-      if(motion.matches){lines.forEach(row);return;}
-      var delay=0;
-      lines.forEach(function(L,i){timers.push(setTimeout(function(){row(L,i)},delay+=(L.d||40)));});
+    var currentCtrl = null;
+
+    function sleep(ms, signal){
+      if(motion.matches) return Promise.resolve();
+      return new Promise(function(resolve, reject){
+        var t = setTimeout(resolve, ms);
+        if(signal) signal.addEventListener('abort', function(){ clearTimeout(t); reject(new Error('aborted')); });
+      });
     }
+
+    function makeLine(box, cls){
+      var d = document.createElement('div');
+      d.className = 'demo-line' + (cls ? ' ' + cls : '');
+      box.appendChild(d);
+      return d;
+    }
+
+    async function typeText(box, promptText, commandText, cls, signal, speed){
+      var line = makeLine(box, cls);
+      if(promptText){
+        var p = document.createElement('span');
+        p.className = 'dim';
+        p.textContent = promptText;
+        line.appendChild(p);
+      }
+      var textNode = document.createTextNode('');
+      line.appendChild(textNode);
+      if(motion.matches){
+        textNode.nodeValue = commandText;
+        return line;
+      }
+      var cur = document.createElement('span');
+      cur.className = 'term-cursor';
+      line.appendChild(cur);
+
+      var spd = speed || 18;
+      for(var i = 0; i < commandText.length; i++){
+        if(signal && signal.aborted) throw new Error('aborted');
+        textNode.nodeValue += commandText[i];
+        var j = (commandText[i] === ' ' || commandText[i] === '-') ? spd * 1.6 : spd * (0.85 + Math.random() * 0.35);
+        await sleep(j, signal);
+      }
+      await sleep(150, signal);
+      cur.remove();
+      return line;
+    }
+
+    async function runSpinner(box, prefix, label, doneLabel, duration, signal){
+      var line = makeLine(box, 'dim');
+      if(motion.matches){
+        line.className = 'demo-line ok';
+        line.textContent = (prefix ? prefix + ' ' : '') + '✔ ' + doneLabel;
+        return;
+      }
+      var frames = ['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏'];
+      var idx = 0;
+      var start = performance.now();
+      var dur = duration || 600;
+      while(performance.now() - start < dur){
+        if(signal && signal.aborted) throw new Error('aborted');
+        line.textContent = (prefix ? prefix + ' ' : '') + frames[idx++ % frames.length] + ' ' + label;
+        await sleep(48, signal);
+      }
+      line.className = 'demo-line ok';
+      line.textContent = (prefix ? prefix + ' ' : '') + '✔ ' + doneLabel;
+    }
+
+    async function runProgress(box, label, totalKb, duration, signal){
+      var line = makeLine(box, 'dim');
+      if(motion.matches){
+        line.className = 'demo-line ok';
+        line.textContent = '  ' + label + ' [====================] 100% (' + totalKb + ' KB) [OK]';
+        return;
+      }
+      var start = performance.now();
+      var dur = duration || 600;
+      while(true){
+        if(signal && signal.aborted) throw new Error('aborted');
+        var now = performance.now();
+        var pct = Math.min(1, (now - start) / dur);
+        var curKb = (totalKb * pct).toFixed(1);
+        var bars = Math.round(pct * 20);
+        var barStr = '[' + '='.repeat(bars) + (bars < 20 ? '>' + '.'.repeat(19 - bars) : '') + ']';
+        line.textContent = '  ' + label + ' ' + barStr + ' ' + Math.round(pct * 100) + '% (' + curKb + ' KB)';
+        if(pct >= 1) break;
+        await sleep(40, signal);
+      }
+      line.className = 'demo-line ok';
+      line.textContent = '  ' + label + ' [====================] 100% (' + totalKb + ' KB) [OK]';
+    }
+
+    function showFinalCursor(box){
+      var line = makeLine(box, '');
+      var s = document.createElement('span');
+      s.className = 'dim';
+      s.textContent = '$ ';
+      line.appendChild(s);
+      var cur = document.createElement('span');
+      cur.className = 'term-cursor';
+      line.appendChild(cur);
+    }
+
+    var workflows = {
+      cmd: async function(box, signal){
+        await typeText(box, 'C:\\> ', 'curl -fsSL "https://.../delete-nul.ps1" -o "%TEMP%\\delete-nul.ps1"', 'hl', signal, 18);
+        await runProgress(box, '下载 delete-nul.ps1', 28.4, 520, signal);
+        await sleep(100, signal);
+
+        await typeText(box, 'C:\\> ', 'curl -fsSL "https://.../delete-nul.bat" -o "%TEMP%\\delete-nul.bat"', 'hl', signal, 18);
+        await runProgress(box, '下载 delete-nul.bat', 4.2, 360, signal);
+        await sleep(120, signal);
+
+        await typeText(box, 'C:\\> ', 'call "%TEMP%\\delete-nul.bat"', 'hl', signal, 20);
+        await sleep(140, signal);
+
+        var m1 = makeLine(box, 'ok');
+        m1.textContent = '  ==================================================';
+        var m2 = makeLine(box, 'ok');
+        m2.textContent = '   delete-nul · 选择扫描模式 / Select scan mode';
+        var m3 = makeLine(box, 'ok');
+        m3.textContent = '  ==================================================';
+        var m4 = makeLine(box, 'dim');
+        m4.textContent = '   用 ↑ ↓ 选择，回车确认（G/S/C/D/Q）:';
+        var m5 = makeLine(box, 'hl');
+        m5.textContent = '   > [G] 全局扫描   扫描所有本地固定磁盘';
+        var m6 = makeLine(box, 'dim');
+        m6.textContent = '     [S] 定向处理   选磁盘 → 文件夹逐层浏览';
+        var m7 = makeLine(box, 'dim');
+        m7.textContent = '     [C] 扫描当前目录';
+        await sleep(120, signal);
+        showFinalCursor(box);
+      },
+
+      agent: async function(box, signal){
+        await typeText(box, '> Prompt: ', '安全扫描工作区并清理 Windows 保留名异常文件 (NUL/CON...)', 'hl', signal, 16);
+        await sleep(140, signal);
+
+        await runSpinner(box, '  [1/4]', 'Agent 查阅开源仓库与规范 (github.com/yancongya/delete-nul)...', '已解析 README: 识别 Win32 命名空间劫持，需通过 \\\\?\\ NT 原生路径精准清理', 580, signal);
+        await sleep(100, signal);
+
+        var l2 = makeLine(box, '');
+        l2.innerHTML = '  [2/4] <span class="hl">Tool Call</span>: <code>curl -fsSL .../delete-nul.ps1 -o "%TEMP%\\delete-nul.ps1"</code>';
+        await runProgress(box, '拉取工具至临时目录', 28.4, 520, signal);
+        await sleep(100, signal);
+
+        var l3 = makeLine(box, '');
+        l3.innerHTML = '  [3/4] <span class="hl">Tool Call</span>: <code>powershell -File "%TEMP%\\delete-nul.ps1" -Path . -DryRun</code>';
+        await sleep(180, signal);
+        var r1 = makeLine(box, 'dim');
+        r1.textContent = '        正在只读扫描 . (耗时 0.2s) · 发现 2 个 Windows 保留名文件:';
+        var r2 = makeLine(box, 'warn');
+        r2.innerHTML = '        ! <code>.\\dist\\NUL</code>   (DOS Device Name)';
+        var r3 = makeLine(box, 'warn');
+        r3.innerHTML = '        ! <code>.\\cache\\CON</code>  (DOS Device Name)';
+        await sleep(200, signal);
+
+        var conf = makeLine(box, 'hl');
+        conf.textContent = '        ? 发现 2 个保留名文件，绝不误伤正常文件。是否确认物理清除？ (Y/n) ';
+        if(!motion.matches){
+          var cur = document.createElement('span');
+          cur.className = 'term-cursor';
+          conf.appendChild(cur);
+          await sleep(480, signal);
+          cur.remove();
+        }
+        conf.textContent = '        ? 发现 2 个保留名文件，绝不误伤正常文件。是否确认物理清除？ (Y/n) Y';
+        await sleep(150, signal);
+
+        var l4 = makeLine(box, '');
+        l4.innerHTML = '  [4/4] <span class="hl">Tool Call</span>: <code>powershell -File "%TEMP%\\delete-nul.ps1" -Path . -Yes</code>';
+        await sleep(160, signal);
+        var d1 = makeLine(box, 'ok');
+        d1.textContent = '        ✓ 已通过 \\\\?\\ 原生路径物理移除 .\\dist\\NUL';
+        var d2 = makeLine(box, 'ok');
+        d2.textContent = '        ✓ 已通过 \\\\?\\ 原生路径物理移除 .\\cache\\CON';
+        var d3 = makeLine(box, 'ok');
+        d3.textContent = '        ✔ 复核完成: 0 个残留文件，工作区已恢复正常。';
+        await sleep(120, signal);
+        showFinalCursor(box);
+      },
+
+      raw: async function(box, signal){
+        var l1 = makeLine(box, 'hl');
+        l1.textContent = '> GET raw.githubusercontent.com/yancongya/delete-nul/main';
+        await runSpinner(box, ' ', '正在建立 TLS 1.3 安全通道...', '已连接 (HTTP/2 200 OK)', 480, signal);
+        await sleep(100, signal);
+
+        await runProgress(box, '下载保存 delete-nul.ps1', 28.4, 520, signal);
+        await runProgress(box, '下载保存 delete-nul.bat', 4.2, 350, signal);
+        await sleep(120, signal);
+
+        var s1 = makeLine(box, 'ok');
+        s1.textContent = '✓ 文件已保存至本地同一目录 (Downloads\\delete-nul)';
+        var s2 = makeLine(box, 'dim');
+        s2.textContent = 'ℹ 使用方式: 双击 delete-nul.bat 运行，或直接把异常文件夹拖拽到 bat 图标上！';
+        await sleep(120, signal);
+        showFinalCursor(box);
+      },
+
+      text: async function(box, signal){
+        var p1 = makeLine(box, 'hl');
+        p1.textContent = 'C:\\work> [已粘贴原生 CMD 批处理代码片段 (免文件落地)]';
+        await sleep(160, signal);
+
+        var p2 = makeLine(box, 'dim');
+        p2.textContent = 'C:\\work> dir /s /b /a 2>nul | findstr /r /i /c:"\\\\nul$" ... >> "%RNLIST%"';
+        await runSpinner(box, ' ', '正在通过 Windows 原生 dir 管道深度检索...', '扫描完成 (耗时 0.4s)', 550, signal);
+        await sleep(120, signal);
+
+        var r1 = makeLine(box, 'ok');
+        r1.textContent = '发现 3 个 Windows 保留名文件:';
+        var r2 = makeLine(box, 'dim');
+        r2.textContent = '  [1] C:\\work\\NUL';
+        var r3 = makeLine(box, 'dim');
+        r3.textContent = '  [2] C:\\work\\old\\CON';
+        var r4 = makeLine(box, 'dim');
+        r4.textContent = '  [3] C:\\work\\tmp\\AUX';
+        var r5 = makeLine(box, 'ok');
+        r5.textContent = '纯文本模式仅输出检索清单，磁盘未作任何写操作。';
+        await sleep(120, signal);
+        showFinalCursor(box);
+      }
+    };
+
+    function play(method){
+      var box = document.querySelector('.term-body[data-lines="' + method + '"]');
+      if(!box) return;
+      if(currentCtrl) currentCtrl.abort();
+      currentCtrl = new AbortController();
+      var signal = currentCtrl.signal;
+      box.replaceChildren();
+
+      var runner = workflows[method];
+      if(runner){
+        runner(box, signal).catch(function(err){
+          if(err && err.message !== 'aborted') console.error(err);
+        });
+      }
+    }
+
     document.querySelectorAll('.process-replay').forEach(function(btn){
-      btn.addEventListener('click',function(){play(btn.dataset.replay)});
+      btn.addEventListener('click', function(){ play(btn.dataset.replay); });
     });
-    window.__runProcess=play;
-    if(motion.matches)play('cmd');
-    else setTimeout(function(){play('cmd')},1900); // start with the loading screen
-    motion.addEventListener('change',function(){play('cmd')});
+    window.__runProcess = play;
+    if(motion.matches) play('cmd');
+    else setTimeout(function(){ play('cmd'); }, 1900); // start with the loading screen
+    motion.addEventListener('change', function(){ play('cmd'); });
   })();
 
   /* scroll reveal (with safety fallback: never leave content hidden) */
