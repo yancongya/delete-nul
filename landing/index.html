@@ -5,18 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>delete-nul — Windows 保留名文件清理工具</title>
 <meta name="description" content="查找并删除 Windows 上普通方法删不掉的 NUL / CON / AUX / PRN / COM1-9 / LPT1-9 保留名文件。先列出，确认后才删。">
-<script>try{if(localStorage.getItem('dn-theme')==='light')document.documentElement.classList.add('light')}catch(e){}</script>
+<script>try{if(localStorage.getItem('dn-theme')==='light')document.documentElement.classList.add('light');var l=localStorage.getItem('dn-lang');if(l==='en')document.documentElement.lang='en';}catch(e){}</script>
 <style>
 :root{
   --bg:#070708; --panel:#0d0d10; --panel2:#131317; --line:#ffffff1a; --line-bright:#ffffff33;
   --ink:#f5f5f7; --dim:#9494a0; --faint:#626270;
+  --sb-track:#070708; --sb-thumb:rgba(255,255,255,0.22); --sb-thumb-hover:rgba(255,255,255,0.48);
   --mono:ui-monospace,"Cascadia Code",SFMono-Regular,Menlo,Consolas,"Microsoft YaHei Mono","Microsoft YaHei",monospace;
   --sans:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
   --ease-out-expo:cubic-bezier(.16,1,.3,1);
   --card-shadow:0 0 0 1px var(--line), 0 4px 20px #00000060;
   --card-shadow-hover:0 0 0 1px #ffffff55, 0 8px 30px #00000080;
 }
-*{box-sizing:border-box;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+*{box-sizing:border-box;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;scrollbar-width:thin;scrollbar-color:var(--sb-thumb) var(--sb-track)}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--sb-track)}
+::-webkit-scrollbar-thumb{background:var(--sb-thumb);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--sb-thumb-hover)}
+::-webkit-scrollbar-corner{background:transparent}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65;isolation:isolate;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
@@ -28,6 +34,7 @@ a{color:inherit;text-decoration:none}
 html.light{
   --bg:#f5f5f7;--panel:#ffffff;--panel2:#ececee;--line:#00000014;
   --ink:#0c0c0e;--dim:#484852;--faint:#6e6e78;
+  --sb-track:#f0f0f4;--sb-thumb:rgba(0,0,0,0.22);--sb-thumb-hover:rgba(0,0,0,0.45);
   --card-shadow:0 1px 3px #0001,0 6px 20px #0001;
   --card-shadow-hover:0 2px 6px #0001,0 12px 36px #0000000f;
   --term-dot:rgba(0,0,0,.35);--term-scan:rgba(0,0,0,.018);--term-glow:rgba(0,0,0,.025);
@@ -42,7 +49,12 @@ html.light header.top{background:rgba(255,255,255,0.88)}
 html.light .nav-links.open{background:var(--panel2)}
 html.light .brand .cur,
 html.light .nav-links a:hover,
-html.light .theme-btn:hover{color:var(--ink)}
+html.light .theme-btn:hover,
+html.light .lang-btn:hover{color:var(--ink)}
+html.light .lang-btn,
+html.light .nav-theme-btn{background:var(--panel);border-color:var(--line-bright);color:var(--ink)}
+html.light .lang-btn:hover,
+html.light .nav-theme-btn:hover{background:var(--panel2);border-color:var(--ink)}
 html.light .nav-cta{border-color:var(--line-bright);background:var(--panel);color:var(--ink)}
 html.light .nav-cta:hover{background:#000;color:#fff;border-color:#000}
 
@@ -364,6 +376,21 @@ header.top{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--b
 .nav-links{display:flex;gap:26px;font-size:12.5px;color:var(--dim);font-family:var(--mono)}
 .nav-links a{transition:color .15s}
 .nav-links a:hover{color:#fff}
+.nav-actions{display:flex;align-items:center;gap:8px}
+.lang-btn{
+  font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.05em;
+  padding:4px 9px;border:1px solid var(--line-bright);border-radius:3px;
+  background:var(--panel);color:var(--dim);cursor:pointer;transition:all .18s;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.lang-btn:hover{color:var(--ink);border-color:var(--ink);background:var(--panel2)}
+.nav-theme-btn{
+  position:static;padding:5px 6px;border-radius:3px;border:1px solid var(--line-bright);
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--panel);color:var(--dim);cursor:pointer;transition:all .18s;
+}
+.nav-theme-btn:hover{color:var(--ink);border-color:var(--ink);background:var(--panel2)}
+.nav-theme-btn svg{width:16px;height:16px}
 .nav-cta{font-family:var(--mono);font-size:11.5px;padding:6px 14px;border:1px solid var(--line-bright);border-radius:3px;transition:.18s;background:var(--panel)}
 .nav-cta:hover{background:#fff;color:#000;border-color:#fff}
 .menu-btn{display:none;background:none;border:1px solid var(--line);color:var(--ink);padding:6px 12px;border-radius:3px;font-family:var(--mono);font-size:12px}
@@ -869,6 +896,8 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
   .why-path-row span:last-child{grid-column:1}
 }
 @media(max-width:520px){
+  .nav-status-badge{display:none}
+  .lang-btn{padding:3px 7px;font-size:10px}
   .grid,.steps,.foot-grid{grid-template-columns:1fr}
   .hero{padding:56px 0 48px}
   .wordmark{width:calc(100% + 12px);margin-inline:-6px}
@@ -910,7 +939,7 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
     </div>
     <div class="loader-footer">
       <span class="loader-pct-badge"><b id="loaderPct">0%</b> COMPLETED</span>
-      <span class="loader-skip-hint" id="loaderSkip">[点击或按任意键跳过 ↵]</span>
+      <span class="loader-skip-hint" id="loaderSkip" data-i18n="loader.skip">[点击或按任意键跳过 ↵]</span>
     </div>
   </div>
 </div>
@@ -919,7 +948,7 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
 
 <canvas id="field" aria-hidden="true"></canvas>
 <canvas id="dissolve" aria-hidden="true"></canvas>
-<button id="restoreHint" type="button" hidden>点击任意位置或按 Esc 恢复页面</button>
+<button id="restoreHint" type="button" hidden data-i18n="install.restore_hint">点击任意位置或按 Esc 恢复页面</button>
 
 <header class="top dissolve-layer">
   <div class="wrap nav">
@@ -928,9 +957,18 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
       <span class="nav-status-badge"><span class="dot"></span>NT 10.0+ READY</span>
     </div>
     <nav class="nav-links" id="navlinks">
-      <a href="#features">功能</a><a href="#modes">使用</a><a href="#why">原理</a><a href="#install">安装 / 过程</a><a href="#faq">FAQ</a>
+      <a href="#features" data-i18n="nav.features">功能</a><a href="#modes" data-i18n="nav.modes">使用</a><a href="#why" data-i18n="nav.why">原理</a><a href="#install" data-i18n="nav.install">安装 / 过程</a><a href="#faq" data-i18n="nav.faq">FAQ</a>
     </nav>
-    <button class="menu-btn" id="menubtn" aria-label="菜单">菜单</button>
+    <div class="nav-actions">
+      <button class="lang-btn" id="langBtn" type="button" aria-label="切换语言" title="切换语言 / Switch Language">
+        <span class="lang-code" id="langCode">EN</span>
+      </button>
+      <button class="theme-btn nav-theme-btn" id="navThemeBtn" type="button" aria-label="浅色主题" aria-pressed="false" title="切换亮/暗色模式">
+        <svg class="sun" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
+        <svg class="moon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 13.34A9 9 0 0 1 10.66 3.1 9 9 0 1 0 20.9 13.34Z"/></svg>
+      </button>
+      <button class="menu-btn" id="menubtn" aria-label="菜单" data-i18n="nav.menu">菜单</button>
+    </div>
   </div>
 </header>
 
@@ -985,135 +1023,135 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
         </svg>
       </div>
       <div class="hero-intro dissolve-layer">
-        <h1><span class="accent slogan-glitch" data-text="⚡遗定要删掉⚡">⚡遗定要删掉⚡</span></h1>
-        <p class="sub"><code>NUL / CON / AUX / PRN / COM1-9 / LPT1-9</code> —— Windows 无法删除的保留名死锁终结者。无需安装、零依赖不污染代码仓库；直达 NT 原生路径，先只读预检，确认后一键安全清除。</p>
+        <h1><span class="accent slogan-glitch" data-text="⚡遗定要删掉⚡" data-i18n="hero.slogan">⚡遗定要删掉⚡</span></h1>
+        <p class="sub" data-i18n="hero.sub"><code>NUL / CON / AUX / PRN / COM1-9 / LPT1-9</code> —— Windows 无法删除的保留名死锁终结者。无需安装、零依赖不污染代码仓库；直达 NT 原生路径，先只读预检，确认后一键安全清除。</p>
         <div class="hero-pills">
-          <span class="pill-tag">✦ 零依赖免安装</span>
-          <span class="pill-tag">✦ \\?\ NT 原生路径直达</span>
-          <span class="pill-tag">✦ 先列后删绝不误删</span>
-          <span class="pill-tag">✦ 100% 本地开源</span>
+          <span class="pill-tag" data-i18n="hero.pill1">✦ 零依赖免安装</span>
+          <span class="pill-tag" data-i18n="hero.pill2">✦ \\?\ NT 原生路径直达</span>
+          <span class="pill-tag" data-i18n="hero.pill3">✦ 先列后删绝不误删</span>
+          <span class="pill-tag" data-i18n="hero.pill4">✦ 100% 本地开源</span>
         </div>
       </div>
       <div class="actions dissolve-layer">
-        <button class="btn primary" id="startBtn" type="button">立即开始 <span class="btn-arrow">→</span></button>
-        <a class="btn ghost" href="#why">为什么普通方法不行？ <span class="btn-arrow">↳</span></a>
+        <button class="btn primary" id="startBtn" type="button" data-i18n="hero.start">立即开始 <span class="btn-arrow">→</span></button>
+        <a class="btn ghost" href="#why" data-i18n="hero.why">为什么普通方法不行？ <span class="btn-arrow">↳</span></a>
       </div>
       <div class="install dissolve-layer" id="install">
         <div class="install-head">
-          <span class="eyebrow">// INSTALL</span>
+          <span class="eyebrow" data-i18n="install.eyebrow">// INSTALL</span>
           <div class="install-tabs" role="tablist" aria-label="安装方式">
-            <button type="button" role="tab" aria-selected="true" data-tab="cmd">终端命令 <span class="tab-badge">推荐</span></button>
-            <button type="button" role="tab" aria-selected="false" data-tab="agent">AI Agent <span class="tab-badge">智能体</span></button>
-            <button type="button" role="tab" aria-selected="false" data-tab="raw">下载文件 <span class="tab-badge">拖拽</span></button>
-            <button type="button" role="tab" aria-selected="false" data-tab="text">纯文本 <span class="tab-badge">高保密</span></button>
+            <button type="button" role="tab" aria-selected="true" data-tab="cmd" data-i18n="install.tab_cmd">终端命令 <span class="tab-badge">推荐</span></button>
+            <button type="button" role="tab" aria-selected="false" data-tab="agent" data-i18n="install.tab_agent">AI Agent <span class="tab-badge">智能体</span></button>
+            <button type="button" role="tab" aria-selected="false" data-tab="raw" data-i18n="install.tab_raw">下载文件 <span class="tab-badge">拖拽</span></button>
+            <button type="button" role="tab" aria-selected="false" data-tab="text" data-i18n="install.tab_text">纯文本 <span class="tab-badge">高保密</span></button>
           </div>
         </div>
         <div class="install-panel" data-panel="cmd" role="tabpanel">
           <div class="term-head">
             <span class="term-dots"><i></i><i></i><i></i></span>
-            <span class="term-title">cmd.exe — 终端命令</span>
+            <span class="term-title" data-i18n="install.term_cmd">cmd.exe — 终端命令</span>
             <div class="term-tip-wrap">
-              <button class="term-tip-btn" type="button" aria-haspopup="dialog" aria-label="方式说明与特点"><span class="tip-ico">?</span> 提示</button>
+              <button class="term-tip-btn" type="button" aria-haspopup="dialog" aria-label="方式说明与特点" data-i18n="install.tip_btn"><span class="tip-ico">?</span> 提示</button>
               <div class="term-tip-pop" role="tooltip">
-                <div class="tip-pop-head">// 终端命令 (cmd.exe) · 方式提示</div>
+                <div class="tip-pop-head" data-i18n="install.tip_cmd_head">// 终端命令 (cmd.exe) · 方式提示</div>
                 <div class="tip-pop-section">
-                  <div class="tip-pop-label">▶ 使用方法</div>
-                  <div class="tip-pop-text">复制下方单行命令在 Windows CMD 或 PowerShell 中回车运行；启动后用 ↑ ↓ 选择模式，回车确认。</div>
+                  <div class="tip-pop-label" data-i18n="install.tip_label_method">▶ 使用方法</div>
+                  <div class="tip-pop-text" data-i18n="install.tip_cmd_method">复制下方单行命令在 Windows CMD 或 PowerShell 中回车运行；启动后用 ↑ ↓ 选择模式，回车确认。</div>
                 </div>
                 <div class="tip-pop-section">
-                  <div class="tip-pop-label">★ 核心特点</div>
-                  <div class="tip-pop-text">一键拉取至系统临时目录 %TEMP%，不污染工作区；提供全局全盘扫描、逐级选盘、超时防卡死等完整功能。</div>
+                  <div class="tip-pop-label" data-i18n="install.tip_label_feat">★ 核心特点</div>
+                  <div class="tip-pop-text" data-i18n="install.tip_cmd_feat">一键拉取至系统临时目录 %TEMP%，不污染工作区；提供全局全盘扫描、逐级选盘、超时防卡死等完整功能。</div>
                 </div>
-                <div class="tip-pop-replay"><button class="tip-replay-action" type="button" data-replay="cmd">↻ 重新演示此操作</button></div>
+                <div class="tip-pop-replay"><button class="tip-replay-action" type="button" data-replay="cmd" data-i18n="install.tip_replay_cmd">↻ 重新演示此操作</button></div>
               </div>
             </div>
           </div>
           <div class="term-body" data-lines="cmd"></div>
-          <div class="term-foot"><code>curl -fsSL ".../delete-nul.ps1" -o "%TEMP%\delete-nul.ps1" &amp;&amp; ... &amp;&amp; call "%TEMP%\delete-nul.bat"</code><button class="copybtn" type="button" data-copy="curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1&quot; -o &quot;%TEMP%\delete-nul.ps1&quot; &amp;&amp; curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat&quot; -o &quot;%TEMP%\delete-nul.bat&quot; &amp;&amp; call &quot;%TEMP%\delete-nul.bat&quot;">复制</button></div>
+          <div class="term-foot"><code>curl -fsSL ".../delete-nul.ps1" -o "%TEMP%\delete-nul.ps1" &amp;&amp; ... &amp;&amp; call "%TEMP%\delete-nul.bat"</code><button class="copybtn" type="button" data-copy="curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1&quot; -o &quot;%TEMP%\delete-nul.ps1&quot; &amp;&amp; curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat&quot; -o &quot;%TEMP%\delete-nul.bat&quot; &amp;&amp; call &quot;%TEMP%\delete-nul.bat&quot;" data-i18n="install.copy">复制</button></div>
         </div>
         <div class="install-panel" data-panel="agent" role="tabpanel" hidden>
           <div class="term-head">
             <span class="term-dots"><i></i><i></i><i></i></span>
-            <span class="term-title">agent — AI 智能助手对话演示</span>
+            <span class="term-title" data-i18n="install.term_agent">agent — AI 智能助手对话演示</span>
             <div class="term-tip-wrap">
-              <button class="term-tip-btn" type="button" aria-haspopup="dialog" aria-label="方式说明与特点"><span class="tip-ico">?</span> 提示</button>
+              <button class="term-tip-btn" type="button" aria-haspopup="dialog" aria-label="方式说明与特点" data-i18n="install.tip_btn"><span class="tip-ico">?</span> 提示</button>
               <div class="term-tip-pop" role="tooltip">
-                <div class="tip-pop-head">// AI Agent 提示词 · 方式提示</div>
+                <div class="tip-pop-head" data-i18n="install.tip_agent_head">// AI Agent 提示词 · 方式提示</div>
                 <div class="tip-pop-section">
-                  <div class="tip-pop-label">▶ 使用方法</div>
-                  <div class="tip-pop-text">点击下方【复制提示词】，直接粘贴发送给 Cursor、Claude Code、Antigravity、Copilot 等 AI 助手对话框。</div>
+                  <div class="tip-pop-label" data-i18n="install.tip_label_method">▶ 使用方法</div>
+                  <div class="tip-pop-text" data-i18n="install.tip_agent_method">点击下方【复制提示词】，直接粘贴发送给 Cursor、Claude Code、Antigravity、Copilot 等 AI 助手对话框。</div>
                 </div>
                 <div class="tip-pop-section">
-                  <div class="tip-pop-label">★ 核心特点</div>
-                  <div class="tip-pop-text">对话式交互执行：自动查阅仓库原理、临时目录零污染下载、强制只读预检并向你汇报，经你确认后才精准清除。</div>
+                  <div class="tip-pop-label" data-i18n="install.tip_label_feat">★ 核心特点</div>
+                  <div class="tip-pop-text" data-i18n="install.tip_agent_feat">对话式交互执行：自动查阅仓库原理、临时目录零污染下载、强制只读预检并向你汇报，经你确认后才精准清除。</div>
                 </div>
-                <div class="tip-pop-replay"><button class="tip-replay-action" type="button" data-replay="agent">↻ 重新演示此对话</button></div>
+                <div class="tip-pop-replay"><button class="tip-replay-action" type="button" data-replay="agent" data-i18n="install.tip_replay_agent">↻ 重新演示此对话</button></div>
               </div>
             </div>
           </div>
           <div class="term-body" data-lines="agent"></div>
           <div class="term-foot agent-foot">
             <div class="agent-presets" aria-label="快捷提示词预设">
-              <span class="preset-label">快捷场景:</span>
-              <button class="preset-pill" type="button" data-prompt="请从 GitHub 获取并安装 delete-nul 工具，先只读扫描当前工作区保留名文件，汇报后再删">[当前工作区扫描]</button>
-              <button class="preset-pill" type="button" data-prompt="请下载安装 delete-nul 工具并扫描 D:\temp 目录中的 NUL、CON 等异常文件">[指定路径 D:\temp]</button>
-              <button class="preset-pill" type="button" data-prompt="请下载并运行 delete-nul 工具进行全盘只读扫描 -DryRun，统计所有保留名文件">[全盘只读预检]</button>
+              <span class="preset-label" data-i18n="install.agent_preset_label">快捷场景:</span>
+              <button class="preset-pill" type="button" data-prompt-key="install.agent_preset_1_prompt" data-i18n="install.agent_preset_1" data-prompt="请从 GitHub 获取并安装 delete-nul 工具，先只读扫描当前工作区保留名文件，汇报后再删">[当前工作区扫描]</button>
+              <button class="preset-pill" type="button" data-prompt-key="install.agent_preset_2_prompt" data-i18n="install.agent_preset_2" data-prompt="请下载安装 delete-nul 工具并扫描 D:\temp 目录中的 NUL、CON 等异常文件">[指定路径 D:\temp]</button>
+              <button class="preset-pill" type="button" data-prompt-key="install.agent_preset_3_prompt" data-i18n="install.agent_preset_3" data-prompt="请下载并运行 delete-nul 工具进行全盘只读扫描 -DryRun，统计所有保留名文件">[全盘只读预检]</button>
             </div>
             <div class="agent-input-row">
               <div class="agent-input-wrap">
                 <span class="agent-input-icon">❯</span>
-                <input type="text" class="agent-prompt-input" value="请从 GitHub 获取并安装 delete-nul 工具，安全扫描并清理当前工作区保留名文件" placeholder="输入提示词发给 Agent..." aria-label="提示词输入框">
+                <input type="text" class="agent-prompt-input" value="请从 GitHub 获取并安装 delete-nul 工具，安全扫描并清理当前工作区保留名文件" placeholder="输入提示词发给 Agent..." aria-label="提示词输入框" data-i18n-ph="install.agent_input_ph">
               </div>
-              <button class="agent-send-btn" type="button" title="点击发送提示词并启动下载安装交互">↵ 发送</button>
-              <button class="copybtn" type="button" data-copy="请帮我安全清理当前工作区（或指定路径）中无法正常删除的 Windows 保留名文件（NUL / CON / AUX / PRN / COM1-9 / LPT1-9 等）：&#10;&#10;1. 查看仓库与原理：&#10;   - 仓库地址：https://github.com/yancongya/delete-nul&#10;   - 或查阅文档：curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/README.md&quot;&#10;   - 核心原理：Win32 命名空间将保留名劫持为 DOS 字符设备，普通 del 无法删除；必须通过 \\?\ 前缀直达 NT 原生路径，且必须严格遵循「先列后删」安全规范。&#10;&#10;2. 下载工具至临时目录（零依赖、免安装、不污染代码仓库）：&#10;   curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1&quot; -o &quot;%TEMP%\delete-nul.ps1&quot;&#10;&#10;3. 执行只读预检扫描（-DryRun）：&#10;   powershell -ExecutionPolicy Bypass -File &quot;%TEMP%\delete-nul.ps1&quot; -Path . -DryRun&#10;   - 仅扫描并输出匹配的保留名文件列表，不进行任何删除操作。&#10;   - 向我汇报扫描结果并等待我的确认。&#10;&#10;4. 获得确认后执行安全清理与复核：&#10;   powershell -ExecutionPolicy Bypass -File &quot;%TEMP%\delete-nul.ps1&quot; -Path . -Yes&#10;   - 使用 \\?\ 前缀精准移除异常文件，并复核确认残留数为 0。">复制完整提示词</button>
+              <button class="agent-send-btn" type="button" title="点击发送提示词并启动下载安装交互" data-i18n="install.agent_send_btn">↵ 发送</button>
+              <button class="copybtn" type="button" data-i18n="install.agent_copy_btn" data-copy="请帮我安全清理当前工作区（或指定路径）中无法正常删除的 Windows 保留名文件（NUL / CON / AUX / PRN / COM1-9 / LPT1-9 等）：&#10;&#10;1. 查看仓库与原理：&#10;   - 仓库地址：https://github.com/yancongya/delete-nul&#10;   - 或查阅文档：curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/README.md&quot;&#10;   - 核心原理：Win32 命名空间将保留名劫持为 DOS 字符设备，普通 del 无法删除；必须通过 \\?\ 前缀直达 NT 原生路径，且必须严格遵循「先列后删」安全规范。&#10;&#10;2. 下载工具至临时目录（零依赖、免安装、不污染代码仓库）：&#10;   curl -fsSL &quot;https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1&quot; -o &quot;%TEMP%\delete-nul.ps1&quot;&#10;&#10;3. 执行只读预检扫描（-DryRun）：&#10;   powershell -ExecutionPolicy Bypass -File &quot;%TEMP%\delete-nul.ps1&quot; -Path . -DryRun&#10;   - 仅扫描并输出匹配的保留名文件列表，不进行任何删除操作。&#10;   - 向我汇报扫描结果并等待我的确认。&#10;&#10;4. 获得确认后执行安全清理与复核：&#10;   powershell -ExecutionPolicy Bypass -File &quot;%TEMP%\delete-nul.ps1&quot; -Path . -Yes&#10;   - 使用 \\?\ 前缀精准移除异常文件，并复核确认残留数为 0。">复制完整提示词</button>
             </div>
           </div>
         </div>
         <div class="install-panel" data-panel="raw" role="tabpanel" hidden>
           <div class="term-head">
             <span class="term-dots"><i></i><i></i><i></i></span>
-            <span class="term-title">browser — 下载文件</span>
+            <span class="term-title" data-i18n="install.term_raw">browser — 下载文件</span>
             <div class="term-tip-wrap">
-              <button class="term-tip-btn" type="button" aria-haspopup="dialog" aria-label="方式说明与特点"><span class="tip-ico">?</span> 提示</button>
+              <button class="term-tip-btn" type="button" aria-haspopup="dialog" aria-label="方式说明与特点" data-i18n="install.tip_btn"><span class="tip-ico">?</span> 提示</button>
               <div class="term-tip-pop" role="tooltip">
-                <div class="tip-pop-head">// 下载文件 (本地脚本) · 方式提示</div>
+                <div class="tip-pop-head" data-i18n="install.tip_raw_head">// 下载文件 (本地脚本) · 方式提示</div>
                 <div class="tip-pop-section">
-                  <div class="tip-pop-label">▶ 使用方法</div>
-                  <div class="tip-pop-text">下载 delete-nul.ps1 和 delete-nul.bat 至同一文件夹；双击 bat 运行，或直接把异常文件夹拖到 bat 图标上。</div>
+                  <div class="tip-pop-label" data-i18n="install.tip_label_method">▶ 使用方法</div>
+                  <div class="tip-pop-text" data-i18n="install.tip_raw_method">下载 delete-nul.ps1 和 delete-nul.bat 至同一文件夹；双击 bat 运行，或直接把异常文件夹拖到 bat 图标上。</div>
                 </div>
                 <div class="tip-pop-section">
-                  <div class="tip-pop-label">★ 核心特点</div>
-                  <div class="tip-pop-text">本地持久保存；支持强大的鼠标拖拽交互（连资源管理器选不中的 NUL 文件都能直接拖入图标清除）。</div>
+                  <div class="tip-pop-label" data-i18n="install.tip_label_feat">★ 核心特点</div>
+                  <div class="tip-pop-text" data-i18n="install.tip_raw_feat">本地持久保存；支持强大的鼠标拖拽交互（连资源管理器选不中的 NUL 文件都能直接拖入图标清除）。</div>
                 </div>
-                <div class="tip-pop-replay"><button class="tip-replay-action" type="button" data-replay="raw">↻ 重新演示此操作</button></div>
+                <div class="tip-pop-replay"><button class="tip-replay-action" type="button" data-replay="raw" data-i18n="install.tip_replay_raw">↻ 重新演示此操作</button></div>
               </div>
             </div>
           </div>
           <div class="term-body" data-lines="raw"></div>
-          <div class="term-foot"><code>raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1 + delete-nul.bat</code><a href="https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1" target="_blank" rel="noopener" download>下载 ps1</a><a href="https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat" target="_blank" rel="noopener" download>下载 bat</a></div>
+          <div class="term-foot"><code>raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1 + delete-nul.bat</code><a href="https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.ps1" target="_blank" rel="noopener" download data-i18n="install.download_ps1">下载 ps1</a><a href="https://raw.githubusercontent.com/yancongya/delete-nul/main/delete-nul.bat" target="_blank" rel="noopener" download data-i18n="install.download_bat">下载 bat</a></div>
         </div>
         <div class="install-panel" data-panel="text" role="tabpanel" hidden>
           <div class="term-head">
             <span class="term-dots"><i></i><i></i><i></i></span>
-            <span class="term-title">cmd.exe — 纯文本</span>
+            <span class="term-title" data-i18n="install.term_text">cmd.exe — 纯文本</span>
             <div class="term-tip-wrap">
-              <button class="term-tip-btn" type="button" aria-haspopup="dialog" aria-label="方式说明与特点"><span class="tip-ico">?</span> 提示</button>
+              <button class="term-tip-btn" type="button" aria-haspopup="dialog" aria-label="方式说明与特点" data-i18n="install.tip_btn"><span class="tip-ico">?</span> 提示</button>
               <div class="term-tip-pop" role="tooltip">
-                <div class="tip-pop-head">// 纯文本 (免落地批处理) · 方式提示</div>
+                <div class="tip-pop-head" data-i18n="install.tip_text_head">// 纯文本 (免落地批处理) · 方式提示</div>
                 <div class="tip-pop-section">
-                  <div class="tip-pop-label">▶ 使用方法</div>
-                  <div class="tip-pop-text">先复制【第 1 部分】贴进 CMD 回车（只检索生成清单）；核对生成的清单确认无误后，再复制【第 2 部分】贴进 CMD 执行删除。</div>
+                  <div class="tip-pop-label" data-i18n="install.tip_label_method">▶ 使用方法</div>
+                  <div class="tip-pop-text" data-i18n="install.tip_text_method">先复制【第 1 部分】贴进 CMD 回车（只检索生成清单）；核对生成的清单确认无误后，再复制【第 2 部分】贴进 CMD 执行删除。</div>
                 </div>
                 <div class="tip-pop-section">
-                  <div class="tip-pop-label">★ 核心特点</div>
-                  <div class="tip-pop-text">零文件落地、免 PowerShell 依赖！100% 采用 Windows 原生 CMD 管道命令，专为金融/政企内网高保密机设计。</div>
+                  <div class="tip-pop-label" data-i18n="install.tip_label_feat">★ 核心特点</div>
+                  <div class="tip-pop-text" data-i18n="install.tip_text_feat">零文件落地、免 PowerShell 依赖！100% 采用 Windows 原生 CMD 管道命令，专为金融/政企内网高保密机设计。</div>
                 </div>
-                <div class="tip-pop-replay"><button class="tip-replay-action" type="button" data-replay="text">↻ 重新演示此操作</button></div>
+                <div class="tip-pop-replay"><button class="tip-replay-action" type="button" data-replay="text" data-i18n="install.tip_replay_text">↻ 重新演示此操作</button></div>
               </div>
             </div>
           </div>
           <div class="term-body" data-lines="text"></div>
-          <div class="term-foot"><code>set "RNLIST=..." &amp; dir /s /b /a | findstr /r /i /c:"\\nul$" ... &gt;&gt; "%RNLIST%" &amp; type "%RNLIST%"</code><button class="copybtn" type="button" data-copy="set &quot;RNLIST=%TEMP%\reserved_name_files.txt&quot;
+          <div class="term-foot"><code>set "RNLIST=..." &amp; dir /s /b /a | findstr /r /i /c:"\\nul$" ... &gt;&gt; "%RNLIST%" &amp; type "%RNLIST%"</code><button class="copybtn" type="button" data-i18n="install.copy" data-copy="set &quot;RNLIST=%TEMP%\reserved_name_files.txt&quot;
 type nul &gt; &quot;%RNLIST%&quot;
 dir /s /b /a 2&gt;nul | &quot;%SystemRoot%\System32\findstr.exe&quot; /r /i /c:&quot;\\nul$&quot; /c:&quot;\\con$&quot; /c:&quot;\\prn$&quot; /c:&quot;\\aux$&quot; /c:&quot;\\com1$&quot; /c:&quot;\\com2$&quot; /c:&quot;\\com3$&quot; /c:&quot;\\com4$&quot; /c:&quot;\\com5$&quot; /c:&quot;\\com6$&quot; /c:&quot;\\com7$&quot; /c:&quot;\\com8$&quot; /c:&quot;\\com9$&quot; /c:&quot;\\lpt1$&quot; /c:&quot;\\lpt2$&quot; /c:&quot;\\lpt3$&quot; /c:&quot;\\lpt4$&quot; /c:&quot;\\lpt5$&quot; /c:&quot;\\lpt6$&quot; /c:&quot;\\lpt7$&quot; /c:&quot;\\lpt8$&quot; /c:&quot;\\lpt9$&quot; &gt;&gt; &quot;%RNLIST%&quot;
 type &quot;%RNLIST%&quot;">复制</button></div>
@@ -1124,48 +1162,48 @@ type &quot;%RNLIST%&quot;">复制</button></div>
 
   <section class="block dissolve-layer" id="features">
     <div class="wrap">
-      <div class="eyebrow reveal">// FEATURES</div>
-      <h2 class="title reveal">只做一件事，做对</h2>
-      <p class="lead reveal">针对 Windows 历史包袱与保留名死锁，提供不伤正常业务文件的终极解决方案。</p>
+      <div class="eyebrow reveal" data-i18n="features.eyebrow">// FEATURES</div>
+      <h2 class="title reveal" data-i18n="features.title">只做一件事，做对</h2>
+      <p class="lead reveal" data-i18n="features.lead">针对 Windows 历史包袱与保留名死锁，提供不伤正常业务文件的终极解决方案。</p>
       <div class="grid">
-        <div class="card reveal"><div class="card-body"><h3>精确匹配本体</h3><p>只匹配裸保留名本体；像 <code>nul.txt</code>、<code>con.png</code> 这类正常业务文件绝不误伤。</p><code class="card-key">NUL / nul.txt [SAFE]</code></div></div>
-        <div class="card reveal"><div class="card-body"><h3>先列后删预检</h3><p>先完整罗列扫描结果，经人工授权确认（Y）才执行物理清除，绝不静默删除。</p><code class="card-key">-DryRun [READONLY]</code></div></div>
-        <div class="card reveal"><div class="card-body"><h3>\\?\ NT 原生路径</h3><p>为路径注入 NT 命名空间直达前缀，绕过 Win32 子系统把保留名劫持为 DOS 设备的底层陷阱。</p><code class="card-key">\\?\D:\work\NUL [BYPASS]</code></div></div>
-        <div class="card reveal"><div class="card-body"><h3>多维交互入口</h3><p>全局排查、磁盘层级深入浏览、剪贴板粘贴路径，或直接拖拽文件夹至 bat 图标——全场景适配。</p><code class="card-key">[G] / [S] / [D] / [DROP]</code></div></div>
-        <div class="card reveal"><div class="card-body"><h3>企业级自动化</h3><p>支持标准 JSON 结构化输出、严谨退出码、详细审计日志与单盘扫描超时熔断，轻松接入运维管线。</p><code class="card-key">-Json / -ScanTimeout</code></div></div>
-        <div class="card reveal"><div class="card-body"><h3>最小权限克制</h3><p>默认普通用户权限即可运行，安全清理当前用户空间；仅在触及系统特权目录时才请求 UAC 提权。</p><code class="card-key">-Elevate [ON-DEMAND]</code></div></div>
+        <div class="card reveal"><div class="card-body"><h3 data-i18n="features.card1_title">精确匹配本体</h3><p data-i18n="features.card1_desc">只匹配裸保留名本体；像 <code>nul.txt</code>、<code>con.png</code> 这类正常业务文件绝不误伤。</p><code class="card-key">NUL / nul.txt [SAFE]</code></div></div>
+        <div class="card reveal"><div class="card-body"><h3 data-i18n="features.card2_title">先列后删预检</h3><p data-i18n="features.card2_desc">先完整罗列扫描结果，经人工授权确认（Y）才执行物理清除，绝不静默删除。</p><code class="card-key">-DryRun [READONLY]</code></div></div>
+        <div class="card reveal"><div class="card-body"><h3 data-i18n="features.card3_title">\\?\ NT 原生路径</h3><p data-i18n="features.card3_desc">为路径注入 NT 命名空间直达前缀，绕过 Win32 子系统把保留名劫持为 DOS 设备的底层陷阱。</p><code class="card-key">\\?\D:\work\NUL [BYPASS]</code></div></div>
+        <div class="card reveal"><div class="card-body"><h3 data-i18n="features.card4_title">多维交互入口</h3><p data-i18n="features.card4_desc">全局排查、磁盘层级深入浏览、剪贴板粘贴路径，或直接拖拽文件夹至 bat 图标——全场景适配。</p><code class="card-key">[G] / [S] / [D] / [DROP]</code></div></div>
+        <div class="card reveal"><div class="card-body"><h3 data-i18n="features.card5_title">企业级自动化</h3><p data-i18n="features.card5_desc">支持标准 JSON 结构化输出、严谨退出码、详细审计日志与单盘扫描超时熔断，轻松接入运维管线。</p><code class="card-key">-Json / -ScanTimeout</code></div></div>
+        <div class="card reveal"><div class="card-body"><h3 data-i18n="features.card6_title">最小权限克制</h3><p data-i18n="features.card6_desc">默认普通用户权限即可运行，安全清理当前用户空间；仅在触及系统特权目录时才请求 UAC 提权。</p><code class="card-key">-Elevate [ON-DEMAND]</code></div></div>
       </div>
     </div>
   </section>
 
   <section class="block dissolve-layer" id="modes">
     <div class="wrap">
-      <div class="eyebrow reveal">// USAGE</div>
-      <h2 class="title reveal">三种模式，按习惯选</h2>
-      <p class="lead reveal">双击 delete-nul.bat 启动交互式 TUI 菜单，或直接在命令行传入参数运行。</p>
+      <div class="eyebrow reveal" data-i18n="modes.eyebrow">// USAGE</div>
+      <h2 class="title reveal" data-i18n="modes.title">三种模式，按习惯选</h2>
+      <p class="lead reveal" data-i18n="modes.lead">双击 delete-nul.bat 启动交互式 TUI 菜单，或直接在命令行传入参数运行。</p>
       <div class="mode-picker" hidden aria-label="使用模式" role="group">
-        <button type="button" data-mode="0" aria-controls="usage-0" aria-pressed="true"><span class="mode-index" aria-hidden="true">01</span><span class="mode-label">全局扫描</span><span class="mode-caret" aria-hidden="true">›</span></button>
-        <button type="button" data-mode="1" aria-controls="usage-1" aria-pressed="false"><span class="mode-index" aria-hidden="true">02</span><span class="mode-label">定向处理</span><span class="mode-caret" aria-hidden="true">›</span></button>
-        <button type="button" data-mode="2" aria-controls="usage-2" aria-pressed="false"><span class="mode-index" aria-hidden="true">03</span><span class="mode-label">粘贴 / 拖拽</span><span class="mode-caret" aria-hidden="true">›</span></button>
+        <button type="button" data-mode="0" aria-controls="usage-0" aria-pressed="true"><span class="mode-index" aria-hidden="true">01</span><span class="mode-label" data-i18n="modes.tab0">全局扫描</span><span class="mode-caret" aria-hidden="true">›</span></button>
+        <button type="button" data-mode="1" aria-controls="usage-1" aria-pressed="false"><span class="mode-index" aria-hidden="true">02</span><span class="mode-label" data-i18n="modes.tab1">定向处理</span><span class="mode-caret" aria-hidden="true">›</span></button>
+        <button type="button" data-mode="2" aria-controls="usage-2" aria-pressed="false"><span class="mode-index" aria-hidden="true">03</span><span class="mode-label" data-i18n="modes.tab2">粘贴 / 拖拽</span><span class="mode-caret" aria-hidden="true">›</span></button>
       </div>
       <div class="mode-screen">
         <div class="mode-panel" id="usage-0">
-          <div class="mode-meta"><span class="mode-tag">适用场景</span> <span>整机清理 · 跨盘全面排查 · 外部移动硬盘/U盘检测</span></div>
-          <h3>全局扫描（全盘自动排查）</h3>
-          <p>自动枚举并扫描系统所有固定磁盘，智能跳过网络驱动器与虚拟光驱。对大容量机械盘或大型代码库可搭配 <code>-Fast</code> 快速索引与 <code>-ScanTimeout</code> 超时防护。</p>
-          <div class="mode-cmd-wrap"><pre><code>delete-nul.bat -DryRun</code></pre><button class="copybtn" type="button" data-copy="delete-nul.bat -DryRun">复制命令</button></div>
+          <div class="mode-meta"><span class="mode-tag" data-i18n="modes.tag">适用场景</span> <span data-i18n="modes.mode0_meta">整机清理 · 跨盘全面排查 · 外部移动硬盘/U盘检测</span></div>
+          <h3 data-i18n="modes.mode0_title">全局扫描（全盘自动排查）</h3>
+          <p data-i18n="modes.mode0_desc">自动枚举并扫描系统所有固定磁盘，智能跳过网络驱动器与虚拟光驱。对大容量机械盘或大型代码库可搭配 <code>-Fast</code> 快速索引与 <code>-ScanTimeout</code> 超时防护。</p>
+          <div class="mode-cmd-wrap"><pre><code>delete-nul.bat -DryRun</code></pre><button class="copybtn" type="button" data-copy="delete-nul.bat -DryRun" data-i18n="modes.copy_cmd">复制命令</button></div>
         </div>
         <div class="mode-panel" id="usage-1">
-          <div class="mode-meta"><span class="mode-tag">适用场景</span> <span>特定开发目录 · Git 仓库检出死锁 · 构建产物目录</span></div>
-          <h3>定向处理（精准路径排查）</h3>
-          <p>方向键选定目标磁盘、进入文件夹浏览器逐层深入排查；或直接给路径参数。仅在目标子树内递归检测，瞬间完成毫秒级定位。</p>
-          <div class="mode-cmd-wrap"><pre><code>delete-nul.bat -Path "D:\workspace\project" -DryRun</code></pre><button class="copybtn" type="button" data-copy="delete-nul.bat -Path &quot;D:\workspace\project&quot; -DryRun">复制命令</button></div>
+          <div class="mode-meta"><span class="mode-tag" data-i18n="modes.tag">适用场景</span> <span data-i18n="modes.mode1_meta">特定开发目录 · Git 仓库检出死锁 · 构建产物目录</span></div>
+          <h3 data-i18n="modes.mode1_title">定向处理（精准路径排查）</h3>
+          <p data-i18n="modes.mode1_desc">方向键选定目标磁盘、进入文件夹浏览器逐层深入排查；或直接给路径参数。仅在目标子树内递归检测，瞬间完成毫秒级定位。</p>
+          <div class="mode-cmd-wrap"><pre><code>delete-nul.bat -Path "D:\workspace\project" -DryRun</code></pre><button class="copybtn" type="button" data-copy="delete-nul.bat -Path &quot;D:\workspace\project&quot; -DryRun" data-i18n="modes.copy_cmd">复制命令</button></div>
         </div>
         <div class="mode-panel" id="usage-2">
-          <div class="mode-meta"><span class="mode-tag">适用场景</span> <span>桌面拖拽 · 剪贴板快速粘贴 · 极简 GUI 直觉交互</span></div>
-          <h3>粘贴 / 拖拽（直觉式清理）</h3>
-          <p>在资源管理器中按住 Shift+右键复制受损文件夹路径并粘贴；或直接把包含异常文件的文件夹拖到 <code>delete-nul.bat</code> 图标上——连资源管理器选不中的 NUL 文件本身也能被精准识别。</p>
-          <div class="mode-cmd-wrap"><pre><code>[拖拽直达] 直接将损坏文件夹拖入 delete-nul.bat 图标即可触发清理</code></pre><button class="copybtn" type="button" data-copy="delete-nul.bat -Path .">复制参数</button></div>
+          <div class="mode-meta"><span class="mode-tag" data-i18n="modes.tag">适用场景</span> <span data-i18n="modes.mode2_meta">桌面拖拽 · 剪贴板快速粘贴 · 极简 GUI 直觉交互</span></div>
+          <h3 data-i18n="modes.mode2_title">粘贴 / 拖拽（直觉式清理）</h3>
+          <p data-i18n="modes.mode2_desc">在资源管理器中按住 Shift+右键复制受损文件夹路径并粘贴；或直接把包含异常文件的文件夹拖到 <code>delete-nul.bat</code> 图标上——连资源管理器选不中的 NUL 文件本身也能被精准识别。</p>
+          <div class="mode-cmd-wrap"><pre><code data-i18n="modes.mode2_code">[拖拽直达] 直接将损坏文件夹拖入 delete-nul.bat 图标即可触发清理</code></pre><button class="copybtn" type="button" data-copy="delete-nul.bat -Path ." data-i18n="modes.copy_param">复制参数</button></div>
         </div>
       </div>
     </div>
@@ -1173,35 +1211,35 @@ type &quot;%RNLIST%&quot;">复制</button></div>
 
   <section class="block dissolve-layer" id="why">
     <div class="wrap">
-      <div class="eyebrow reveal">// WHY</div>
-      <h2 class="title reveal">为什么普通方法删不掉？</h2>
-      <p class="lead reveal">问题根源在于 Windows 系统的路径解析阶段，而非文件系统损坏。深入理解底层差异，安全清理更放心。</p>
+      <div class="eyebrow reveal" data-i18n="why.eyebrow">// WHY</div>
+      <h2 class="title reveal" data-i18n="why.title">为什么普通方法删不掉？</h2>
+      <p class="lead reveal" data-i18n="why.lead">问题根源在于 Windows 系统的路径解析阶段，而非文件系统损坏。深入理解底层差异，安全清理更放心。</p>
       <div data-why-scroll>
         <div class="why-scroll-inner">
           <div class="split">
             <div class="pane">
-              <h3>✕ Win32 子系统劫持（资源管理器 / del / rm / 常见工具）</h3>
+              <h3 data-i18n="why.bad_title">✕ Win32 子系统劫持（资源管理器 / del / rm / 常见工具）</h3>
               <ul>
-                <li><strong>历史包袱</strong>：DOS 1.0 时代为了将 <code>NUL</code>、<code>CON</code>、<code>PRN</code> 用作流重定向，将保留名硬编码进系统。</li>
-                <li><strong>路径解析劫持</strong>：Win32 API（<code>kernel32.dll</code> / <code>CreateFileW</code>）在解析路径时，一律将其重定向至 <code>\Device\Null</code> 等字符设备。</li>
-                <li><strong>死锁假象</strong>：普通删除命令以为自己在删设备，根本无法触及 NTFS 磁盘底层那个字面名叫 NUL 的物理文件。</li>
+                <li data-i18n="why.bad_li1"><strong>历史包袱</strong>：DOS 1.0 时代为了将 <code>NUL</code>、<code>CON</code>、<code>PRN</code> 用作流重定向，将保留名硬编码进系统。</li>
+                <li data-i18n="why.bad_li2"><strong>路径解析劫持</strong>：Win32 API（<code>kernel32.dll</code> / <code>CreateFileW</code>）在解析路径时，一律将其重定向至 <code>\Device\Null</code> 等字符设备。</li>
+                <li data-i18n="why.bad_li3"><strong>死锁假象</strong>：普通删除命令以为自己在删设备，根本无法触及 NTFS 磁盘底层那个字面名叫 NUL 的物理文件。</li>
               </ul>
             </div>
             <div class="pane good">
-              <h3>✓ delete-nul（直达 NT 原生对象管理器）</h3>
+              <h3 data-i18n="why.good_title">✓ delete-nul（直达 NT 原生对象管理器）</h3>
               <ul>
-                <li><strong>NT 原生路径直通</strong>：给路径注入 <code>\\?\</code>（Unicode NT 扩展前缀），告知操作系统直接跳过 Win32 规范化过滤。</li>
-                <li><strong>精准文件枚举</strong>：通过底层原生 API 枚举真实物理磁盘项，精准定位受困文件。</li>
-                <li><strong>物理定点清除与复核</strong>：直达 NT 对象管理器执行精准物理抹除，并再次递归复核确认残留数为 0。</li>
+                <li data-i18n="why.good_li1"><strong>NT 原生路径直通</strong>：给路径注入 <code>\\?\</code>（Unicode NT 扩展前缀），告知操作系统直接跳过 Win32 规范化过滤。</li>
+                <li data-i18n="why.good_li2"><strong>精准文件枚举</strong>：通过底层原生 API 枚举真实物理磁盘项，精准定位受困文件。</li>
+                <li data-i18n="why.good_li3"><strong>物理定点清除与复核</strong>：直达 NT 对象管理器执行精准物理抹除，并再次递归复核确认残留数为 0。</li>
               </ul>
             </div>
           </div>
           <div class="why-path">
-            <h4>同一串字符，两种解析</h4>
-            <div class="why-path-row"><span class="why-tag">WIN32</span><code>del NUL</code><span>命中 DOS 设备对象，磁盘上的文件纹丝不动</span></div>
-            <div class="why-path-row"><span class="why-tag">NT</span><code>del \\?\C:\work\NUL</code><span>跳过规范化，按字面路径精确命中</span></div>
+            <h4 data-i18n="why.path_h4">同一串字符，两种解析</h4>
+            <div class="why-path-row"><span class="why-tag">WIN32</span><code>del NUL</code><span data-i18n="why.path_win32_desc">命中 DOS 设备对象，磁盘上的文件纹丝不动</span></div>
+            <div class="why-path-row"><span class="why-tag">NT</span><code>del \\?\C:\work\NUL</code><span data-i18n="why.path_nt_desc">跳过规范化，按字面路径精确命中</span></div>
           </div>
-          <p class="why-note">规范流程：底层枚举 → 精确匹配裸保留名 → 锁定物理路径 → 注入 <code>\\?\</code> 前缀精准清除 → 自动复核残留。先只读预检，经确认才删除。</p>
+          <p class="why-note" data-i18n="why.note">规范流程：底层枚举 → 精确匹配裸保留名 → 锁定物理路径 → 注入 <code>\\?\</code> 前缀精准清除 → 自动复核残留。先只读预检，经确认才删除。</p>
         </div>
       </div>
     </div>
@@ -1209,16 +1247,16 @@ type &quot;%RNLIST%&quot;">复制</button></div>
 
   <section class="block dissolve-layer" id="faq">
     <div class="wrap">
-      <div class="eyebrow reveal">// FAQ</div>
-      <h2 class="title reveal">常见问题解答</h2>
-      <p class="lead reveal">针对真实开发与日常系统维护中的高频疑问，提供清晰权威的解答。</p>
+      <div class="eyebrow reveal" data-i18n="faq.eyebrow">// FAQ</div>
+      <h2 class="title reveal" data-i18n="faq.title">常见问题解答</h2>
+      <p class="lead reveal" data-i18n="faq.lead">针对真实开发与日常系统维护中的高频疑问，提供清晰权威的解答。</p>
       <div>
-        <details class="reveal"><summary>Git 克隆/检出报错 "unable to create file ...: Invalid argument" 怎么办？</summary><p>这是因为跨平台拉取了由 Linux / macOS 开发者提交的包含 <code>nul</code>、<code>aux</code> 等文件的仓库。Windows 资源管理器与普通 Git 无法创建或删除它们。只需用 delete-nul 扫描当前仓库路径，先只读预检，再确认清除该异常文件，随后 <code>git status</code> 即可恢复正常。</p></details>
-        <details class="reveal"><summary>为什么不用第三方“强力粉碎机”或重启进入 WinPE？</summary><p>绝大多数第三方粉碎工具同样基于 Win32 API 查找文件，面对保留名依然会死循环或提示“找不到指定文件”；而进入 WinPE 操作门槛高、容易误操作且无法自动化。delete-nul 原生几行轻量脚本直接调用 NT 原生路径，零成本、免安装、秒级解决。</p></details>
-        <details class="reveal"><summary>杀毒软件报毒或 PowerShell 策略拦截怎么处理？</summary><p>本项目 100% 开源纯透明，不含任何可执行二进制文件、无混淆、无 Base64 加密。bat 只是调用系统自带 PowerShell 的薄包装。若受组织组策略拦截，可直接切换到 Hero 区域的【纯文本】Tab，使用系统纯原生 CMD 管道命令运行，无需加载 PowerShell。</p></details>
-        <details class="reveal"><summary>提示 FAILED 或文件正被占用无法删除？</summary><p>通常是因为资源管理器的“预览窗格”、VSCode、终端或其它后台程序正打开着该目录。只需关闭相关程序后重试；若涉及系统特权路径（如 Program Files），运行时加上 <code>-Elevate</code> 参数以管理员身份执行提权。</p></details>
-        <details class="reveal"><summary>删除后能恢复吗？会进回收站吗？</summary><p>不能恢复，也不会进回收站。因为 Windows 回收站本身依赖 Win32 子系统，无法接收保留名文件。因此 delete-nul 严格贯彻「先列后删」安全策略，先只读罗列所有待删文件，经人工确认（Y）后才执行物理移除。</p></details>
-        <details class="reveal"><summary>会误伤 nul.txt 或正常业务文件吗？</summary><p>默认绝不误伤！匹配引擎采用强正则 <code>\\nul$</code> 进行裸名全字匹配，<code>nul.txt</code>、<code>con.png</code> 等带扩展名的正常文件会被系统完全豁免保护。如需显式连同扩展名一起处理，才需手动加上 <code>-IncludeExtension</code> 参数。</p></details>
+        <details class="reveal"><summary data-i18n="faq.q1">Git 克隆/检出报错 "unable to create file ...: Invalid argument" 怎么办？</summary><p data-i18n="faq.a1">这是因为跨平台拉取了由 Linux / macOS 开发者提交的包含 <code>nul</code>、<code>aux</code> 等文件的仓库。Windows 资源管理器与普通 Git 无法创建或删除它们。只需用 delete-nul 扫描当前仓库路径，先只读预检，再确认清除该异常文件，随后 <code>git status</code> 即可恢复正常。</p></details>
+        <details class="reveal"><summary data-i18n="faq.q2">为什么不用第三方“强力粉碎机”或重启进入 WinPE？</summary><p data-i18n="faq.a2">绝大多数第三方粉碎工具同样基于 Win32 API 查找文件，面对保留名依然会死循环或提示“找不到指定文件”；而进入 WinPE 操作门槛高、容易误操作且无法自动化。delete-nul 原生几行轻量脚本直接调用 NT 原生路径，零成本、免安装、秒级解决。</p></details>
+        <details class="reveal"><summary data-i18n="faq.q3">杀毒软件报毒或 PowerShell 策略拦截怎么处理？</summary><p data-i18n="faq.a3">本项目 100% 开源纯透明，不含任何可执行二进制文件、无混淆、无 Base64 加密。bat 只是调用系统自带 PowerShell 的薄包装。若受组织组策略拦截，可直接切换到 Hero 区域的【纯文本】Tab，使用系统纯原生 CMD 管道命令运行，无需加载 PowerShell。</p></details>
+        <details class="reveal"><summary data-i18n="faq.q4">提示 FAILED 或文件正被占用无法删除？</summary><p data-i18n="faq.a4">通常是因为资源管理器的“预览窗格”、VSCode、终端或其它后台程序正打开着该目录。只需关闭相关程序后重试；若涉及系统特权路径（如 Program Files），运行时加上 <code>-Elevate</code> 参数以管理员身份执行提权。</p></details>
+        <details class="reveal"><summary data-i18n="faq.q5">删除后能恢复吗？会进回收站吗？</summary><p data-i18n="faq.a5">不能恢复，也不会进回收站。因为 Windows 回收站本身依赖 Win32 子系统，无法接收保留名文件。因此 delete-nul 严格贯彻「先列后删」安全策略，先只读罗列所有待删文件，经人工确认（Y）后才执行物理移除。</p></details>
+        <details class="reveal"><summary data-i18n="faq.q6">会误伤 nul.txt 或正常业务文件吗？</summary><p data-i18n="faq.a6">默认绝不误伤！匹配引擎采用强正则 <code>\\nul$</code> 进行裸名全字匹配，<code>nul.txt</code>、<code>con.png</code> 等带扩展名的正常文件会被系统完全豁免保护。如需显式连同扩展名一起处理，才需手动加上 <code>-IncludeExtension</code> 参数。</p></details>
       </div>
     </div>
   </section>
@@ -1230,42 +1268,42 @@ type &quot;%RNLIST%&quot;">复制</button></div>
     <div class="foot-top-row">
       <div class="status-indicator">
         <span class="status-dot"></span>
-        <span class="status-text">SYSTEM STATUS: NT 10.0+ READY · ALL SUB-SYSTEMS OPERATIONAL</span>
+        <span class="status-text" data-i18n="footer.status">SYSTEM STATUS: NT 10.0+ READY · ALL SUB-SYSTEMS OPERATIONAL</span>
       </div>
-      <a href="#top" class="back-to-top" aria-label="回到顶部">回到顶部 ↑</a>
+      <a href="#top" class="back-to-top" aria-label="回到顶部" data-i18n="footer.top">回到顶部 ↑</a>
     </div>
     <div class="foot-grid">
       <div class="foot-brand">
         <div class="flogo"><span class="p">delete</span><span class="f">-nul</span></div>
-        <p>一个本地、开源、免安装的 Windows 保留名文件清理工具。先列出，确认后才删——精确匹配，绝不误删正常文件。</p>
+        <p data-i18n="footer.brand_desc">一个本地、开源、免安装的 Windows 保留名文件清理工具。先列出，确认后才删——精确匹配，绝不误删正常文件。</p>
       </div>
       <div class="foot-col">
-        <h4>Product</h4>
+        <h4 data-i18n="footer.col_product">Product</h4>
         <ul>
-          <li><a href="#features">功能特性</a></li>
-          <li><a href="#install">安装方式</a></li>
+          <li><a href="#features" data-i18n="footer.feat_link">功能特性</a></li>
+          <li><a href="#install" data-i18n="footer.install_link">安装方式</a></li>
         </ul>
       </div>
       <div class="foot-col">
-        <h4>Community</h4>
+        <h4 data-i18n="footer.col_comm">Community</h4>
         <ul>
-          <li><a href="https://github.com/yancongya/delete-nul" target="_blank" rel="noopener noreferrer">GitHub 仓库</a></li>
-          <li><a href="https://github.com/yancongya/delete-nul/issues" target="_blank" rel="noopener noreferrer">问题反馈</a></li>
-          <li><a href="https://github.com/yancongya/delete-nul#readme" target="_blank" rel="noopener noreferrer">使用文档</a></li>
+          <li><a href="https://github.com/yancongya/delete-nul" target="_blank" rel="noopener noreferrer" data-i18n="footer.repo_link">GitHub 仓库</a></li>
+          <li><a href="https://github.com/yancongya/delete-nul/issues" target="_blank" rel="noopener noreferrer" data-i18n="footer.issue_link">问题反馈</a></li>
+          <li><a href="https://github.com/yancongya/delete-nul#readme" target="_blank" rel="noopener noreferrer" data-i18n="footer.docs_link">使用文档</a></li>
         </ul>
       </div>
       <div class="foot-col">
-        <h4>Security & License</h4>
+        <h4 data-i18n="footer.col_sec">Security & License</h4>
         <ul>
-          <li><span style="color:var(--dim);font-size:12.5px">MIT License · 自由使用</span></li>
-          <li><span style="color:var(--dim);font-size:12.5px">100% 本地开源 · 零数据回传</span></li>
-          <li><span style="color:var(--dim);font-size:12.5px">无外部依赖 · 免运行库</span></li>
+          <li><span style="color:var(--dim);font-size:12.5px" data-i18n="footer.sec1">MIT License · 自由使用</span></li>
+          <li><span style="color:var(--dim);font-size:12.5px" data-i18n="footer.sec2">100% 本地开源 · 零数据回传</span></li>
+          <li><span style="color:var(--dim);font-size:12.5px" data-i18n="footer.sec3">无外部依赖 · 免运行库</span></li>
         </ul>
       </div>
     </div>
   </div>
   <div class="foot-divider">
-    <div class="foot-bottom">© 2026 delete-nul. Open source software under the MIT License.</div>
+    <div class="foot-bottom" data-i18n="footer.copyright">© 2026 delete-nul. Open source software under the MIT License.</div>
     <button class="theme-btn" id="themeBtn" aria-label="浅色主题" aria-pressed="false">
       <svg class="sun" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
       <svg class="moon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 13.34A9 9 0 0 1 10.66 3.1 9 9 0 1 0 20.9 13.34Z"/></svg>
@@ -1281,21 +1319,409 @@ type &quot;%RNLIST%&quot;">复制</button></div>
   btn&&btn.addEventListener('click',function(){links.classList.toggle('open')});
   links&&links.addEventListener('click',function(e){if(e.target.tagName==='A')links.classList.remove('open')});
 
-  /* theme toggle (reused from ASCII Motion footer) — dark/light, both monochrome */
-  var themeBtn=document.getElementById('themeBtn');
-  themeBtn&&themeBtn.addEventListener('click',function(){
-    var light=document.documentElement.classList.toggle('light');
-    try{localStorage.setItem('dn-theme',light?'light':'dark')}catch(e){}
-    themeBtn.setAttribute('aria-pressed',String(light));
-    if(window.__wakeField)window.__wakeField();
-  });
-  themeBtn.setAttribute('aria-pressed',String(document.documentElement.classList.contains('light')));
+  /* theme toggle (synchronized nav + footer buttons) — dark/light, both monochrome */
+  var themeBtn = document.getElementById('themeBtn');
+  var navThemeBtn = document.getElementById('navThemeBtn');
+  function updateThemeUI(light){
+    var isLight = typeof light === 'boolean' ? light : document.documentElement.classList.contains('light');
+    [themeBtn, navThemeBtn].forEach(function(btn){
+      if(!btn) return;
+      btn.setAttribute('aria-pressed', String(isLight));
+      btn.setAttribute('aria-label', isLight ? (currentLang==='zh'?'深色主题':'Dark Theme') : (currentLang==='zh'?'浅色主题':'Light Theme'));
+      btn.setAttribute('title', isLight ? (currentLang==='zh'?'切换深色模式':'Switch to Dark Mode') : (currentLang==='zh'?'切换浅色模式':'Switch to Light Mode'));
+    });
+  }
+  function toggleTheme(){
+    var light = document.documentElement.classList.toggle('light');
+    try{ localStorage.setItem('dn-theme', light ? 'light' : 'dark'); }catch(e){}
+    updateThemeUI(light);
+    if(window.__wakeField) window.__wakeField();
+  }
+  themeBtn && themeBtn.addEventListener('click', toggleTheme);
+  navThemeBtn && navThemeBtn.addEventListener('click', toggleTheme);
+  updateThemeUI();
+
+  /* Bilingual (ZH/EN) Internationalization Engine */
+  var currentLang = (function(){
+    try {
+      var saved = localStorage.getItem('dn-lang');
+      if (saved === 'zh' || saved === 'en') return saved;
+      return (navigator.language && navigator.language.startsWith('zh')) ? 'zh' : 'en';
+    } catch(e) { return 'zh'; }
+  })();
+
+  var I18N = {
+    zh: {
+      'page_title': 'delete-nul — Windows 保留名文件清理工具',
+      'page_desc': '查找并删除 Windows 上普通方法删不掉的 NUL / CON / AUX / PRN / COM1-9 / LPT1-9 保留名文件。先列出，确认后才删。',
+      'loader.skip': '[点击或按任意键跳过 ↵]',
+      'nav.status': '<span class="dot"></span>NT 10.0+ READY',
+      'nav.features': '功能',
+      'nav.modes': '使用',
+      'nav.why': '原理',
+      'nav.install': '安装 / 过程',
+      'nav.faq': 'FAQ',
+      'nav.menu': '菜单',
+      'hero.slogan': '⚡遗定要删掉⚡',
+      'hero.sub': '<code>NUL / CON / AUX / PRN / COM1-9 / LPT1-9</code> —— Windows 无法删除的保留名死锁终结者。无需安装、零依赖不污染代码仓库；直达 NT 原生路径，先只读预检，确认后一键安全清除。',
+      'hero.pill1': '✦ 零依赖免安装',
+      'hero.pill2': '✦ \\\\?\\ NT 原生路径直达',
+      'hero.pill3': '✦ 先列后删绝不误删',
+      'hero.pill4': '✦ 100% 本地开源',
+      'hero.start': '立即开始 <span class="btn-arrow">→</span>',
+      'hero.why': '为什么普通方法不行？ <span class="btn-arrow">↳</span>',
+      'install.eyebrow': '// INSTALL',
+      'install.tab_cmd': '终端命令 <span class="tab-badge">推荐</span>',
+      'install.tab_agent': 'AI Agent <span class="tab-badge">智能体</span>',
+      'install.tab_raw': '下载文件 <span class="tab-badge">拖拽</span>',
+      'install.tab_text': '纯文本 <span class="tab-badge">高保密</span>',
+      'install.term_cmd': 'cmd.exe — 终端命令',
+      'install.term_agent': 'agent — AI 智能助手对话演示',
+      'install.term_raw': 'browser — 下载文件',
+      'install.term_text': 'cmd.exe — 纯文本',
+      'install.tip_btn': '<span class="tip-ico">?</span> 提示',
+      'install.tip_cmd_head': '// 终端命令 (cmd.exe) · 方式提示',
+      'install.tip_label_method': '▶ 使用方法',
+      'install.tip_cmd_method': '复制下方单行命令在 Windows CMD 或 PowerShell 中回车运行；启动后用 ↑ ↓ 选择模式，回车确认。',
+      'install.tip_label_feat': '★ 核心特点',
+      'install.tip_cmd_feat': '一键拉取至系统临时目录 %TEMP%，不污染工作区；提供全局全盘扫描、逐级选盘、超时防卡死等完整功能。',
+      'install.tip_replay_cmd': '↻ 重新演示此操作',
+      'install.tip_agent_head': '// AI Agent 提示词 · 方式提示',
+      'install.tip_agent_method': '点击下方【复制提示词】，直接粘贴发送给 Cursor、Claude Code、Antigravity、Copilot 等 AI 助手对话框。',
+      'install.tip_agent_feat': '对话式交互执行：自动查阅仓库原理、临时目录零污染下载、强制只读预检并向你汇报，经你确认后才精准清除。',
+      'install.tip_replay_agent': '↻ 重新演示此对话',
+      'install.tip_raw_head': '// 下载文件 (本地脚本) · 方式提示',
+      'install.tip_raw_method': '下载 delete-nul.ps1 和 delete-nul.bat 至同一文件夹；双击 bat 运行，或直接把异常文件夹拖到 bat 图标上。',
+      'install.tip_raw_feat': '本地持久保存；支持强大的鼠标拖拽交互（连资源管理器选不中的 NUL 文件都能直接拖入图标清除）。',
+      'install.tip_replay_raw': '↻ 重新演示此操作',
+      'install.tip_text_head': '// 纯文本 (免落地批处理) · 方式提示',
+      'install.tip_text_method': '先复制【第 1 部分】贴进 CMD 回车（只检索生成清单）；核对生成的清单确认无误后，再复制【第 2 部分】贴进 CMD 执行删除。',
+      'install.tip_text_feat': '零文件落地、免 PowerShell 依赖！100% 采用 Windows 原生 CMD 管道命令，专为金融/政企内网高保密机设计。',
+      'install.tip_replay_text': '↻ 重新演示此操作',
+      'install.agent_preset_label': '快捷场景:',
+      'install.agent_preset_1': '[当前工作区扫描]',
+      'install.agent_preset_1_prompt': '请从 GitHub 获取并安装 delete-nul 工具，先只读扫描当前工作区保留名文件，汇报后再删',
+      'install.agent_preset_2': '[指定路径 D:\\temp]',
+      'install.agent_preset_2_prompt': '请下载安装 delete-nul 工具并扫描 D:\\temp 目录中的 NUL、CON 等异常文件',
+      'install.agent_preset_3': '[全盘只读预检]',
+      'install.agent_preset_3_prompt': '请下载并运行 delete-nul 工具进行全盘只读扫描 -DryRun，统计所有保留名文件',
+      'install.agent_input_val': '请从 GitHub 获取并安装 delete-nul 工具，安全扫描并清理当前工作区保留名文件',
+      'install.agent_input_ph': '输入提示词发给 Agent...',
+      'install.agent_send_btn': '↵ 发送',
+      'install.agent_copy_btn': '复制完整提示词',
+      'install.copy': '复制',
+      'install.download_ps1': '下载 ps1',
+      'install.download_bat': '下载 bat',
+      'install.restore_hint': '点击任意位置或按 Esc 恢复页面',
+      'toast_copied': '已经成功复制到剪贴板，可直接粘贴使用！',
+      'toast_selected': '已选中文本，请使用 Ctrl+C 复制',
+      'features.eyebrow': '// FEATURES',
+      'features.title': '只做一件事，做对',
+      'features.lead': '针对 Windows 历史包袱与保留名死锁，提供不伤正常业务文件的终极解决方案。',
+      'features.card1_title': '精确匹配本体',
+      'features.card1_desc': '只匹配裸保留名本体；像 <code>nul.txt</code>、<code>con.png</code> 这类正常业务文件绝不误伤。',
+      'features.card2_title': '先列后删预检',
+      'features.card2_desc': '先完整罗列扫描结果，经人工授权确认（Y）才执行物理清除，绝不静默删除。',
+      'features.card3_title': '\\\\?\\ NT 原生路径',
+      'features.card3_desc': '为路径注入 NT 命名空间直达前缀，绕过 Win32 子系统把保留名劫持为 DOS 设备的底层陷阱。',
+      'features.card4_title': '多维交互入口',
+      'features.card4_desc': '全局排查、磁盘层级深入浏览、剪贴板粘贴路径，或直接拖拽文件夹至 bat 图标——全场景适配。',
+      'features.card5_title': '企业级自动化',
+      'features.card5_desc': '支持标准 JSON 结构化输出、严谨退出码、详细审计日志与单盘扫描超时熔断，轻松接入运维管线。',
+      'features.card6_title': '最小权限克制',
+      'features.card6_desc': '默认普通用户权限即可运行，安全清理当前用户空间；仅在触及系统特权目录时才请求 UAC 提权。',
+      'modes.eyebrow': '// USAGE',
+      'modes.title': '三种模式，按习惯选',
+      'modes.lead': '双击 delete-nul.bat 启动交互式 TUI 菜单，或直接在命令行传入参数运行。',
+      'modes.tab0': '全局扫描',
+      'modes.tab1': '定向处理',
+      'modes.tab2': '粘贴 / 拖拽',
+      'modes.tag': '适用场景',
+      'modes.mode0_meta': '整机清理 · 跨盘全面排查 · 外部移动硬盘/U盘检测',
+      'modes.mode0_title': '全局扫描（全盘自动排查）',
+      'modes.mode0_desc': '自动枚举并扫描系统所有固定磁盘，智能跳过网络驱动器与虚拟光驱。对大容量机械盘或大型代码库可搭配 <code>-Fast</code> 快速索引与 <code>-ScanTimeout</code> 超时防护。',
+      'modes.mode1_meta': '特定开发目录 · Git 仓库检出死锁 · 构建产物目录',
+      'modes.mode1_title': '定向处理（精准路径排查）',
+      'modes.mode1_desc': '方向键选定目标磁盘、进入文件夹浏览器逐层深入排查；或直接给路径参数。仅在目标子树内递归检测，瞬间完成毫秒级定位。',
+      'modes.mode2_meta': '桌面拖拽 · 剪贴板快速粘贴 · 极简 GUI 直觉交互',
+      'modes.mode2_title': '粘贴 / 拖拽（直觉式清理）',
+      'modes.mode2_desc': '在资源管理器中按住 Shift+右键复制受损文件夹路径并粘贴；或直接把包含异常文件的文件夹拖到 <code>delete-nul.bat</code> 图标上——连资源管理器选不中的 NUL 文件本身也能被精准识别。',
+      'modes.mode2_code': '[拖拽直达] 直接将损坏文件夹拖入 delete-nul.bat 图标即可触发清理',
+      'modes.copy_cmd': '复制命令',
+      'modes.copy_param': '复制参数',
+      'why.eyebrow': '// WHY',
+      'why.title': '为什么普通方法删不掉？',
+      'why.lead': '问题根源在于 Windows 系统的路径解析阶段，而非文件系统损坏。深入理解底层差异，安全清理更放心。',
+      'why.bad_title': '✕ Win32 子系统劫持（资源管理器 / del / rm / 常见工具）',
+      'why.bad_li1': '<strong>历史包袱</strong>：DOS 1.0 时代为了将 <code>NUL</code>、<code>CON</code>、<code>PRN</code> 用作流重定向，将保留名硬编码进系统。',
+      'why.bad_li2': '<strong>路径解析劫持</strong>：Win32 API（<code>kernel32.dll</code> / <code>CreateFileW</code>）在解析路径时，一律将其重定向至 <code>\\Device\\Null</code> 等字符设备。',
+      'why.bad_li3': '<strong>死锁假象</strong>：普通删除命令以为自己在删设备，根本无法触及 NTFS 磁盘底层那个字面名叫 NUL 的物理文件。',
+      'why.good_title': '✓ delete-nul（直达 NT 原生对象管理器）',
+      'why.good_li1': '<strong>NT 原生路径直通</strong>：给路径注入 <code>\\\\?\\</code>（Unicode NT 扩展前缀），告知操作系统直接跳过 Win32 规范化过滤。',
+      'why.good_li2': '<strong>精准文件枚举</strong>：通过底层原生 API 枚举真实物理磁盘项，精准定位受困文件。',
+      'why.good_li3': '<strong>物理定点清除与复核</strong>：直达 NT 对象管理器执行精准物理抹除，并再次递归复核确认残留数为 0。',
+      'why.path_h4': '同一串字符，两种解析',
+      'why.path_win32_desc': '命中 DOS 设备对象，磁盘上的文件纹丝不动',
+      'why.path_nt_desc': '跳过规范化，按字面路径精确命中',
+      'why.note': '规范流程：底层枚举 → 精确匹配裸保留名 → 锁定物理路径 → 注入 <code>\\\\?\\</code> 前缀精准清除 → 自动复核残留。先只读预检，经确认才删除。',
+      'faq.eyebrow': '// FAQ',
+      'faq.title': '常见问题解答',
+      'faq.lead': '针对真实开发与日常系统维护中的高频疑问，提供清晰权威的解答。',
+      'faq.q1': 'Git 克隆/检出报错 "unable to create file ...: Invalid argument" 怎么办？',
+      'faq.a1': '这是因为跨平台拉取了由 Linux / macOS 开发者提交的包含 <code>nul</code>、<code>aux</code> 等文件的仓库。Windows 资源管理器与普通 Git 无法创建或删除它们。只需用 delete-nul 扫描当前仓库路径，先只读预检，再确认清除该异常文件，随后 <code>git status</code> 即可恢复正常。',
+      'faq.q2': '为什么不用第三方“强力粉碎机”或重启进入 WinPE？',
+      'faq.a2': '绝大多数第三方粉碎工具同样基于 Win32 API 查找文件，面对保留名依然会死循环或提示“找不到指定文件”；而进入 WinPE 操作门槛高、容易误操作且无法自动化。delete-nul 原生几行轻量脚本直接调用 NT 原生路径，零成本、免安装、秒级解决。',
+      'faq.q3': '杀毒软件报毒或 PowerShell 策略拦截怎么处理？',
+      'faq.a3': '本项目 100% 开源纯透明，不含任何可执行二进制文件、无混淆、无 Base64 加密。bat 只是调用系统自带 PowerShell 的薄包装。若受组织组策略拦截，可直接切换到 Hero 区域的【纯文本】Tab，使用系统纯原生 CMD 管道命令运行，无需加载 PowerShell。',
+      'faq.q4': '提示 FAILED 或文件正被占用无法删除？',
+      'faq.a4': '通常是因为资源管理器的“预览窗格”、VSCode、终端或其它后台程序正打开着该目录。只需关闭相关程序后重试；若涉及系统特权路径（如 Program Files），运行时加上 <code>-Elevate</code> 参数以管理员身份执行提权。',
+      'faq.q5': '删除后能恢复吗？会进回收站吗？',
+      'faq.a5': '不能恢复，也不会进回收站。因为 Windows 回收站本身依赖 Win32 子系统，无法接收保留名文件。因此 delete-nul 严格贯彻「先列后删」安全策略，先只读罗列所有待删文件，经人工确认（Y）后才执行物理移除。',
+      'faq.q6': '会误伤 nul.txt 或正常业务文件吗？',
+      'faq.a6': '默认绝不误伤！匹配引擎采用强正则 <code>\\\\nul$</code> 进行裸名全字匹配，<code>nul.txt</code>、<code>con.png</code> 等带扩展名的正常文件会被系统完全豁免保护。如需显式连同扩展名一起处理，才需手动加上 <code>-IncludeExtension</code> 参数。',
+      'footer.status': 'SYSTEM STATUS: NT 10.0+ READY · ALL SUB-SYSTEMS OPERATIONAL',
+      'footer.top': '回到顶部 ↑',
+      'footer.brand_desc': '一个本地、开源、免安装的 Windows 保留名文件清理工具。先列出，确认后才删——精确匹配，绝不误删正常文件。',
+      'footer.col_product': 'Product',
+      'footer.feat_link': '功能特性',
+      'footer.install_link': '安装方式',
+      'footer.col_comm': 'Community',
+      'footer.repo_link': 'GitHub 仓库',
+      'footer.issue_link': '问题反馈',
+      'footer.docs_link': '使用文档',
+      'footer.col_sec': 'Security & License',
+      'footer.sec1': 'MIT License · 自由使用',
+      'footer.sec2': '100% 本地开源 · 零数据回传',
+      'footer.sec3': '无外部依赖 · 免运行库',
+      'footer.copyright': '© 2026 delete-nul. Open source software under the MIT License.'
+    },
+    en: {
+      'page_title': 'delete-nul — Windows Reserved Name File Cleaner',
+      'page_desc': 'Find and purge undeletable NUL / CON / AUX / PRN / COM1-9 / LPT1-9 reserved name files on Windows. Inspect first, purge after confirmation.',
+      'loader.skip': '[Click or press any key to skip ↵]',
+      'nav.status': '<span class="dot"></span>NT 10.0+ READY',
+      'nav.features': 'Features',
+      'nav.modes': 'Usage',
+      'nav.why': 'Architecture',
+      'nav.install': 'Install / Demo',
+      'nav.faq': 'FAQ',
+      'nav.menu': 'Menu',
+      'hero.slogan': '⚡FORCE PURGE NUL⚡',
+      'hero.sub': '<code>NUL / CON / AUX / PRN / COM1-9 / LPT1-9</code> — Terminate undeletable Windows reserved file deadlocks. Zero dependencies, air-gapped; direct NT native namespace routing with mandatory read-only dry-run before safe purge.',
+      'hero.pill1': '✦ Zero Dependencies',
+      'hero.pill2': '✦ \\\\?\\ NT Native Routing',
+      'hero.pill3': '✦ Dry-Run Before Purge',
+      'hero.pill4': '✦ 100% Local & Open Source',
+      'hero.start': 'Get Started <span class="btn-arrow">→</span>',
+      'hero.why': 'Why standard tools fail? <span class="btn-arrow">↳</span>',
+      'install.eyebrow': '// INSTALL',
+      'install.tab_cmd': 'Terminal Command <span class="tab-badge">Recommended</span>',
+      'install.tab_agent': 'AI Agent <span class="tab-badge">Agentic</span>',
+      'install.tab_raw': 'Download Script <span class="tab-badge">Drag & Drop</span>',
+      'install.tab_text': 'Raw Batch <span class="tab-badge">Air-Gapped</span>',
+      'install.term_cmd': 'cmd.exe — Terminal Command',
+      'install.term_agent': 'agent — AI Agent Conversational Demo',
+      'install.term_raw': 'browser — Download Files',
+      'install.term_text': 'cmd.exe — Raw Batch',
+      'install.tip_btn': '<span class="tip-ico">?</span> Tips',
+      'install.tip_cmd_head': '// Terminal Command (cmd.exe) · Guide',
+      'install.tip_label_method': '▶ Usage',
+      'install.tip_cmd_method': 'Copy the one-line command below into Windows CMD or PowerShell and press Enter; use ↑ ↓ to navigate and Enter to select.',
+      'install.tip_label_feat': '★ Highlights',
+      'install.tip_cmd_feat': 'One-click pull into %TEMP% without workspace pollution; includes global sweep, disk browsing, and timeout protection.',
+      'install.tip_replay_cmd': '↻ Replay Simulation',
+      'install.tip_agent_head': '// AI Agent Prompt · Guide',
+      'install.tip_agent_method': 'Click [Copy Full Prompt] below and paste it into Cursor, Claude Code, Antigravity, Copilot, or any coding agent.',
+      'install.tip_agent_feat': 'Conversational agent execution: verifies repo architecture, downloads to %TEMP%, dry-run reports first, and purges after your confirmation.',
+      'install.tip_replay_agent': '↻ Replay Conversation',
+      'install.tip_raw_head': '// Download Script (Local Batch) · Guide',
+      'install.tip_raw_method': 'Download delete-nul.ps1 and delete-nul.bat into the same folder; double click bat or drag damaged folders directly onto the bat icon.',
+      'install.tip_raw_feat': 'Locally stored scripts with drag-and-drop support: even NUL files that cannot be selected in File Explorer can be purged via drop.',
+      'install.tip_replay_raw': '↻ Replay Simulation',
+      'install.tip_text_head': '// Raw Batch (Zero-Disk CMD) · Guide',
+      'install.tip_text_method': 'Paste Part 1 into CMD to generate an audit list; inspect findings, then paste Part 2 into CMD to execute safe purge.',
+      'install.tip_text_feat': 'Zero disk footprint, zero PowerShell dependency! Pure native CMD pipeline designed for high-security enterprise environments.',
+      'install.tip_replay_text': '↻ Replay Simulation',
+      'install.agent_preset_label': 'Quick Presets:',
+      'install.agent_preset_1': '[Current Workspace]',
+      'install.agent_preset_1_prompt': 'Please fetch and install delete-nul from GitHub, perform a dry-run scan on the current workspace, report findings, and purge upon my confirmation.',
+      'install.agent_preset_2': '[Target Path D:\\temp]',
+      'install.agent_preset_2_prompt': 'Please download and install delete-nul and scan D:\\temp for reserved name files like NUL and CON.',
+      'install.agent_preset_3': '[Full Disk DryRun]',
+      'install.agent_preset_3_prompt': 'Please download and run delete-nul with -DryRun to audit all fixed disks and report reserved name files.',
+      'install.agent_input_val': 'Please fetch and install delete-nul from GitHub, safely inspect and purge reserved name files in the current workspace',
+      'install.agent_input_ph': 'Type prompt for Agent...',
+      'install.agent_send_btn': '↵ Send',
+      'install.agent_copy_btn': 'Copy Full Prompt',
+      'install.copy': 'Copy',
+      'install.download_ps1': 'Download ps1',
+      'install.download_bat': 'Download bat',
+      'install.restore_hint': 'Click anywhere or press Esc to restore page',
+      'toast_copied': 'Copied to clipboard successfully! Ready to paste.',
+      'toast_selected': 'Text selected. Press Ctrl+C to copy.',
+      'features.eyebrow': '// FEATURES',
+      'features.title': 'Do One Thing, Do It Right',
+      'features.lead': 'The definitive remedy for Windows legacy reserved name deadlocks without harming regular files.',
+      'features.card1_title': 'Exact Bare Matching',
+      'features.card1_desc': 'Only targets bare reserved names. Normal files like <code>nul.txt</code> and <code>con.png</code> are untouched.',
+      'features.card2_title': 'Readonly Dry-Run First',
+      'features.card2_desc': 'Audits and displays all matches first; physical unlinking only proceeds after explicit user confirmation.',
+      'features.card3_title': '\\\\?\\ NT Native Routing',
+      'features.card3_desc': 'Injects the Unicode NT namespace prefix, bypassing Win32 subsystem DOS device traps.',
+      'features.card4_title': 'Versatile Access Modes',
+      'features.card4_desc': 'Global sweep, interactive directory navigator, clipboard paste, or drag-and-drop onto the bat icon.',
+      'features.card5_title': 'Enterprise Automation',
+      'features.card5_desc': 'Structured JSON output, strict exit codes, audit logs, and scan timeouts for CI/CD pipelines.',
+      'features.card6_title': 'Least Privilege Restraint',
+      'features.card6_desc': 'Runs with standard user privileges by default; requests UAC elevation only when accessing privileged system trees.',
+      'modes.eyebrow': '// USAGE',
+      'modes.title': 'Three Modes, Your Choice',
+      'modes.lead': 'Launch interactive TUI menu with delete-nul.bat or pass command-line arguments directly.',
+      'modes.tab0': 'Global Sweep',
+      'modes.tab1': 'Targeted Audit',
+      'modes.tab2': 'Paste & Drag',
+      'modes.tag': 'Scenario',
+      'modes.mode0_meta': 'Full system audit · Cross-drive sweep · External USB drives',
+      'modes.mode0_title': 'Global Sweep (All Fixed Drives)',
+      'modes.mode0_desc': 'Automatically enumerates and scans all fixed system drives, skipping network mounts. Pairs with <code>-Fast</code> and <code>-ScanTimeout</code> for massive disks.',
+      'modes.mode1_meta': 'Target project · Git checkout lockup · Build output dirs',
+      'modes.mode1_title': 'Targeted Audit (Specific Directory)',
+      'modes.mode1_desc': 'Navigate target drives with arrow keys or pass direct path arguments for sub-second subtree scanning.',
+      'modes.mode2_meta': 'Desktop drag-and-drop · Clipboard paste · Frictionless GUI workflow',
+      'modes.mode2_title': 'Paste & Drag (Intuitive GUI Drop)',
+      'modes.mode2_desc': 'Copy damaged directory path via Shift+Right Click or drag the directory directly onto the bat icon.',
+      'modes.mode2_code': '[Drag & Drop] Drop damaged directory directly onto delete-nul.bat icon to purge',
+      'modes.copy_cmd': 'Copy Command',
+      'modes.copy_param': 'Copy Params',
+      'why.eyebrow': '// WHY',
+      'why.title': 'Why Standard Tools Fail?',
+      'why.lead': 'The root cause lies in Win32 path normalization, not file corruption. Understanding NT architecture gives confidence.',
+      'why.bad_title': '✕ Win32 Subsystem Hijacking (Explorer / del / rm / Common Tools)',
+      'why.bad_li1': '<strong>Legacy Burden</strong>: Hardcoded reserved device names since DOS 1.0 for stream redirection.',
+      'why.bad_li2': '<strong>Path Normalization</strong>: Win32 APIs (<code>kernel32.dll</code> / <code>CreateFileW</code>) always redirect reserved names to character devices like <code>\\Device\\Null</code>.',
+      'why.bad_li3': '<strong>Deadlock Illusion</strong>: Standard del thinks it\'s touching a device and cannot reach the physical file on NTFS.',
+      'why.good_title': '✓ delete-nul (Direct NT Object Manager Routing)',
+      'why.good_li1': '<strong>NT Native Bypass</strong>: Injects <code>\\\\?\\</code> prefix to signal Windows NT to bypass Win32 normalization checks.',
+      'why.good_li2': '<strong>Precise Disk Enumeration</strong>: Enumerates raw physical file entries via low-level APIs to locate trapped files.',
+      'why.good_li3': '<strong>Physical Purge & Verification</strong>: Commands NT Object Manager directly for clean physical unlink, then re-verifies 0 remaining files.',
+      'why.path_h4': 'Same string, two distinct resolutions',
+      'why.path_win32_desc': 'Hits DOS device object; physical file on disk remains untouched',
+      'why.path_nt_desc': 'Bypasses normalization; targets exact physical literal path',
+      'why.note': 'Protocol: Raw enumeration → Bare reserved name match → Lock physical path → Inject <code>\\\\?\\</code> for purge → Post-audit verification.',
+      'faq.eyebrow': '// FAQ',
+      'faq.title': 'Frequently Asked Questions',
+      'faq.lead': 'Clear answers to common questions in developer workflows and system maintenance.',
+      'faq.q1': 'Git clone/checkout fails with "unable to create file ...: Invalid argument"?',
+      'faq.a1': 'This happens when cloning repositories created on Linux/macOS containing files named <code>nul</code>, <code>aux</code>, etc. Windows Explorer and standard Git cannot create or delete them. Scan the repository path with delete-nul, perform a dry-run review, and confirm purge to restore <code>git status</code>.',
+      'faq.q2': 'Why not use 3rd-party shredders or reboot into WinPE?',
+      'faq.a2': 'Most shredders still rely on Win32 APIs and encounter the exact same device traps. WinPE requires rebooting and cannot be automated. delete-nul routes directly to NT native paths with zero install and instant execution.',
+      'faq.q3': 'What if antivirus flags the script or PowerShell policy blocks execution?',
+      'faq.a3': 'This project is 100% open source, transparent, with zero compiled binaries and zero obfuscation. If PowerShell is blocked by enterprise group policy, switch to the [Raw Batch] tab to run pure native CMD commands.',
+      'faq.q4': 'Prompts FAILED or file locked by another process?',
+      'faq.a4': 'Usually caused by Windows Explorer Preview Pane, VSCode, or terminals holding directory handles. Close locking processes and retry. If system directories are involved, append <code>-Elevate</code> to trigger UAC elevation.',
+      'faq.q5': 'Can purged files be restored? Do they go to Recycle Bin?',
+      'faq.a5': 'They cannot be recovered and do NOT go to the Recycle Bin, as the Recycle Bin itself relies on Win32 subsystem APIs. delete-nul strictly enforces dry-run inspection so you verify everything before confirmation.',
+      'faq.q6': 'Will it accidentally delete nul.txt or regular business files?',
+      'faq.a6': 'Never by default! The engine performs exact full-string matching against bare names. Files with extensions like <code>nul.txt</code> and <code>con.png</code> are completely immune unless <code>-IncludeExtension</code> is explicitly supplied.',
+      'footer.status': 'SYSTEM STATUS: NT 10.0+ READY · ALL SUB-SYSTEMS OPERATIONAL',
+      'footer.top': 'Back to Top ↑',
+      'footer.brand_desc': 'A local, open-source, zero-dependency Windows reserved name file cleaner. Inspect first, purge after confirmation.',
+      'footer.col_product': 'Product',
+      'footer.feat_link': 'Features',
+      'footer.install_link': 'Installation',
+      'footer.col_comm': 'Community',
+      'footer.repo_link': 'GitHub Repo',
+      'footer.issue_link': 'Issues',
+      'footer.docs_link': 'Documentation',
+      'footer.col_sec': 'Security & License',
+      'footer.sec1': 'MIT License · Free & Permissive',
+      'footer.sec2': '100% Local & Open Source · Zero Telemetry',
+      'footer.sec3': 'Zero Dependencies · No Runtime Required',
+      'footer.copyright': '© 2026 delete-nul. Open source software under the MIT License.'
+    }
+  };
+
+  function setLanguage(lang){
+    currentLang = lang;
+    try { localStorage.setItem('dn-lang', lang); } catch(e){}
+    document.documentElement.lang = (lang === 'zh' ? 'zh-CN' : 'en');
+    
+    // Update language switch button text
+    var langCode = document.getElementById('langCode');
+    if(langCode) langCode.textContent = (lang === 'zh' ? 'EN' : 'ZH');
+    var langBtn = document.getElementById('langBtn');
+    if(langBtn){
+      langBtn.setAttribute('title', lang === 'zh' ? '切换语言 (Switch to English)' : '切换语言 (切换为中文)');
+      langBtn.setAttribute('aria-label', lang === 'zh' ? 'Switch to English' : '切换为中文');
+    }
+
+    // Update document title and meta
+    if(I18N[lang] && I18N[lang]['page_title']) document.title = I18N[lang]['page_title'];
+    var metaDesc = document.querySelector('meta[name="description"]');
+    if(metaDesc && I18N[lang] && I18N[lang]['page_desc']) metaDesc.setAttribute('content', I18N[lang]['page_desc']);
+
+    // Update all data-i18n elements
+    document.querySelectorAll('[data-i18n]').forEach(function(el){
+      var key = el.getAttribute('data-i18n');
+      if(I18N[lang] && I18N[lang][key] !== undefined){
+        el.innerHTML = I18N[lang][key];
+      }
+    });
+
+    // Update data-text on slogan glitch
+    var glitch = document.querySelector('.slogan-glitch');
+    if(glitch && I18N[lang] && I18N[lang]['hero.slogan']){
+      glitch.setAttribute('data-text', I18N[lang]['hero.slogan']);
+    }
+
+    // Update input placeholders
+    document.querySelectorAll('[data-i18n-ph]').forEach(function(el){
+      var key = el.getAttribute('data-i18n-ph');
+      if(I18N[lang] && I18N[lang][key]){
+        el.setAttribute('placeholder', I18N[lang][key]);
+      }
+    });
+
+    // Update agent input value and preset pills data-prompt
+    var agentInput = document.querySelector('.agent-prompt-input');
+    if(agentInput && I18N[lang] && I18N[lang]['install.agent_input_val']){
+      var otherLang = lang === 'zh' ? 'en' : 'zh';
+      if(agentInput.value === I18N[otherLang]['install.agent_input_val'] || !agentInput.value){
+        agentInput.value = I18N[lang]['install.agent_input_val'];
+      }
+    }
+    document.querySelectorAll('.preset-pill').forEach(function(pill){
+      var pk = pill.getAttribute('data-prompt-key');
+      if(pk && I18N[lang] && I18N[lang][pk]){
+        pill.setAttribute('data-prompt', I18N[lang][pk]);
+      }
+    });
+
+    updateThemeUI();
+
+    // Refresh active terminal demo if initialized
+    if(window.__runProcess){
+      var activeTab = document.querySelector('.install-tabs button[aria-selected="true"]');
+      if(activeTab && activeTab.dataset.tab){
+        window.__runProcess(activeTab.dataset.tab);
+      }
+    }
+  }
+
+  var langBtn = document.getElementById('langBtn');
+  if(langBtn){
+    langBtn.addEventListener('click', function(){
+      setLanguage(currentLang === 'zh' ? 'en' : 'zh');
+    });
+  }
+  setLanguage(currentLang);
 
   var copyTimers=new WeakMap();
-  function showToast(msg){
+  function showToast(msgKeyOrText){
     var t = document.getElementById('copyToast');
     if(!t) return;
     var txt = document.getElementById('toastText');
+    var msg = (I18N[currentLang] && I18N[currentLang][msgKeyOrText]) ? I18N[currentLang][msgKeyOrText] : msgKeyOrText;
     if(txt && msg) txt.textContent = msg;
     t.classList.add('show');
     clearTimeout(t._timer);
@@ -1311,16 +1737,16 @@ type &quot;%RNLIST%&quot;">复制</button></div>
     clearTimeout(copyTimers.get(b));
     try{
       await navigator.clipboard.writeText(text);
-      b.textContent='已复制';
-      showToast('已经成功复制到剪贴板，可直接粘贴使用！');
+      b.textContent = currentLang === 'zh' ? '已复制' : 'Copied';
+      showToast('toast_copied');
     }
     catch(err){
       if(code){
         var r=document.createRange(); r.selectNodeContents(code);
         var s=window.getSelection(); s.removeAllRanges(); s.addRange(r);
       }
-      b.textContent='已选中';
-      showToast('已选中文本，请使用 Ctrl+C 复制');
+      b.textContent = currentLang === 'zh' ? '已选中' : 'Selected';
+      showToast('toast_selected');
     }
     copyTimers.set(b,setTimeout(function(){b.textContent=orig},1600));
   });
@@ -1741,12 +2167,13 @@ type &quot;%RNLIST%&quot;">复制</button></div>
 
     var workflows = {
       cmd: async function(box, signal){
+        var isEn = currentLang === 'en';
         await typeText(box, 'C:\\> ', 'curl -fsSL "https://.../delete-nul.ps1" -o "%TEMP%\\delete-nul.ps1"', 'hl', signal, 18);
-        await runProgress(box, '下载 delete-nul.ps1', 28.4, 520, signal);
+        await runProgress(box, isEn ? 'Downloading delete-nul.ps1' : '下载 delete-nul.ps1', 28.4, 520, signal);
         await sleep(100, signal);
 
         await typeText(box, 'C:\\> ', 'curl -fsSL "https://.../delete-nul.bat" -o "%TEMP%\\delete-nul.bat"', 'hl', signal, 18);
-        await runProgress(box, '下载 delete-nul.bat', 4.2, 360, signal);
+        await runProgress(box, isEn ? 'Downloading delete-nul.bat' : '下载 delete-nul.bat', 4.2, 360, signal);
         await sleep(120, signal);
 
         await typeText(box, 'C:\\> ', 'call "%TEMP%\\delete-nul.bat"', 'hl', signal, 20);
@@ -1755,26 +2182,30 @@ type &quot;%RNLIST%&quot;">复制</button></div>
         var m1 = makeLine(box, 'ok');
         m1.textContent = '  ==================================================';
         var m2 = makeLine(box, 'ok');
-        m2.textContent = '   delete-nul · 选择扫描模式 / Select scan mode';
+        m2.textContent = isEn ? '   delete-nul · Select scan mode / 选择扫描模式' : '   delete-nul · 选择扫描模式 / Select scan mode';
         var m3 = makeLine(box, 'ok');
         m3.textContent = '  ==================================================';
         var m4 = makeLine(box, 'dim');
-        m4.textContent = '   用 ↑ ↓ 选择，回车确认（G/S/C/D/Q）:';
+        m4.textContent = isEn ? '   Use ↑ ↓ to select, Enter to confirm (G/S/C/D/Q):' : '   用 ↑ ↓ 选择，回车确认（G/S/C/D/Q）:';
         var m5 = makeLine(box, 'hl');
-        m5.textContent = '   > [G] 全局扫描   扫描所有本地固定磁盘';
+        m5.textContent = isEn ? '   > [G] Global sweep     Scan all fixed drives' : '   > [G] 全局扫描   扫描所有本地固定磁盘';
         var m6 = makeLine(box, 'dim');
-        m6.textContent = '     [S] 定向处理   选磁盘 → 文件夹逐层浏览';
+        m6.textContent = isEn ? '     [S] Targeted audit   Pick drive → Browse folders' : '     [S] 定向处理   选磁盘 → 文件夹逐层浏览';
         var m7 = makeLine(box, 'dim');
-        m7.textContent = '     [C] 扫描当前目录';
+        m7.textContent = isEn ? '     [C] Scan current directory' : '     [C] 扫描当前目录';
         await sleep(120, signal);
         showFinalCursor(box);
       },
 
       agent: async function(box, signal, customPrompt){
         box.replaceChildren();
+        var isEn = currentLang === 'en';
 
         var promptInput = document.querySelector('.agent-prompt-input');
-        var promptMsg = customPrompt || (promptInput && promptInput.value.trim()) || '请从 GitHub 下载安装 delete-nul 工具，安全扫描并清理当前工作区保留名文件（先拉取到 %TEMP%，只读扫描汇报，我确认后再删）。';
+        var defaultPrompt = isEn
+          ? 'Please download and install delete-nul from GitHub, inspect the current workspace, report findings, and purge after confirmation.'
+          : '请从 GitHub 下载安装 delete-nul 工具，安全扫描并清理当前工作区保留名文件（先拉取到 %TEMP%，只读扫描汇报，我确认后再删）。';
+        var promptMsg = customPrompt || (promptInput && promptInput.value.trim()) || defaultPrompt;
 
         // 1. User sends prompt
         var u1 = document.createElement('div');
@@ -1796,30 +2227,37 @@ type &quot;%RNLIST%&quot;">复制</button></div>
         // 2. Agent answers and executes download/installation and scan
         var a1 = document.createElement('div');
         a1.className = 'chat-turn';
-        a1.innerHTML = '<div class="chat-badge agent">🤖 AGENT</div><div class="chat-bubble agent"><div class="msg-text">收到指令！立即按照提示词执行 delete-nul 工具下载安装与安全预检流程：</div><div class="agent-body"></div></div>';
+        var a1Text = isEn
+          ? 'Received instruction! Executing delete-nul download, install and dry-run inspection workflow:'
+          : '收到指令！立即按照提示词执行 delete-nul 工具下载安装与安全预检流程：';
+        a1.innerHTML = '<div class="chat-badge agent">🤖 AGENT</div><div class="chat-bubble agent"><div class="msg-text">' + a1Text + '</div><div class="agent-body"></div></div>';
         box.appendChild(a1);
         var a1Body = a1.querySelector('.agent-body');
         box.scrollTop = box.scrollHeight;
         await sleep(240, signal);
 
         // Tool 1: 查阅仓库规范
-        await runSpinner(a1Body, '● [查阅仓库]', 'GET github.com/yancongya/delete-nul (README.md)...', '确认规范: 需使用 \\\\?\\ NT 原生路径绕过 Win32 命名空间拦截', 520, signal);
+        var s1Label = isEn ? 'GET github.com/yancongya/delete-nul (README.md)...' : 'GET github.com/yancongya/delete-nul (README.md)...';
+        var s1Done = isEn ? 'Confirmed protocol: MUST use \\\\?\\ NT native path to bypass Win32 namespace trap' : '确认规范: 需使用 \\\\?\\ NT 原生路径绕过 Win32 命名空间拦截';
+        await runSpinner(a1Body, isEn ? '● [Check Repo]' : '● [查阅仓库]', s1Label, s1Done, 520, signal);
         box.scrollTop = box.scrollHeight;
         await sleep(120, signal);
 
         // Tool 2: 下载安装工具至临时目录 %TEMP%
         var t2 = makeLine(a1Body, '');
-        t2.innerHTML = '● [下载安装工具] <code>curl -fsSL .../delete-nul.ps1 -o "%TEMP%\\delete-nul.ps1"</code>';
-        await runProgress(a1Body, '下载安装至临时目录', 28.4, 500, signal);
+        t2.innerHTML = (isEn ? '● [Download Tool] ' : '● [下载安装工具] ') + '<code>curl -fsSL .../delete-nul.ps1 -o "%TEMP%\\delete-nul.ps1"</code>';
+        await runProgress(a1Body, isEn ? 'Downloading to %TEMP%' : '下载安装至临时目录', 28.4, 500, signal);
         box.scrollTop = box.scrollHeight;
         await sleep(120, signal);
 
         // Tool 3: 只读扫描预检
         var t3 = makeLine(a1Body, '');
-        t3.innerHTML = '● [执行只读扫描] <code>powershell -File "%TEMP%\\delete-nul.ps1" -Path . -DryRun</code>';
+        t3.innerHTML = (isEn ? '● [Run Dry-Run] ' : '● [执行只读扫描] ') + '<code>powershell -File "%TEMP%\\delete-nul.ps1" -Path . -DryRun</code>';
         await sleep(160, signal);
         var r1 = makeLine(a1Body, 'dim');
-        r1.textContent = '  扫描工作区: 耗时 0.2s · 发现 2 个 Windows 保留名文件（正常文件未受影响）:';
+        r1.textContent = isEn
+          ? '  Workspace scan: elapsed 0.2s · Found 2 Windows reserved name files (regular files untouched):'
+          : '  扫描工作区: 耗时 0.2s · 发现 2 个 Windows 保留名文件（正常文件未受影响）:';
         var r2 = makeLine(a1Body, 'warn');
         r2.innerHTML = '  ! <code>.\\dist\\NUL</code>   (DOS Device Name)';
         var r3 = makeLine(a1Body, 'warn');
@@ -1829,7 +2267,9 @@ type &quot;%RNLIST%&quot;">复制</button></div>
 
         // Agent asks user confirmation
         var ask = makeLine(a1Body, 'hl');
-        ask.textContent = '  ? 发现上述 2 个保留名文件。请确认是否使用 \\\\?\\ 原生路径执行物理清除？';
+        ask.textContent = isEn
+          ? '  ? Found 2 reserved files above. Confirm purge via \\\\?\\ native path?'
+          : '  ? 发现上述 2 个保留名文件。请确认是否使用 \\\\?\\ 原生路径执行物理清除？';
         box.scrollTop = box.scrollHeight;
         await sleep(450, signal);
 
@@ -1841,7 +2281,7 @@ type &quot;%RNLIST%&quot;">复制</button></div>
         var u2Text = u2.querySelector('.msg-text');
         var u2Cur = u2.querySelector('.term-cursor');
         box.scrollTop = box.scrollHeight;
-        var replyMsg = '确认清除，请执行。';
+        var replyMsg = isEn ? 'Confirmed, please purge.' : '确认清除，请执行。';
         for(var j=0; j<replyMsg.length; j++){
           if(signal && signal.aborted) throw new Error('aborted');
           u2Text.textContent += replyMsg[j];
@@ -1854,21 +2294,24 @@ type &quot;%RNLIST%&quot;">复制</button></div>
         // 4. Agent executes physical deletion and reports completion
         var a2 = document.createElement('div');
         a2.className = 'chat-turn';
-        a2.innerHTML = '<div class="chat-badge agent">🤖 AGENT</div><div class="chat-bubble agent"><div class="msg-text">正在通过 \\\\?\\ NT 原生路径精准清除异常文件：</div><div class="agent-body"></div></div>';
+        var a2Msg = isEn
+          ? 'Purging reserved files via \\\\?\\ NT native path:'
+          : '正在通过 \\\\?\\ NT 原生路径精准清除异常文件：';
+        a2.innerHTML = '<div class="chat-badge agent">🤖 AGENT</div><div class="chat-bubble agent"><div class="msg-text">' + a2Msg + '</div><div class="agent-body"></div></div>';
         box.appendChild(a2);
         var a2Body = a2.querySelector('.agent-body');
         box.scrollTop = box.scrollHeight;
         await sleep(180, signal);
 
         var t4 = makeLine(a2Body, '');
-        t4.innerHTML = '● [执行清除] <code>powershell -File "%TEMP%\\delete-nul.ps1" -Path . -Yes</code>';
+        t4.innerHTML = (isEn ? '● [Execute Purge] ' : '● [执行清除] ') + '<code>powershell -File "%TEMP%\\delete-nul.ps1" -Path . -Yes</code>';
         await sleep(150, signal);
         var d1 = makeLine(a2Body, 'ok');
-        d1.textContent = '  ✓ 已物理移除 \\\\?\\F:\\workspace\\dist\\NUL';
+        d1.textContent = isEn ? '  ✓ Physically removed \\\\?\\F:\\workspace\\dist\\NUL' : '  ✓ 已物理移除 \\\\?\\F:\\workspace\\dist\\NUL';
         var d2 = makeLine(a2Body, 'ok');
-        d2.textContent = '  ✓ 已物理移除 \\\\?\\F:\\workspace\\cache\\CON';
+        d2.textContent = isEn ? '  ✓ Physically removed \\\\?\\F:\\workspace\\cache\\CON' : '  ✓ 已物理移除 \\\\?\\F:\\workspace\\cache\\CON';
         var d3 = makeLine(a2Body, 'ok');
-        d3.textContent = '✔ 清理完成！经复核工作区残留数为 0，环境已恢复干净。';
+        d3.textContent = isEn ? '✔ Purge completed! Remaining reserved files: 0. Clean workspace restored.' : '✔ 清理完成！经复核工作区残留数为 0，环境已恢复干净。';
         box.scrollTop = box.scrollHeight;
         await sleep(120, signal);
 
@@ -1877,35 +2320,39 @@ type &quot;%RNLIST%&quot;">复制</button></div>
       },
 
       raw: async function(box, signal){
+        var isEn = currentLang === 'en';
         var l1 = makeLine(box, 'hl');
         l1.textContent = '> GET raw.githubusercontent.com/yancongya/delete-nul/main';
-        await runSpinner(box, ' ', '正在建立 TLS 1.3 安全通道...', '已连接 (HTTP/2 200 OK)', 480, signal);
+        await runSpinner(box, ' ', isEn ? 'Establishing TLS 1.3 secure channel...' : '正在建立 TLS 1.3 安全通道...', isEn ? 'Connected (HTTP/2 200 OK)' : '已连接 (HTTP/2 200 OK)', 480, signal);
         await sleep(100, signal);
 
-        await runProgress(box, '下载保存 delete-nul.ps1', 28.4, 520, signal);
-        await runProgress(box, '下载保存 delete-nul.bat', 4.2, 350, signal);
+        await runProgress(box, isEn ? 'Downloading delete-nul.ps1' : '下载保存 delete-nul.ps1', 28.4, 520, signal);
+        await runProgress(box, isEn ? 'Downloading delete-nul.bat' : '下载保存 delete-nul.bat', 4.2, 350, signal);
         await sleep(120, signal);
 
         var s1 = makeLine(box, 'ok');
-        s1.textContent = '✓ 文件已保存至本地同一目录 (Downloads\\delete-nul)';
+        s1.textContent = isEn ? '✓ Files saved to local directory (Downloads\\delete-nul)' : '✓ 文件已保存至本地同一目录 (Downloads\\delete-nul)';
         var s2 = makeLine(box, 'dim');
-        s2.textContent = 'ℹ 使用方式: 双击 delete-nul.bat 运行，或直接把异常文件夹拖拽到 bat 图标上！';
+        s2.textContent = isEn
+          ? 'ℹ Usage: Double click delete-nul.bat or drag damaged folders directly onto bat icon!'
+          : 'ℹ 使用方式: 双击 delete-nul.bat 运行，或直接把异常文件夹拖拽到 bat 图标上！';
         await sleep(120, signal);
         showFinalCursor(box);
       },
 
       text: async function(box, signal){
+        var isEn = currentLang === 'en';
         var p1 = makeLine(box, 'hl');
-        p1.textContent = 'C:\\work> [已粘贴原生 CMD 批处理代码片段 (免文件落地)]';
+        p1.textContent = isEn ? 'C:\\work> [Pasted native CMD batch snippet (Zero disk footprint)]' : 'C:\\work> [已粘贴原生 CMD 批处理代码片段 (免文件落地)]';
         await sleep(160, signal);
 
         var p2 = makeLine(box, 'dim');
         p2.textContent = 'C:\\work> dir /s /b /a 2>nul | findstr /r /i /c:"\\\\nul$" ... >> "%RNLIST%"';
-        await runSpinner(box, ' ', '正在通过 Windows 原生 dir 管道深度检索...', '扫描完成 (耗时 0.4s)', 550, signal);
+        await runSpinner(box, ' ', isEn ? 'Deep querying via Windows native dir pipeline...' : '正在通过 Windows 原生 dir 管道深度检索...', isEn ? 'Scan completed (0.4s)' : '扫描完成 (耗时 0.4s)', 550, signal);
         await sleep(120, signal);
 
         var r1 = makeLine(box, 'ok');
-        r1.textContent = '发现 3 个 Windows 保留名文件:';
+        r1.textContent = isEn ? 'Found 3 Windows reserved name files:' : '发现 3 个 Windows 保留名文件:';
         var r2 = makeLine(box, 'dim');
         r2.textContent = '  [1] C:\\work\\NUL';
         var r3 = makeLine(box, 'dim');
@@ -1913,7 +2360,9 @@ type &quot;%RNLIST%&quot;">复制</button></div>
         var r4 = makeLine(box, 'dim');
         r4.textContent = '  [3] C:\\work\\tmp\\AUX';
         var r5 = makeLine(box, 'ok');
-        r5.textContent = '纯文本模式仅输出检索清单，磁盘未作任何写操作。';
+        r5.textContent = isEn
+          ? 'Text mode only generates an audit list; no disk write occurred.'
+          : '纯文本模式仅输出检索清单，磁盘未作任何写操作。';
         await sleep(120, signal);
         showFinalCursor(box);
       }

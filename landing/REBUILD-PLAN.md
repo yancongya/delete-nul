@@ -94,3 +94,11 @@ FAQ 区块去掉 `--panel2` 灰底带，改贴页面底色；`+` 统一用 `--di
 修复与回退：在支持 html-in-canvas 的浏览器里，DOM 搬进捕获 canvas 后再量 `<main>/<footer>` 会得到 0 高度，导致 `#page-body` 被设成 1px、整页塌掉。改为搬运前先量原生高度作为初始值，后续尺寸从 `document.documentElement.scrollHeight` 减去头部高度推导；初始化包在 try/catch 里，任何失败都把 DOM 搬回原位。
 
 但该整页捕获在用户的 Chrome 构建里仍会导致页面打不开，本地无法复现。先改为 `?reveal=1` opt-in 仍不行，最终**彻底移除整页 Particle Reveal 的 import、挂载与相关 CSS**，`src/components/canvasui/ParticleReveal.tsx` 文件保留但未使用。退场效果统一用自建粒子 canvas：灰阶明暗随机、闪烁、重力下坠与旋涡漂移，DPR 适配，不再是均匀白方块。用户硬刷新后确认页面恢复正常。
+
+### 2026-11-20：演示面板并入安装面板
+
+Hero 不再有独立的「扫描演示」卡片。三个安装标签各自内嵌一段「执行过程」终端动画：终端命令播下载并执行、下载文件播 GET 与保存、纯文本播扫描列出（沿用原演示文案）。切到标签时启动对应动画，每个过程都有独立「重播」；首次进入在 loading 结束后启动，reduced-motion 直接显示完整文本。导航原「演示」入口改为「安装 / 过程」指向 `#install`。清理了旧 `.demo*` 样式与 IntersectionObserver 自动播放逻辑。
+
+每个安装标签内进一步合并为**单个终端窗口**：标题栏含重播，窗口体是逐行动画输出，底栏是命令 + 复制/下载按钮。命令在底栏显示省略版，复制按钮用 `data-copy` 提供完整命令（纯文本标签是完整的多行 CMD）。不再有"命令说明区 + 执行过程区"的分区。
+
+削减嵌套：去掉 `.install-body` 与 `.term` 两层包裹，`.install-panel` 本身就是终端窗口（margin 代替父级 padding）；动画行去掉多余的 `<span>`，着色 class 直接落在行 div 上，进度条更新改用文本节点。DOM 从 5 层降到 3 层。明暗主题均已截图核对。
