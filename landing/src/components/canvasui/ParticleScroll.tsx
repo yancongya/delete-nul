@@ -403,7 +403,10 @@ export function createParticleScroll(
     page ? window.scrollY || pageEl.scrollTop || 0 : content.scrollTop;
   let docTop = 0;
   function syncDocTop() {
-    if (page) docTop = content.getBoundingClientRect().top + scrollTopNow();
+    if (page) {
+      const el = output && output.offsetParent ? output : content;
+      docTop = el.getBoundingClientRect().top + scrollTopNow();
+    }
   }
 
   const sourceCtx = source.getContext("2d") as ElementImageContext | null;
@@ -441,6 +444,11 @@ export function createParticleScroll(
         wake();
       } catch {}
     };
+    try {
+      sourceCtx!.reset();
+      drawHtmlInCanvas(source, sourceCtx!, content);
+      contentDirty = true;
+    } catch {}
   }
 
   function compile(type: number, text: string): WebGLShader {
@@ -577,7 +585,7 @@ export function createParticleScroll(
   let reducedMotion = motionQuery.matches;
 
   let time = 0;
-  let introDone = false;
+  let introDone = page ? true : false;
   let introWait = 0;
   let introReady = false;
   let scrollSmooth = scrollTopNow();
@@ -588,6 +596,7 @@ export function createParticleScroll(
     if (!htmlInCanvas || !contentDirty) return;
     contentDirty = false;
     introReady = true;
+    if (page) introDone = true;
     syncBgColor();
     gl!.bindTexture(gl!.TEXTURE_2D, contentTexture);
     gl!.texImage2D(
@@ -602,7 +611,8 @@ export function createParticleScroll(
   }
 
   function rowTargetFor(docRowY: number) {
-    if (reducedMotion || !introDone) return 1;
+    if (reducedMotion) return 1;
+    if (!page && !introDone) return 1;
     const h = Math.max(output.clientHeight, 1);
     const band = Math.max(config.band, 1);
     if (page) {
@@ -611,7 +621,11 @@ export function createParticleScroll(
       const line =
         Math.min(Math.max(config.point, 0), 1) * Math.max(window.innerHeight, 1);
       const vy = docTop + docRowY - scrollSmooth;
-      return Math.min(Math.max((line + band - vy) / band, 0), 1);
+      const bottomP = Math.min(Math.max((line + band - vy) / band, 0), 1);
+      const topLine = 90;
+      const topBand = Math.min(band * 0.75, 220);
+      const topP = Math.min(Math.max((vy - (topLine - topBand)) / topBand, 0), 1);
+      return Math.min(bottomP, topP);
     }
     const max = content.scrollHeight - content.clientHeight;
     let line = Math.min(Math.max(config.point, 0), 1) * h;
@@ -782,7 +796,7 @@ export function createParticleScroll(
     lag = Math.min(Math.max(lag, -400), 400);
     if (reducedMotion || Math.abs(lag) < 0.1) lag = 0;
     if (!introDone) {
-      if (reducedMotion || !htmlInCanvas) introDone = true;
+      if (reducedMotion || !htmlInCanvas || page) introDone = true;
       else if (introReady) {
         introWait += delta;
         if (introWait >= 1) introDone = true;
@@ -951,6 +965,19 @@ export function ParticleScroll({
 
   return (
     <div className={className} style={{ position: "relative", ...style }}>
+      {pageScroll ? (
+        <div
+          ref={!native ? contentRef : undefined}
+          aria-hidden={native ? "true" : undefined}
+          style={
+            native
+              ? { visibility: "hidden", pointerEvents: "none", userSelect: "none" }
+              : { position: "relative", width: "100%", height: "auto", overflow: "visible" }
+          }
+        >
+          {children}
+        </div>
+      ) : null}
       <canvas
         ref={sourceRef}
         // @ts-expect-error experimental html-in-canvas attribute
@@ -969,21 +996,21 @@ export function ParticleScroll({
               position: "relative",
               width: "100%",
               height: "100%",
-              overflow: pageScroll && native ? "hidden" : "auto",
+              overflow: pageScroll ? "hidden" : "auto",
             }}
           >
             {children}
           </div>
         ) : null}
       </canvas>
-      {!native ? (
+      {!native && !pageScroll ? (
         <div
           ref={contentRef}
           style={{
             position: "relative",
             width: "100%",
             height: "100%",
-            overflow: pageScroll && native ? "hidden" : "auto",
+            overflow: "auto",
           }}
         >
           {children}

@@ -142,19 +142,36 @@ picker.replaceWith(modeMount);
 flushSync(() => createRoot(modeMount).render(<ModePicker />));
 modeSection.querySelector('.mode-screen:not(#mode-preview)')?.remove();
 
-// WHY: the section is a bounded scroll viewport so the sand has rows to
+// WHY: the section is in normal document flow so the sand has rows to
 // dissolve and reassemble. Remount on theme change so the captured texture and
 // backdrop color follow the monochrome inversion.
 function WhyScroll({ markup }) {
   const { light } = useVisualPreferences();
-  return <ParticleScroll key={light} className="why-scroll" pageScroll point={0.72} band={300} density={2.6}
-    spread={90} gravity={0.3} drift={0.45} settle={0.9} smoothing={0.4}>
-    <div className="why-scroll-inner" dangerouslySetInnerHTML={{ __html: markup }} />
-  </ParticleScroll>;
+  return (
+    <ParticleScroll
+      key={light ? 'light' : 'dark'}
+      className="why-scroll"
+      pageScroll
+      point={0.72}
+      band={300}
+      density={2.6}
+      spread={90}
+      gravity={0.3}
+      drift={0.45}
+      settle={0.9}
+      smoothing={0.4}
+    >
+      <div className="why-scroll-inner" dangerouslySetInnerHTML={{ __html: markup }} />
+    </ParticleScroll>
+  );
 }
+
 const whyContainer = document.querySelector('[data-why-scroll]');
 if (whyContainer) {
-  const whyMarkup = whyContainer.querySelector('.why-scroll-inner').innerHTML;
-  createRoot(whyContainer).render(<WhyScroll markup={whyMarkup} />);
+  const whyInner = whyContainer.querySelector('.why-scroll-inner');
+  if (whyInner) {
+    const whyMarkup = whyInner.innerHTML;
+    createRoot(whyContainer).render(<WhyScroll markup={whyMarkup} />);
+  }
 }
 

@@ -890,8 +890,8 @@ p.lead{color:var(--dim);max-width:640px;margin:0 0 44px;font-size:15px;line-heig
 .pane li{margin:8px 0}
 .pane code{font-family:var(--mono);color:var(--ink);background:var(--panel2);padding:1px 5px;border-radius:2px}
 /* WHY — frameless document-flow block; the effect follows page scroll (pageScroll). */
-#why .why-scroll{position:relative;height:580px}
-#why .why-scroll-inner{height:100%;display:grid;gap:24px;align-content:start}
+#why .why-scroll{position:relative;height:auto}
+#why .why-scroll-inner{height:auto;display:grid;gap:24px;align-content:start}
 #why .why-scroll-inner .pane{min-height:230px}
 .why-path{border-top:1px dashed var(--line);padding-top:20px}
 .why-path h4{margin:0 0 14px;font-size:13.5px;font-family:var(--mono);color:#fff;letter-spacing:.03em}
@@ -1094,7 +1094,6 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
 @media(max-width:640px){
   #download .cmd{display:grid;gap:10px}
   #download .cmd button{justify-self:end}
-  #why .why-scroll{height:820px}
   #why .why-scroll-inner{padding:18px}
   .why-path-row{grid-template-columns:1fr}
   .why-path-row span:last-child{grid-column:1}
@@ -1119,7 +1118,6 @@ footer .fcontainer{max-width:1200px;margin:0 auto;padding:60px 24px}
   section.block{padding:72px 0}
 }
 @media(prefers-reduced-motion:reduce){
-  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
   .reveal{opacity:1;transform:none}
   #loader{display:none}
 }
@@ -2664,7 +2662,7 @@ type &quot;%RNLIST%&quot;">复制</button></div>
     });
   })();
 
-  /* 立即开始 → 从上往下平滑补位分段消散，高密粒子喷涌解构 */
+  /* 立即开始 → 仿沙化渐进消散，粒子沿消散锋面持续喷涌解构 */
   (function(){
     var btn = document.getElementById('startBtn'),
         cv = document.getElementById('dissolve'),
@@ -2673,6 +2671,7 @@ type &quot;%RNLIST%&quot;">复制</button></div>
     var ctx = cv.getContext('2d'),
         parts = [],
         waves = [],
+        sweeps = [],
         raf = 0,
         active = false,
         dpr = 1,
@@ -2714,54 +2713,40 @@ type &quot;%RNLIST%&quot;">复制</button></div>
       }
     }
 
-    function spawnLayerParticles(rect){
-      if(rect.bottom < -80 || rect.top > innerHeight + 120) return;
-      var isLight = document.documentElement.classList.contains('light');
-
-      // 400 ~ 750 dense particles per segment!
-      var visibleH = Math.min(rect.height, innerHeight);
-      var area = rect.width * visibleH;
-      var count = Math.min(750, Math.max(380, Math.floor(area / 900)));
-
+    function spawnErosionLineParticles(left, right, edgeY, isLight, count){
+      var w = right - left;
       for(var i = 0; i < count; i++){
-        var px = rect.left + Math.random() * rect.width;
-        var py = rect.top + Math.random() * visibleH;
-        var ang = -Math.PI / 2 + (Math.random() - 0.5) * 1.5; // strongly upward
-        var spd = Math.random() * 4.2 + 0.8;
-        var isGlyph = Math.random() < 0.24;
+        var px = left + Math.random() * w;
+        var py = edgeY + (Math.random() - 0.5) * 8;
+        var isGlyph = Math.random() < 0.22;
         var tone = isLight ? Math.round(10 + Math.random() * 45) : Math.round(200 + Math.random() * 55);
-        var size = Math.random() * 2.5 + 0.8;
+        var size = Math.random() * 2.2 + 0.8;
+        var spdY = Math.random() * 2.6 + 1.2;
+        var spdX = (Math.random() - 0.5) * 2.4;
 
         parts.push({
           type: isGlyph ? 1 : 0,
           x: px,
           y: py,
-          vx: Math.cos(ang) * spd + (Math.random() - 0.5) * 1.0,
-          vy: Math.sin(ang) * spd - 1.2, // upward suction momentum
+          vx: spdX,
+          vy: -spdY, // 向上浮升飘散
           size: size,
           ch: GLYPHS[Math.floor(Math.random() * GLYPHS.length)],
           tone: tone,
           tw: Math.random() * 6.28,
-          twSpd: 0.06 + Math.random() * 0.14,
-          life: 0.007 + Math.random() * 0.011,
-          drag: 0.985,
+          twSpd: 0.08 + Math.random() * 0.16,
+          life: 0.008 + Math.random() * 0.013,
+          drag: 0.982,
           a: 1
         });
       }
     }
 
     function collapseLayerSmooth(el){
-      var h = el.offsetHeight;
       el.style.boxSizing = 'border-box';
-      el.style.height = h + 'px';
       el.style.overflow = 'hidden';
       el.style.pointerEvents = 'none';
-      // Silky smooth 0.56s transition: opacity, blur, transform and height all gracefully shrink
-      el.style.transition = 'height .56s cubic-bezier(.22, 1, .36, 1), margin .56s cubic-bezier(.22, 1, .36, 1), padding .56s cubic-bezier(.22, 1, .36, 1), opacity .48s cubic-bezier(.22, 1, .36, 1), filter .48s cubic-bezier(.22, 1, .36, 1), transform .56s cubic-bezier(.22, 1, .36, 1)';
-      void el.offsetHeight; // force reflow
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(-18px) scale(0.985)';
-      el.style.filter = 'blur(8px) brightness(1.35)';
+      el.style.transition = 'height .42s cubic-bezier(.22, 1, .36, 1), margin .42s cubic-bezier(.22, 1, .36, 1), padding .42s cubic-bezier(.22, 1, .36, 1)';
       el.style.height = '0px';
       el.style.minHeight = '0px';
       el.style.maxHeight = '0px';
@@ -2773,12 +2758,53 @@ type &quot;%RNLIST%&quot;">复制</button></div>
       el.style.borderBottomWidth = '0px';
     }
 
-    function frame(){
+    function frame(timestamp){
       raf = 0;
       ctx.clearRect(0, 0, innerWidth, innerHeight);
       var isLight = document.documentElement.classList.contains('light');
+      var now = timestamp || performance.now();
 
-      // 1. Shockwaves
+      // 1. Process active progressive erosion sweeps (渐进沙化消散)
+      for(var s = 0; s < sweeps.length; s++){
+        var sw = sweeps[s];
+        var elapsed = now - sw.startTime;
+        var p = Math.min(1, Math.max(0, elapsed / sw.duration));
+        var rect = sw.el.getBoundingClientRect();
+
+        if(rect.bottom < -60 || rect.top > innerHeight + 80){
+          p = 1;
+        }
+
+        // Feathered mask sweeping from top to bottom
+        var pct = p * 100;
+        var band = Math.min(26, Math.max(8, (48 / Math.max(rect.height, 1)) * 100));
+        var pTop = Math.max(0, pct - band * 0.7).toFixed(1);
+        var pMid = pct.toFixed(1);
+        var pBot = Math.min(100, pct + band * 0.4).toFixed(1);
+
+        var mask = 'linear-gradient(180deg, transparent 0%, transparent ' + pTop + '%, rgba(0,0,0,0.18) ' + pMid + '%, #000 ' + pBot + '%, #000 100%)';
+        sw.el.style.webkitMaskImage = mask;
+        sw.el.style.maskImage = mask;
+
+        // Continuous stream of sand particles along the advancing erosion front
+        var edgeY = rect.top + p * rect.height;
+        var pCount = Math.min(28, Math.max(6, Math.floor(rect.width / 45)));
+        spawnErosionLineParticles(rect.left, rect.right, edgeY, isLight, pCount);
+
+        if(p >= 1){
+          // When completely eroded, collapse empty space smoothly
+          sw.el.style.webkitMaskImage = 'none';
+          sw.el.style.maskImage = 'none';
+          sw.el.style.opacity = '0';
+          sw.el.style.pointerEvents = 'none';
+          collapseLayerSmooth(sw.el);
+          sweeps.splice(s, 1);
+          s--;
+          if(sw.onDone) sw.onDone();
+        }
+      }
+
+      // 2. Shockwaves
       for(var w = 0; w < waves.length; w++){
         var wv = waves[w];
         wv.r += wv.speed;
@@ -2799,7 +2825,7 @@ type &quot;%RNLIST%&quot;">复制</button></div>
         ctx.restore();
       }
 
-      // 2. Dense Particles
+      // 3. Dense Particles
       ctx.font = '10px ui-monospace, Consolas, monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -2834,7 +2860,7 @@ type &quot;%RNLIST%&quot;">复制</button></div>
         }
       }
 
-      if(active && (parts.length || waves.length || timers.length)){
+      if(active && (parts.length || waves.length || sweeps.length || timers.length)){
         raf = requestAnimationFrame(frame);
       }
     }
@@ -2843,12 +2869,7 @@ type &quot;%RNLIST%&quot;">复制</button></div>
       if(active) return;
       active = true;
       timers = [];
-
-      if(motion.matches){
-        document.body.classList.add('page-gone');
-        hint.hidden = false;
-        return;
-      }
+      sweeps = [];
 
       fit();
       parts = [];
@@ -2864,31 +2885,44 @@ type &quot;%RNLIST%&quot;">复制</button></div>
       // 1. Immediate energetic radial shockwave at button location
       spawnButtonShockwave(cx, cy);
 
-      // 2. Strictly from top to bottom: segment by segment collapse & fill-in ("从上往下分段平滑补位消失")
+      // 2. Progressive sand erosion sweep: from top to bottom
       var layers = Array.from(document.querySelectorAll('.dissolve-layer'));
-      var hero = document.querySelector('.hero');
-      var stepDelay = 320; // 320ms interval between sequential segments
+      layers.sort(function(a, b){
+        return a.getBoundingClientRect().top - b.getBoundingClientRect().top;
+      });
+
+      var stagger = 210; // 210ms stagger between progressive sweep waves
+      var maxWait = 0;
 
       layers.forEach(function(el, idx){
+        var rect = el.getBoundingClientRect();
+        // Dynamic duration based on element height
+        var dur = Math.min(650, Math.max(340, Math.round(rect.height * 1.05 + 220)));
+        var delay = idx * stagger;
+        maxWait = Math.max(maxWait, delay + dur);
+
         var t = setTimeout(function(){
           if(!active) return;
-          var rect = el.getBoundingClientRect();
-          // Spawn dense particle cloud along the dissolving segment
-          spawnLayerParticles(rect);
-          // Smoothly collapse height/margins: lower elements slide up to fill space ("平滑补位")
-          collapseLayerSmooth(el);
+          sweeps.push({
+            el: el,
+            startTime: performance.now(),
+            duration: dur
+          });
 
-          if(el.id === 'install' && hero){
-            hero.style.transition = 'padding .56s cubic-bezier(.22, 1, .36, 1)';
-            hero.style.paddingTop = '0px';
-            hero.style.paddingBottom = '0px';
+          if(el.id === 'install'){
+            var hero = document.querySelector('.hero');
+            if(hero){
+              hero.style.transition = 'padding .48s cubic-bezier(.22, 1, .36, 1)';
+              hero.style.paddingTop = '0px';
+              hero.style.paddingBottom = '0px';
+            }
           }
-        }, 120 + idx * stepDelay);
+        }, delay);
         timers.push(t);
       });
 
-      // 3. Settle into void after all layers have collapsed and particles settled
-      var totalTime = 120 + layers.length * stepDelay + 650;
+      // 3. Settle into void after all layers have eroded and particles settled
+      var totalTime = maxWait + 600;
       var endTimer = setTimeout(function(){
         if(active){
           document.body.classList.add('page-gone');
@@ -2904,6 +2938,7 @@ type &quot;%RNLIST%&quot;">复制</button></div>
       active = false;
       timers.forEach(clearTimeout);
       timers = [];
+      sweeps = [];
       cancelAnimationFrame(raf);
       parts = [];
       waves = [];
